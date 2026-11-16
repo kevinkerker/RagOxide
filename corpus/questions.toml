@@ -1,0 +1,1137 @@
+# Question catalogue for measuring retrieval and citations (ADR 0005, ADR 0007).
+# 50 questions on the documents in documents/, about half German, half English.
+# Checked by verify_questions.py. Overview, sample and how to add a question: README.md.
+#
+# Field names and fixed values are English; questions, answers and quotes are in
+# the language of the question or document. Only single-line strings are used.
+#
+# [[questions]]
+#   id             "de-NN" or "en-NN", unique; the prefix is the language of the question
+#   language       "de" | "en"
+#   question       wording as an office user would ask it, deliberately not the wording of the source
+#   answerable     true | false; false means the corpus does not answer the question and the
+#                  expected behaviour is to say so instead of inventing an answer
+#   kind           "fact"          answer in running text
+#                  "table_value"   answer is a value in a table
+#                  "multi_part"    answer needs two or more passages (see part below)
+#                  "unanswerable"  answerable = false
+#   features       any of: scan (evidence on a scanned page), scan_table (value in a table on a scan,
+#                  known parser weakness, ADR 0031), multi_column, digital_table (table in a born-digital
+#                  document, office file or HTML), office, footnote, speaker_notes, merged_cells,
+#                  broken_text_layer, parallel_text (the same passage also exists in the other-language
+#                  edition), cross_document (parts in different documents), multiple_locations (several
+#                  equally valid places in one part), compound, inflection, synonym, abbreviation
+#                  (how the question's wording differs from the source)
+#   answer         expected answer in one sentence; for unanswerable questions what a correct reply says
+#   shared_terms   content words that occur unchanged (as whole words, case-insensitive) in the question
+#                  and in at least one quote; [] if none
+#   term_variants  "question form -> source form" for words the question has only in another form:
+#                  inflection, other compound split, synonym, abbreviation, or a word that only occurs
+#                  in a table header or title next to the quote
+#   notes          optional: distractors, limits of the evidence
+#
+# [[questions.evidence]]  answerable questions only, at least one
+#   part           1, 2, ...: every part is needed for the answer; entries with the same part are
+#                  alternatives, any one of them is enough
+#   document       id from manifest.toml
+#   anchor, by format of the document (ADR 0010):
+#     page           pdf, jpeg: 1-based physical page in the file (not the printed page number)
+#     slide          pptx: 1-based slide number
+#     sheet, cells   xlsx: sheet name and A1 cell range of the row(s) holding the value
+#     heading_path   docx, html, markdown: section headings from outermost to innermost, without the
+#                    document title and without numbering
+#   quote          verbatim excerpt of the original as it is displayed (scans transcribed from the page
+#                  image, line-break hyphenation undone, table cells separated by " | ")
+#   parallel       optional, true: same passage in the other-language edition of a parallel text
+#
+# [[questions.near_miss]]  unanswerable questions only, at least one
+#   document, anchor, quote as above, reason: a passage the search is likely to return although it
+#   does not answer the question; never correct evidence
+#
+# Matching rules for a measurement
+#   A search hit matches an evidence entry if the document is the same and
+#     pdf, jpeg: the hit's page (or one of its pages) equals page;
+#     pptx: the hit's slide equals slide;
+#     xlsx: same sheet and the hit's cell range overlaps cells;
+#     docx, html, markdown: every heading_path element, in order, is contained in an element of the
+#       hit's heading path after normalisation; extra elements (document title, numbering such as
+#       "8 ", clause paragraphs styled as headings) are allowed.
+#   A question counts as found if for every part at least one of its entries matches one of the first
+#   ten hits. Unanswerable questions are not part of the hit rate.
+#   Normalisation for comparing text: Unicode NFC, soft hyphens (U+00AD) removed, "|" treated as a
+#   space, runs of whitespace collapsed to one space, case-folded for heading comparison.
+
+schema_version = 1
+
+# ---------------------------------------------------------------- German ---
+
+[[questions]]
+id = "de-01"
+language = "de"
+question = "Können Bundestagsabgeordnete für das, was sie im Plenum sagen, vor Gericht gestellt werden?"
+answerable = true
+kind = "fact"
+features = ["inflection", "synonym", "compound"]
+answer = "Nein: Wegen Abstimmungen und Äußerungen im Bundestag oder in seinen Ausschüssen dürfen Abgeordnete zu keiner Zeit gerichtlich oder dienstlich verfolgt werden, ausgenommen verleumderische Beleidigungen (Art. 46 Abs. 1 GG)."
+shared_terms = []
+term_variants = ["Bundestagsabgeordnete -> Abgeordneter, im Bundestage", "Gericht -> gerichtlich", "sagen -> Äußerung", "Plenum -> im Bundestage"]
+
+[[questions.evidence]]
+part = 1
+document = "de-grundgesetz-bundestag-gesetze-77abca2"
+heading_path = ["III. - Der Bundestag", "Art 46"]
+quote = "Ein Abgeordneter darf zu keiner Zeit wegen seiner Abstimmung oder wegen einer Äußerung, die er im Bundestage oder in einem seiner Ausschüsse getan hat, gerichtlich oder dienstlich verfolgt oder sonst außerhalb des Bundestages zur Verantwortung gezogen werden. Dies gilt nicht für verleumderische Beleidigungen."
+
+[[questions]]
+id = "de-02"
+language = "de"
+question = "Wie viele neue Schulden darf der Bund laut Schuldenbremse pro Jahr machen?"
+answerable = true
+kind = "fact"
+features = ["synonym", "compound", "multiple_locations"]
+answer = "Grundsätzlich Kredite von höchstens 0,35 % des nominalen Bruttoinlandsprodukts; hinzu kommen eine konjunkturelle Komponente und Ausnahmen bei Naturkatastrophen und außergewöhnlichen Notsituationen (Art. 109 Abs. 3, Art. 115 Abs. 2 GG)."
+shared_terms = []
+term_variants = ["Schulden -> Einnahmen aus Krediten", "Schuldenbremse -> kommt im Text nicht vor", "pro Jahr -> jährlichen Nettokreditaufnahme (Art. 115, nach dem Zitat)"]
+notes = "Die Wikipedia-Seite nennt die Schuldenbremse mehrfach, aber keinen Wert; sie ist kein Beleg."
+
+[[questions.evidence]]
+part = 1
+document = "de-grundgesetz-bundestag-gesetze-77abca2"
+heading_path = ["X. - Das Finanzwesen", "Art 115"]
+quote = "Einnahmen und Ausgaben sind grundsätzlich ohne Einnahmen aus Krediten auszugleichen. Diesem Grundsatz ist entsprochen, wenn die Einnahmen aus Krediten 0,35 vom Hundert im Verhältnis zum nominalen Bruttoinlandsprodukt nicht überschreiten."
+
+[[questions.evidence]]
+part = 1
+document = "de-grundgesetz-bundestag-gesetze-77abca2"
+heading_path = ["X. - Das Finanzwesen", "Art 109"]
+quote = "Die nähere Ausgestaltung regelt für den Haushalt des Bundes Artikel 115 mit der Maßgabe, dass Satz 1 entsprochen ist, wenn die Einnahmen aus Krediten 0,35 vom Hundert im Verhältnis zum nominalen Bruttoinlandsprodukt nicht überschreiten."
+
+[[questions]]
+id = "de-03"
+language = "de"
+question = "Ab welchem Alter durfte man bei der ersten Bundestagswahl 1949 wählen, und ab welchem Alter darf man es heute laut Grundgesetz?"
+answerable = true
+kind = "multi_part"
+features = ["cross_document", "scan", "multi_column", "inflection", "synonym"]
+answer = "1949 mit vollendetem 21. Lebensjahr (§ 1 Wahlgesetz zum ersten Bundestag), nach Art. 38 Abs. 2 GG mit vollendetem 18. Lebensjahr."
+shared_terms = []
+term_variants = ["wählen -> Wahlberechtigt", "Alter -> Lebensjahr", "Bundestagswahl -> Wahltag"]
+notes = "Wählbar war man 1949 erst mit 25 (§ 5), heute mit Volljährigkeit; danach ist nicht gefragt."
+
+[[questions.evidence]]
+part = 1
+document = "de-bgbl-1949-nr-02-wahlgesetz"
+page = 1
+quote = "Wahlberechtigt ist, wer am Wahltag 1) deutscher Staatsangehöriger ist, 2) das einundzwanzigste Lebensjahr vollendet hat"
+
+[[questions.evidence]]
+part = 2
+document = "de-grundgesetz-bundestag-gesetze-77abca2"
+heading_path = ["III. - Der Bundestag", "Art 38"]
+quote = "Wahlberechtigt ist, wer das achtzehnte Lebensjahr vollendet hat"
+
+[[questions]]
+id = "de-04"
+language = "de"
+question = "Wie viele Sitze im ersten Bundestag standen Bayern laut Wahlgesetz zu?"
+answerable = true
+kind = "table_value"
+features = ["scan", "scan_table", "multi_column", "synonym"]
+answer = "78 Abgeordnete für Bayern einschließlich Lindau, bei insgesamt mindestens 400 Abgeordneten (§ 8 Abs. 1)."
+shared_terms = ["Bayern"]
+term_variants = ["Sitze -> Abgeordnete", "Wahlgesetz -> Titel der Seite"]
+
+[[questions.evidence]]
+part = 1
+document = "de-bgbl-1949-nr-02-wahlgesetz"
+page = 2
+quote = "Es wählen die Länder: Baden | 11 Abgeordnete | Bayern (einschl. Lindau) | 78"
+
+[[questions]]
+id = "de-05"
+language = "de"
+question = "Gab es bei der Bundestagswahl 1949 schon eine Fünfprozenthürde?"
+answerable = true
+kind = "fact"
+features = ["scan", "multi_column", "compound", "synonym"]
+answer = "Ja, aber je Land: Parteien unter 5 % der gültigen Stimmen im Land wurden bei der Mandatsverteilung nicht berücksichtigt, außer sie hatten in einem Wahlkreis des Landes ein Mandat gewonnen (§ 10 Abs. 4 und 5)."
+shared_terms = []
+term_variants = ["Fünfprozenthürde -> fünf vom Hundert der gültigen Stimmen", "Bundestagswahl 1949 -> Titel der Seite"]
+notes = "Die Wikipedia-Seite spricht oft von der Fünf-Prozent-Hürde, aber für 2025; das ist ein Ablenker."
+
+[[questions.evidence]]
+part = 1
+document = "de-bgbl-1949-nr-02-wahlgesetz"
+page = 2
+quote = "Parteien, deren Gesamtstimmenzahl weniger als fünf vom Hundert der gültigen Stimmen im Lande beträgt, werden bei der Errechnung und Zuteilung der Mandate nach Absatz 1—3 nicht berücksichtigt."
+
+[[questions]]
+id = "de-06"
+language = "de"
+question = "Welches Musikstück wurde zur Eröffnung der allerersten Bundestagssitzung 1949 gespielt?"
+answerable = true
+kind = "fact"
+features = ["scan", "multi_column", "compound", "synonym"]
+answer = "Die Ouvertüre „Weihe des Hauses“, Opus 124, von Ludwig van Beethoven; die Sitzung begann um 16.05 Uhr."
+shared_terms = []
+term_variants = ["Bundestagssitzung -> Sitzung", "Eröffnung -> eingeleitet", "Musikstück -> Ouvertüre"]
+
+[[questions.evidence]]
+part = 1
+document = "de-bundestag-plenarprotokoll-01-001"
+page = 1
+quote = "Die Sitzung wird um 16 Uhr 5 Minuten eingeleitet mit der Ouvertüre „Weihe des Hauses“, Opus 124 von Ludwig van Beethoven."
+
+[[questions]]
+id = "de-07"
+language = "de"
+question = "Mit wie vielen Stimmen wurde 1949 der erste Bundestagspräsident gewählt?"
+answerable = true
+kind = "fact"
+features = ["scan", "multi_column", "compound", "inflection"]
+answer = "Dr. Köhler erhielt 346 der 402 abgegebenen Stimmen; Böhm bekam 15, 41 Stimmzettel waren leer."
+shared_terms = ["Stimmen"]
+term_variants = ["gewählt -> Wahl", "Bundestagspräsident -> Präsident (nächster Absatz: Amt des ersten Präsidenten des ersten deutschen Bundestags)"]
+
+[[questions.evidence]]
+part = 1
+document = "de-bundestag-plenarprotokoll-01-001"
+page = 3
+quote = "Bei der Wahl haben erhalten: Herr Dr. Köhler 346 Stimmen, Herr Böhm 15 Stimmen. 41 Stimmzettel waren nicht beschrieben; das sind also Stimmenthaltungen."
+
+[[questions]]
+id = "de-08"
+language = "de"
+question = "Wer hat 1949 und wer 2025 die erste Sitzung des neu gewählten Bundestags geleitet, und nach welcher Regel wurde das jeweils entschieden?"
+answerable = true
+kind = "multi_part"
+features = ["cross_document", "scan", "multi_column", "multiple_locations", "inflection", "synonym"]
+answer = "1949 eröffnete Alterspräsident Löbe als das an Jahren älteste Mitglied (alter Brauch); 2025 leitete Gregor Gysi die Sitzung, weil nach § 1 Abs. 2 der Geschäftsordnung das am längsten dem Bundestag angehörende Mitglied den Vorsitz übernimmt."
+shared_terms = ["Sitzung"]
+term_variants = ["Bundestags -> Bundestages, Bundestag", "geleitet -> eröffnet, den Vorsitz übernimmt", "Regel -> Brauch, Geschäftsordnung"]
+notes = "Die Wikipedia-Seite (Abschnitt Termin) nennt Gysi als Alterspräsidenten, aber nicht die Regel; sie belegt Teil 2 nur halb und ist deshalb nicht aufgeführt."
+
+[[questions.evidence]]
+part = 1
+document = "de-bundestag-plenarprotokoll-01-001"
+page = 1
+quote = "Alterspräsident Löbe: Meine Damen und Herren! Abgeordnete des Deutschen Bundestags! Nach einem alten Brauch wird die erste Sitzung eines neuen Parlaments durch das an Jahren älteste Mitglied des Hauses eröffnet."
+
+[[questions.evidence]]
+part = 2
+document = "de-bundestag-plenarprotokoll-21-001"
+page = 3
+quote = "§ 1 Absatz 2 der Geschäftsordnung des Deutschen Bundestages sieht vor, dass das am längsten dem Bundestag angehörende Mitglied, das hierzu bereit ist, den Vorsitz übernimmt, bis der Deutsche Bundestag eine Präsidentin oder einen Präsidenten gewählt hat."
+
+[[questions.evidence]]
+part = 2
+document = "de-bundestag-plenarprotokoll-21-001"
+page = 4
+quote = "Nicht mal der Älteste durfte eröffnen, sondern der, der am längsten hier im Bundestag sitzt."
+
+[[questions]]
+id = "de-09"
+language = "de"
+question = "Wie viele Gegenstimmen bekam Julia Klöckner bei ihrer Wahl zur Bundestagspräsidentin?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "digital_table", "multiple_locations", "synonym", "compound"]
+answer = "204 Neinstimmen, bei 382 Jastimmen, 31 Enthaltungen und 5 ungültigen von 622 abgegebenen Stimmzetteln."
+shared_terms = ["Julia", "Klöckner"]
+term_variants = ["Gegenstimmen -> Mit Nein haben gestimmt, Neinstimmen", "Bundestagspräsidentin -> Präsidentin des 21. Deutschen Bundestages"]
+
+[[questions.evidence]]
+part = 1
+document = "de-bundestag-plenarprotokoll-21-001"
+page = 21
+quote = "Mit Nein haben gestimmt 204 Abgeordnete. (Beifall bei Abgeordneten der AfD) Es gab 31 Enthaltungen. Die Abgeordnete Julia Klöckner hat die erforderliche Mehrheit von mindestens 316 Stimmen erreicht."
+
+[[questions.evidence]]
+part = 1
+document = "de-bundestag-plenarprotokoll-21-001"
+page = 29
+quote = "Julia Klöckner | 382 | 204 | 31 | 5"
+
+[[questions]]
+id = "de-10"
+language = "de"
+question = "Welches historische Ereignis fiel auf denselben Kalendertag wie die erste Sitzung des 21. Bundestags?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "synonym", "inflection"]
+answer = "Die Unterzeichnung der Römischen Verträge: Der 21. Bundestag konstituierte sich an einem 25. März, ihrem Jahrestag."
+shared_terms = []
+term_variants = ["Bundestags -> Bundestag", "erste Sitzung -> konstituiert", "Kalendertag -> 25. März, Jahrestag"]
+
+[[questions.evidence]]
+part = 1
+document = "de-bundestag-plenarprotokoll-21-001"
+page = 25
+quote = "Es ist ein schöner Zufall, dass sich der 21. Bundestag an einem 25. März konstituiert, dem Jahrestag der Unterzeichnung der Römischen Verträge."
+
+[[questions]]
+id = "de-11"
+language = "de"
+question = "Welchen Zweitstimmenanteil holte die Linke 2025 in Berlin?"
+answerable = true
+kind = "table_value"
+features = ["digital_table", "compound"]
+answer = "19,9 % der Zweitstimmen (Erststimmen 21,8 %)."
+shared_terms = ["Berlin"]
+term_variants = ["Zweitstimmenanteil -> Tabellentitel Erst- (1.) und Zweit (2.)-stimmenanteile", "Linke -> Spaltenkopf Linke"]
+
+[[questions.evidence]]
+part = 1
+document = "de-wikipedia-bundestagswahl-2025-rev-271660576"
+heading_path = ["Ergebnis", "Ergebnisse nach Bundesländern"]
+quote = "Berlin | 2.442.042 | 1.961.177 | 80,3 | 21,3 | 18,3 | 15,2 | 15,2 | 16,8 | 15,1 | 17,4 | 16,8 | 21,8 | 19,9"
+
+[[questions]]
+id = "de-12"
+language = "de"
+question = "Wie viele Direktkandidaten haben 2025 ihren Wahlkreis gewonnen und kamen trotzdem nicht in den Bundestag?"
+answerable = true
+kind = "fact"
+features = ["multiple_locations", "compound", "synonym"]
+answer = "23 Wahlkreissieger; nur 276 von 299 zogen ein, weil ihre Direktmandate nicht durch Zweitstimmen gedeckt waren."
+shared_terms = ["2025", "Bundestag"]
+term_variants = ["Wahlkreis gewonnen -> Wahlkreissieger, Erststimmengewinner", "Direktkandidaten -> Direktmandat"]
+
+[[questions.evidence]]
+part = 1
+document = "de-wikipedia-bundestagswahl-2025-rev-271660576"
+heading_path = ["Ergebnis", "Erststimmengewinner ohne Zweitstimmendeckung"]
+quote = "Bei der Wahl 2025 zogen daher lediglich 276 von 299 Wahlkreissiegern durch ein Direktmandat in den Bundestag ein"
+
+[[questions.evidence]]
+part = 1
+document = "de-wikipedia-bundestagswahl-2025-rev-271660576"
+heading_path = ["Wahlrecht"]
+quote = "Diese Änderung führte zu 23 Erststimmengewinnern ohne Zweitstimmendeckung."
+
+[[questions.evidence]]
+part = 1
+document = "de-wikipedia-bundestagswahl-2025-rev-271660576"
+heading_path = ["Ergebnis", "Überblick"]
+quote = "Anstelle der 23 nun nichtberücksichtigten Wahlkreissieger sind Listenkandidaten anderer Länder in den Bundestag eingezogen."
+
+[[questions]]
+id = "de-13"
+language = "de"
+question = "Warum brauchte Friedrich Merz zwei Anläufe, um Kanzler zu werden?"
+answerable = true
+kind = "fact"
+features = ["compound", "synonym"]
+answer = "Im ersten Wahlgang am 6. Mai 2025 stimmten nur 310 Abgeordnete für ihn, nötig waren 316; im zweiten Wahlgang wurde er mit 325 Stimmen gewählt."
+shared_terms = ["Friedrich", "Merz"]
+term_variants = ["Kanzler -> Bundeskanzler", "zwei Anläufe -> zweiten Wahlgang"]
+
+[[questions.evidence]]
+part = 1
+document = "de-wikipedia-bundestagswahl-2025-rev-271660576"
+heading_path = ["Regierungsbildung"]
+quote = "Bei der Wahl des Bundeskanzlers am 6. Mai erhielt Friedrich Merz erst im zweiten Wahlgang die notwendige Mehrheit der Stimmen. Im ersten Wahlgang stimmten nur 310 Abgeordnete für ihn, notwendig waren jedoch mindestens 316 Ja-Stimmen."
+
+[[questions]]
+id = "de-14"
+language = "de"
+question = "Wie kurzfristig können wir als Datennutzer aus dem Nutzungsvertrag aussteigen?"
+answerable = true
+kind = "fact"
+features = ["office", "inflection", "compound", "synonym"]
+answer = "Ordentlich mit zwei Wochen Kündigungsfrist zum Monatsende, mindestens in Textform."
+shared_terms = []
+term_variants = ["Datennutzer -> Datennutzenden", "Nutzungsvertrag -> Nutzungsberechtigung", "aussteigen -> gekündigt, Kündigungsfrist"]
+notes = "Ablenker im selben Abschnitt Nutzungsdauer: Die Datengebende Stelle kann mit 4 Wochen kündigen, das FDZ entzieht Zugänge mit 2 Wochen Frist."
+
+[[questions.evidence]]
+part = 1
+document = "de-zenodo-10409864-mustervertrag-datennutzung-v3"
+heading_path = ["Nutzungsdauer", "Kündigung durch die Datennutzenden"]
+quote = "Die auf sie bezogene Nutzungsberechtigung kann von den Datennutzenden ordentlich mit zwei Wochen Kündigungsfrist zum Monatsende gekündigt werden."
+
+[[questions]]
+id = "de-15"
+language = "de"
+question = "Wie lange hebt das FDZ die Daten nach dem Ende der Nutzung auf?"
+answerable = true
+kind = "fact"
+features = ["office", "synonym", "compound"]
+answer = "Mindestens 10 Jahre ab Ende der vertraglichen Nutzungsdauer, damit gute wissenschaftliche Praxis überprüfbar bleibt, sofern das FDZ die Rechte dazu hat (Ankreuzoption im Mustervertrag)."
+shared_terms = ["FDZ", "Ende"]
+term_variants = ["aufheben -> Archivierung", "Daten -> Datenbasis", "Nutzung -> Nutzungsdauer"]
+
+[[questions.evidence]]
+part = 1
+document = "de-zenodo-10409864-mustervertrag-datennutzung-v3"
+heading_path = ["Datenschutzrechtliche Pflichten und Garantien", "Dauer / Speicherbegrenzung"]
+quote = "Das FDZ verpflichtet sich zur Archivierung der Datenbasis für mindestens 10 Jahre ab Ende der vertraglichen Nutzungsdauer"
+
+[[questions]]
+id = "de-16"
+language = "de"
+question = "Was kostet es, sich die Daten per Post schicken zu lassen?"
+answerable = true
+kind = "fact"
+features = ["office", "inflection", "synonym"]
+answer = "Im Beispiel-Kostenmodell 30 Euro brutto Aufwandspauschale; Download und Dokumentation sind kostenlos."
+shared_terms = []
+term_variants = ["Post -> postalische", "schicken -> Zusendung", "Daten -> Datenbasis", "kostet -> Aufwandspauschale, Kosten"]
+
+[[questions.evidence]]
+part = 1
+document = "de-zenodo-10409864-mustervertrag-datennutzung-v3"
+heading_path = ["Anhang Kostenmodell"]
+quote = "Für die postalische Zusendung der Datenbasis fällt eine Aufwandspauschale in Höhe von 30 Euro brutto an."
+
+[[questions]]
+id = "de-17"
+language = "de"
+question = "Wie viel Strafzoll pro Tonne zahlt Biodiesel von PT Musim Mas vorerst, und wie lange gilt diese Regelung?"
+answerable = true
+kind = "multi_part"
+features = ["digital_table", "parallel_text", "synonym", "compound"]
+answer = "Vorläufig 24,99 EUR je Tonne Nettogewicht (TARIC-Zusatzcode B787); Artikel 1 der Verordnung (EU) Nr. 490/2013 gilt sechs Monate."
+shared_terms = ["PT", "Musim", "Mas", "gilt"]
+term_variants = ["Strafzoll -> Antidumpingzoll, Vorläufiger Zollsatz (Tabellenkopf)", "pro Tonne -> in EUR/Tonne Nettogewicht (Tabellenkopf)", "wie lange -> Zeitraum von sechs Monaten"]
+notes = "Seite 25 nennt den Zollsatz in Prozent (2,8 %), bevor Art. 1 ihn in EUR je Tonne umrechnet; das beantwortet die Frage nach dem Betrag pro Tonne nicht."
+
+[[questions.evidence]]
+part = 1
+document = "de-eu-amtsblatt-l-141-2013"
+page = 26
+quote = "PT Musim Mas, Medan | 24,99 | B787"
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-official-journal-l-141-2013"
+page = 26
+quote = "PT Musim Mas, Medan | 24,99 | B787"
+parallel = true
+
+[[questions.evidence]]
+part = 2
+document = "de-eu-amtsblatt-l-141-2013"
+page = 27
+quote = "Artikel 1 dieser Verordnung gilt für einen Zeitraum von sechs Monaten."
+
+[[questions.evidence]]
+part = 2
+document = "en-eu-official-journal-l-141-2013"
+page = 27
+quote = "Article 1 of this Regulation shall apply for a period of six months."
+parallel = true
+
+[[questions]]
+id = "de-18"
+language = "de"
+question = "Wofür haben Tschechien und Polen 2013 eine Ausnahme bei der Mehrwertsteuer bekommen?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "parallel_text", "synonym", "compound"]
+answer = "Für Bau und Instandhaltung von Grenzbrücken und gemeinsamen Straßenabschnitten an der tschechisch-polnischen Grenze, die für die Mehrwertsteuer jeweils ganz einem der beiden Staaten zugerechnet werden (Durchführungsbeschluss 2013/237/EU)."
+shared_terms = ["Polen"]
+term_variants = ["Tschechien -> Tschechische Republik", "Ausnahme -> abweichende Regelung", "Mehrwertsteuer -> Mehrwertsteuersystem (Titel)"]
+
+[[questions.evidence]]
+part = 1
+document = "de-eu-amtsblatt-l-141-2013"
+page = 39
+quote = "beantragten die Tschechische Republik und die Republik Polen die Ermächtigung, bezüglich des Baus und der Instandhaltung von Grenzbrücken und gemeinsamen Straßenabschnitten zwischen den beiden Mitgliedstaaten eine von Artikel 5 der Richtlinie 2006/112/EG abweichende Regelung einzuführen."
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-official-journal-l-141-2013"
+page = 39
+quote = "the Czech Republic and the Republic of Poland requested authorisation to apply special measures derogating from Article 5 of Directive 2006/112/EC in relation to the construction and maintenance of border bridges and common road sections between the two Member States."
+parallel = true
+
+[[questions]]
+id = "de-19"
+language = "de"
+question = "Wer rückte im Mai 2013 für Estland als Ersatzmitglied in den Ausschuss der Regionen nach?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "parallel_text", "synonym", "inflection"]
+answer = "Mihkel Juhkami, Chairman des Rakvere City Council, als Stellvertreter für die verbleibende Amtszeit bis 25. Januar 2015 (Nachfolge Andres Jaadla)."
+shared_terms = ["Ausschuss", "Regionen"]
+term_variants = ["Estland -> estnischen (Titel)", "Ersatzmitglied -> Stellvertreter", "nachrücken -> Ernannt wird"]
+
+[[questions.evidence]]
+part = 1
+document = "de-eu-amtsblatt-l-141-2013"
+page = 45
+quote = "Ernannt wird für die verbleibende Amtszeit, d. h. bis zum 25. Januar 2015, zum Stellvertreter im Ausschuss der Regionen: — Herr Mihkel JUHKAMI, Chairman, Rakvere City Council."
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-official-journal-l-141-2013"
+page = 45
+quote = "The following is hereby appointed as alternate member to the Committee of the Regions for the remainder of the current term of office, which runs until 25 January 2015: — Mr Mihkel JUHKAMI, Chairman, Rakvere City Council."
+parallel = true
+
+[[questions]]
+id = "de-20"
+language = "de"
+question = "Wie viele Krankenhausbetten gab es 2025 in Bayern?"
+answerable = true
+kind = "table_value"
+features = ["office", "digital_table", "multiple_locations", "compound"]
+answer = "73 205 aufgestellte Betten in 345 Krankenhäusern."
+shared_terms = ["2025", "Bayern"]
+term_variants = ["Krankenhausbetten -> aufgestellte Betten insgesamt, Krankenhäuser"]
+notes = "Jede Tabelle der Arbeitsmappe steht zusätzlich als Langformat im Blatt csv-…; beide Stellen sind gleichwertig."
+
+[[questions.evidence]]
+part = 1
+document = "de-destatis-grunddaten-krankenhaeuser-2120611257005"
+sheet = "23111-b02"
+cells = "A7:C7"
+quote = "Bayern | 345 | 73 205"
+
+[[questions.evidence]]
+part = 1
+document = "de-destatis-grunddaten-krankenhaeuser-2120611257005"
+sheet = "csv-23111-b02"
+cells = "A21:G21"
+quote = "23111 | Grunddaten der Krankenhäuser | Bayern | aufgestellte Betten insgesamt | 2025 | Anzahl | 73205"
+
+[[questions]]
+id = "de-21"
+language = "de"
+question = "Wie viele Kaiserschnittgeburten gab es 2025 in deutschen Kliniken?"
+answerable = true
+kind = "table_value"
+features = ["office", "digital_table", "multiple_locations", "compound", "synonym"]
+answer = "211 289 Frauen entbanden 2025 im Krankenhaus per Kaiserschnitt (von 632 721 Entbindungen insgesamt)."
+shared_terms = ["2025"]
+term_variants = ["Kaiserschnittgeburten -> Kaiser-schnitt (Spaltenkopf), Kaiserschnitt", "Kliniken -> Krankenhäuser"]
+notes = "Gleicher Wert in b58 (alle Krankenhäuser) und b59 (Allgemeine Krankenhäuser), weil Sonstige Krankenhäuser keine Entbindungen haben; dazu die beiden csv-Blätter."
+
+[[questions.evidence]]
+part = 1
+document = "de-destatis-grunddaten-krankenhaeuser-2120611257005"
+sheet = "23111-b58"
+cells = "A5:G5"
+quote = "Krankenhäuser insgesamt | 1 807 | 552 | 632 721 | 1 152 | 42 876 | 211 289"
+
+[[questions.evidence]]
+part = 1
+document = "de-destatis-grunddaten-krankenhaeuser-2120611257005"
+sheet = "23111-b59"
+cells = "A5:G5"
+quote = "Krankenhäuser insgesamt | 1 452 | 552 | 632 721 | 1 152 | 42 876 | 211 289"
+
+[[questions.evidence]]
+part = 1
+document = "de-destatis-grunddaten-krankenhaeuser-2120611257005"
+sheet = "csv-23111-b58"
+cells = "A77:I77"
+quote = "23111 | Grunddaten der Krankenhäuser | Deutschland | Krankenhäuser insgesamt | Krankenhäuser insgesamt | Frauen, die im Krankenhaus entbunden haben durch Kaiserschnitt | 2025 | Anzahl | 211289"
+
+[[questions.evidence]]
+part = 1
+document = "de-destatis-grunddaten-krankenhaeuser-2120611257005"
+sheet = "csv-23111-b59"
+cells = "A172:I172"
+quote = "23111 | Grunddaten der Krankenhäuser | Deutschland | Allgemeine Krankenhäuser | Krankenhäuser insgesamt | Frauen, die im Krankenhaus entbunden haben durch Kaiserschnitt | 2025 | Anzahl | 211289"
+
+[[questions]]
+id = "de-22"
+language = "de"
+question = "Wie viel durfte 1954 in Berlin ein Spiel an einem Geldspielautomaten kosten, und wie hoch durfte der Gewinn höchstens sein?"
+answerable = true
+kind = "fact"
+features = ["scan", "multi_column", "compound", "synonym"]
+answer = "Einsatz 10 Pfennig (—,10 DM), Höchstgewinn eine Deutsche Mark; außerdem musste ein Spiel mindestens 15 Sekunden dauern (§ 13 Abs. 2, für Geräte außerhalb von Jahrmärkten und ähnlichen Veranstaltungen)."
+shared_terms = []
+term_variants = ["kosten -> Einsatz", "Gewinn höchstens -> Höchstgewinn", "Geldspielautomat -> Spielgerät"]
+
+[[questions.evidence]]
+part = 1
+document = "de-gvbl-berlin-1954-s0295"
+page = 1
+quote = "wenn der Einsatz —,10 Deutsche Mark beträgt sowie der Höchstgewinn im Betrage oder im Werte eine Deutsche Mark nicht überschreitet."
+
+[[questions]]
+id = "de-23"
+language = "de"
+question = "Was kostete 1954 eine Tonne Gießereikoks ab Zeche?"
+answerable = true
+kind = "table_value"
+features = ["scan", "scan_table", "multi_column", "abbreviation"]
+answer = "75 DM je Tonne (Körnung über 80 mm), laut Anlage b) Steinkohlenkoks, Preise ab Zeche Ruhrrevier."
+shared_terms = ["Gießereikoks"]
+term_variants = ["Tonne -> DM/t (Spaltenkopf)", "ab Zeche -> Preise ab Zeche Ruhrrevier (Überschrift der Anlage)"]
+notes = "Nicht verwechseln mit Spezialgießereikoks (82,— DM/t) in der Zeile darunter."
+
+[[questions.evidence]]
+part = 1
+document = "de-gvbl-berlin-1954-s0293"
+page = 1
+quote = "Gießereikoks | über 80 | 75,—"
+
+[[questions]]
+id = "de-24"
+language = "de"
+question = "Welchen Beruf hatte Paul Löbe laut dem Mitgliederverzeichnis des ersten Bundestags?"
+answerable = true
+kind = "table_value"
+features = ["scan", "scan_table", "synonym"]
+answer = "Chefredakteur und Lizenzträger des Telegraf (SPD, Wahlkreis Berlin)."
+shared_terms = ["Paul", "Löbe"]
+term_variants = ["Mitgliederverzeichnis -> Alphabetisches Verzeichnis der Mitglieder (Titel auf Seite 1)", "Beruf -> Angabe nach dem Namen"]
+notes = "Das Verzeichnis enthält Wohnadressen von 1949; Frage und Zitat lassen sie bewusst weg."
+
+[[questions.evidence]]
+part = 1
+document = "de-bundestag-drucksache-01-00001"
+page = 9
+quote = "Löbe, Paul, Chefredakteur, Lizenzträger des Telegraf Wkr. Berlin | SPD"
+
+[[questions]]
+id = "de-25"
+language = "de"
+question = "Wie viel Euro Diät bekommt ein Bundestagsabgeordneter im Monat?"
+answerable = false
+kind = "unanswerable"
+features = ["synonym", "compound"]
+answer = "Der Korpus nennt keinen Betrag; Art. 48 Abs. 3 GG regelt nur den Anspruch auf eine angemessene, die Unabhängigkeit sichernde Entschädigung, das Nähere ein Bundesgesetz."
+shared_terms = []
+term_variants = ["Diät -> Entschädigung", "Bundestagsabgeordneter -> Abgeordneten"]
+
+[[questions.near_miss]]
+document = "de-grundgesetz-bundestag-gesetze-77abca2"
+heading_path = ["III. - Der Bundestag", "Art 48"]
+quote = "Die Abgeordneten haben Anspruch auf eine angemessene, ihre Unabhängigkeit sichernde Entschädigung."
+reason = "Regelt den Anspruch, nennt aber keinen Betrag."
+
+[[questions]]
+id = "de-26"
+language = "de"
+question = "Wie hoch war die Wahlbeteiligung in Bayern bei der Bundestagswahl 2021?"
+answerable = false
+kind = "unanswerable"
+features = []
+answer = "Der Korpus nennt diesen Wert nicht; er enthält nur die bundesweite Beteiligung 2021 (76,35 %) und die Beteiligung in Bayern 2025 (84,3 %)."
+shared_terms = ["Bundestagswahl", "2021", "Bayern"]
+term_variants = []
+
+[[questions.near_miss]]
+document = "de-wikipedia-bundestagswahl-2025-rev-271660576"
+heading_path = ["Ausgangslage", "Vorherige Bundestagswahl"]
+quote = "An der Bundestagswahl 2021 beteiligten sich 76,35 % der wahlberechtigten Deutschen."
+reason = "Bundesweiter Wert 2021, nicht Bayern."
+
+[[questions.near_miss]]
+document = "de-wikipedia-bundestagswahl-2025-rev-271660576"
+heading_path = ["Ergebnis", "Ergebnisse nach Bundesländern"]
+quote = "Bayern | 9.481.659 | 7.996.557 | 84,3"
+reason = "Wahlbeteiligung in Bayern, aber 2025."
+
+# --------------------------------------------------------------- English ---
+
+[[questions]]
+id = "en-01"
+language = "en"
+question = "What temporary anti-dumping charge per tonne applies to biodiesel from Louis Dreyfus Commodities in Argentina?"
+answerable = true
+kind = "table_value"
+features = ["digital_table", "parallel_text", "synonym"]
+answer = "A provisional duty of EUR 69.16 per tonne net (TARIC additional code B783)."
+shared_terms = ["Louis", "Dreyfus", "Commodities"]
+term_variants = ["temporary -> provisional (column header)", "per tonne -> Euro per tonne net (column header)"]
+notes = "Page 25 gives the same company's rate as a percentage (7.2 %) before Article 1 converts it into a fixed amount per tonne; that does not answer the question per tonne."
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-official-journal-l-141-2013"
+page = 26
+quote = "Louis Dreyfus Commodities S.A., Buenos Aires | 69,16 | B783"
+
+[[questions.evidence]]
+part = 1
+document = "de-eu-amtsblatt-l-141-2013"
+page = 26
+quote = "Louis Dreyfus Commodities S.A., Buenos Aires | 69,16 | B783"
+parallel = true
+
+[[questions]]
+id = "en-02"
+language = "en"
+question = "How much money did the EU set aside for its police mission in Afghanistan and for its rule-of-law mission in Kosovo for the budget periods starting in June 2013?"
+answerable = true
+kind = "multi_part"
+features = ["multi_column", "parallel_text", "synonym", "abbreviation"]
+answer = "EUR 108 050 000 for EUPOL Afghanistan (1 June 2013 to 31 December 2014) and EUR 110 000 000 for EULEX Kosovo (15 June 2013 to 14 June 2014)."
+shared_terms = ["June", "2013"]
+term_variants = ["set aside -> financial reference amount", "police mission in Afghanistan -> EUPOL AFGHANISTAN", "rule-of-law mission in Kosovo -> EULEX KOSOVO"]
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-official-journal-l-141-2013"
+page = 47
+quote = "The financial reference amount intended to cover the expenditure related to EUPOL AFGHANISTAN for the period from 1 June 2013 until 31 December 2014 shall be EUR 108 050 000."
+
+[[questions.evidence]]
+part = 1
+document = "de-eu-amtsblatt-l-141-2013"
+page = 47
+quote = "Der als finanzieller Bezugsrahmen dienende Betrag zur Deckung der Kosten von EUPOL AFGHANISTAN für den Zeitraum vom 1. Juni 2013 bis zum 31. Dezember 2014 beläuft sich auf 108 050 000 EUR."
+parallel = true
+
+[[questions.evidence]]
+part = 2
+document = "en-eu-official-journal-l-141-2013"
+page = 49
+quote = "The financial reference amount intended to cover the expenditure of EULEX KOSOVO from 15 June 2013 until 14 June 2014 shall be EUR 110 000 000."
+
+[[questions.evidence]]
+part = 2
+document = "de-eu-amtsblatt-l-141-2013"
+page = 49
+quote = "Der als finanzieller Bezugsrahmen dienende Betrag zur Deckung der Kosten der EULEX KOSOVO vom 15. Juni 2013 bis zum 14. Juni 2014 beläuft sich auf 110 000 000 EUR."
+parallel = true
+
+[[questions]]
+id = "en-03"
+language = "en"
+question = "How many tonnes of tinned peaches and pears may Swaziland ship to the EU each year under the 2013 origin exception?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "digital_table", "parallel_text", "multiple_locations", "synonym"]
+answer = "500 tonnes per year, for 2013 and for 2014 (peach and pear preparations and fruit mixtures in juice)."
+shared_terms = ["tonnes", "pears", "Swaziland"]
+term_variants = ["peaches -> peaches, Preparations of peaches", "each year -> per year, Total annual quantity", "origin exception -> temporary derogation (from the rules of origin)", "tinned -> preparations ... in fruit juice"]
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-official-journal-l-141-2013"
+page = 57
+quote = "Accordingly, a temporary derogation for two years should be granted to Swaziland in respect of 500 tonnes per year of peaches, pears and mixtures of peach and/or pear and/or pineapple in fruit juice"
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-official-journal-l-141-2013"
+page = 58
+quote = "Preparations of pears | 1.1.2013 to 31.12.2013 | 500"
+
+[[questions.evidence]]
+part = 1
+document = "de-eu-amtsblatt-l-141-2013"
+page = 57
+quote = "Dementsprechend sollte Swasiland eine vorübergehende Ausnahmeregelung für zwei Jahre für eine Gesamtmenge von 500 Tonnen Pfirsichen, Birnen und Mischungen von Pfirsichen und/oder Birnen und/oder Ananas in Fruchtsaft"
+parallel = true
+
+[[questions.evidence]]
+part = 1
+document = "de-eu-amtsblatt-l-141-2013"
+page = 58
+quote = "Zubereitungen von Birnen | 1.1.2013 bis 31.12.2013 | 500"
+parallel = true
+
+[[questions]]
+id = "en-04"
+language = "en"
+question = "How much did the Council require Cyprus to save on housing programmes in 2013?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "parallel_text", "synonym"]
+answer = "At least EUR 36 million less spending on housing schemes, as part of additional permanent measures of at least EUR 351 million in 2013."
+shared_terms = ["Cyprus", "housing"]
+term_variants = ["save -> reduction of expenditure", "programmes -> schemes"]
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-official-journal-l-141-2013"
+page = 37
+quote = "Cyprus shall adopt the following measures: (a) on the expenditure side, its budget shall include the reduction of expenditure on housing schemes by at least EUR 36 million"
+
+[[questions.evidence]]
+part = 1
+document = "de-eu-amtsblatt-l-141-2013"
+page = 37
+quote = "Zypern erlässt folgende Maßnahmen: a) Auf der Ausgabenseite werden in seinem Haushalt die Ausgaben für Wohnungsbaumaßnahmen um mindestens 36 Mio. EUR verringert"
+parallel = true
+
+[[questions]]
+id = "en-05"
+language = "en"
+question = "Which of the classic PDF table tools did best when tables were extracted together with their content, and how does TableFormer compare?"
+answerable = true
+kind = "table_value"
+features = ["digital_table", "multi_column", "synonym"]
+answer = "Camelot with a TEDS of 73.0 (all tables), ahead of Tabula 67.9, Acrobat Pro 65.3 and Traprange 55.4; TableFormer reaches 93.6."
+shared_terms = ["TableFormer"]
+term_variants = ["classic PDF table tools -> Tabula, Traprange, Camelot, Acrobat Pro", "extracted together with their content -> structure with content retrieved (caption)"]
+
+[[questions.evidence]]
+part = 1
+document = "en-arxiv-2203-01017v2-tableformer"
+page = 7
+quote = "Camelot | 80.0 | 66.0 | 73.0 | Acrobat Pro | 68.9 | 61.8 | 65.3 | EDD | 91.2 | 85.4 | 88.3 | TableFormer | 95.4 | 90.1 | 93.6"
+
+[[questions]]
+id = "en-06"
+language = "en"
+question = "How many tables does FinTabNet contain, and in what file format are they delivered?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "digital_table", "multiple_locations", "synonym"]
+answer = "112k tables, delivered as single-page PDF documents."
+shared_terms = ["FinTabNet", "tables"]
+term_variants = ["file format -> single-page PDF documents"]
+
+[[questions.evidence]]
+part = 1
+document = "en-arxiv-2203-01017v2-tableformer"
+page = 3
+quote = "The FinTabNet dataset contains 112k tables delivered as single-page PDF documents with mixed table structures and text content."
+
+[[questions.evidence]]
+part = 1
+document = "en-arxiv-2203-01017v2-tableformer"
+page = 4
+quote = "FinTabNet | 112k | PDF"
+
+[[questions]]
+id = "en-07"
+language = "en"
+question = "To what resolution are table pictures scaled before they go into the network?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "synonym"]
+answer = "To 448 × 448 pixels; the feature map is 28 × 28 (inputs up to 1024 pixels wide and high are accepted)."
+shared_terms = []
+term_variants = ["pictures -> images", "scaled -> resized", "resolution -> 448*448 pixels"]
+
+[[questions.evidence]]
+part = 1
+document = "en-arxiv-2203-01017v2-tableformer"
+page = 6
+quote = "The input images are resized to 448*448 pixels and the feature map has a dimension of 28*28."
+
+[[questions]]
+id = "en-08"
+language = "en"
+question = "By how much did the new model beat the previous best result on complex tables?"
+answerable = true
+kind = "fact"
+features = ["multi_column", "digital_table", "multiple_locations", "synonym"]
+answer = "TEDS on complex PubTabNet tables rose from 88.7 % (EDD) to 95 % (TableFormer)."
+shared_terms = ["complex", "tables"]
+term_variants = ["new model -> TableFormer", "previous best -> previous state-of-the-art, EDD", "result -> tree-editing-distance-score (TEDS)"]
+
+[[questions.evidence]]
+part = 1
+document = "en-arxiv-2203-01017v2-tableformer"
+page = 1
+quote = "This upgrade improves significantly the previous state-of-the-art tree-editing-distance-score (TEDS) from 91% to 98.5% on simple tables and from 88.7% to 95% on complex tables."
+
+[[questions.evidence]]
+part = 1
+document = "en-arxiv-2203-01017v2-tableformer"
+page = 7
+quote = "EDD | PTN | 91.1 | 88.7 | 89.9 | GTE | PTN | - | - | 93.01 | TableFormer | PTN | 98.5 | 95.0 | 96.75"
+
+[[questions]]
+id = "en-09"
+language = "en"
+question = "Which member states had already hit their own 2030 job-rate goal by the end of 2024?"
+answerable = true
+kind = "fact"
+features = ["footnote", "synonym"]
+answer = "Eight countries: the Netherlands, Czechia, Cyprus, Denmark, Estonia, Ireland, Poland and Slovakia (six a year earlier)."
+shared_terms = []
+term_variants = ["hit -> met or surpassed", "job-rate goal -> national employment target", "member states -> countries"]
+notes = "The country list is footnote 10 to the sentence 'Notably, eight countries either met or surpassed their national employment target for 2030' on the same page; page 5 only gives the number eight."
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-esde-quarterly-review-ke0125067enn"
+page = 7
+quote = "The Netherlands, Czechia, Cyprus, Denmark, Estonia, Ireland, Poland, and Slovakia."
+
+[[questions]]
+id = "en-10"
+language = "en"
+question = "In late 2024, how many percentage points separated the share of men and women in work?"
+answerable = true
+kind = "fact"
+features = ["synonym", "abbreviation"]
+answer = "10.0 percentage points in Q4 2024 (men 80.9 %, women 70.9 %, aged 20 to 64), up from 9.9 points."
+shared_terms = ["men", "women"]
+term_variants = ["share in work -> employment rate", "percentage points -> pp", "separated -> gender employment gap"]
+notes = "Distractor on page 8: the unemployment gender gap of 0.5 pp."
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-esde-quarterly-review-ke0125067enn"
+page = 7
+quote = "the employment rate for women aged 20 to 64 was at 70.9%, down by 0.1 pp from Q3, causing a slight expansion in the gender employment gap quarter-on-quarter from 9.9 pp to 10.0 pp, as men’s employment rate remained steady at 80.9%."
+
+[[questions]]
+id = "en-11"
+language = "en"
+question = "How high was the NEET rate among under-30s at year-end 2024, and which countries were at the extremes?"
+answerable = true
+kind = "fact"
+features = ["abbreviation", "synonym"]
+answer = "11.1 % of 15 to 29-year-olds, unchanged on Q4 2023; the report names the Netherlands (5.1 %) and Romania (19.9 %)."
+shared_terms = ["NEET"]
+term_variants = ["under-30s -> young people aged 15-29", "year-end 2024 -> At the end of 2024, Q4 2024", "extremes -> strong variations"]
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-esde-quarterly-review-ke0125067enn"
+page = 8
+quote = "At the end of 2024, 11.1% of young people aged 15-29 were neither in employment nor in education and training (NEET), at the same level as in Q4 2023. Nonetheless, there were strong variations among EU countries, the Netherlands reporting a rate of 5.1% in Q4 2024 and Romania a rate of 19.9%."
+
+[[questions]]
+id = "en-12"
+language = "en"
+question = "How many people in the EU work part-time but would like to work more?"
+answerable = true
+kind = "fact"
+features = ["synonym", "inflection"]
+answer = "About 6.5 million aged 20 to 64 in 2023, roughly a fifth of all part-timers and slightly more than 3 % of total employment."
+shared_terms = ["EU"]
+term_variants = ["work part-time but would like to work more -> underemployed", "part-time -> part-timers", "people -> workers"]
+notes = "Pages 5 and 13 also say 'about a fifth', but only page 13 gives the number."
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-esde-quarterly-review-ke0125067enn"
+page = 13
+quote = "In 2023, the underemployed represented 6.5 million workers aged 20-64 across the EU, accounting for about a fifth of all part-timers (or slightly more than 3% of the overall employment)."
+
+[[questions]]
+id = "en-13"
+language = "en"
+question = "Among part-time workers, are mothers or fathers more likely to want more working hours?"
+answerable = true
+kind = "fact"
+features = ["digital_table", "multiple_locations", "synonym"]
+answer = "Fathers: 16 % of part-time mothers of young children are underemployed, while more than a quarter of male part-timers, and somewhat more among fathers, want longer hours; the model (2013-2023) predicts 0.344 for fathers against 0.181 for mothers."
+shared_terms = ["mothers", "fathers"]
+term_variants = ["want more working hours -> underemployed, would like to work longer hours", "part-time workers -> working part-time, part-timers"]
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-esde-quarterly-review-ke0125067enn"
+page = 17
+quote = "These time constraints make underemployment less common among women working part-time (18% are underemployed), and especially among mothers of young children (16%)."
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-esde-quarterly-review-ke0125067enn"
+page = 17
+quote = "Yet, more than a quarter of male part-time workers report they would like to work longer hours, a proportion that is even somewhat higher among fathers."
+
+[[questions.evidence]]
+part = 1
+document = "en-eu-esde-quarterly-review-ke0125067enn"
+page = 22
+quote = "Fathers | 0.344 | 0.004 | 0.336 | 0.352 | Women without children | 0.255 | 0.001 | 0.253 | 0.257 | Mothers | 0.181 | 0.002 | 0.177 | 0.184"
+
+[[questions]]
+id = "en-14"
+language = "en"
+question = "What share of its pre-tax profit did HNI pay in income taxes in 2001?"
+answerable = true
+kind = "table_value"
+features = ["digital_table", "synonym"]
+answer = "An effective tax rate of 36.0 % in 2001 (35.0 % in 2002 and 2003)."
+shared_terms = []
+term_variants = ["share of pre-tax profit paid in income taxes -> Effective tax rate", "2001 -> column header"]
+
+[[questions.evidence]]
+part = 1
+document = "en-doclaynet-nyse-hni-2003-p48"
+page = 1
+quote = "Effective tax rate | 35.0% | 35.0% | 36.0%"
+
+[[questions]]
+id = "en-15"
+language = "en"
+question = "How many of its own shares did HNI buy back in 2003?"
+answerable = true
+kind = "fact"
+features = ["synonym"]
+answer = "762,300 shares of common stock (614,580 in 2002 and 1,472,937 in 2001)."
+shared_terms = ["shares", "2003"]
+term_variants = ["buy back -> purchased", "HNI -> The Company"]
+
+[[questions.evidence]]
+part = 1
+document = "en-doclaynet-nyse-hni-2003-p48"
+page = 1
+quote = "The Company purchased 762,300; 614,580; and 1,472,937 shares of its common stock during 2003, 2002, and 2001, respectively."
+
+[[questions]]
+id = "en-16"
+language = "en"
+question = "How big is Sanmina-SCI's workforce?"
+answerable = true
+kind = "fact"
+features = ["broken_text_layer", "synonym"]
+answer = "About 48,000 employees worldwide; more than 3,000 of them are design and engineering professionals."
+shared_terms = []
+term_variants = ["workforce -> employees"]
+notes = "The text layer of this page is garbled; the passage is only searchable after OCR (replace_broken_text_layer)."
+
+[[questions.evidence]]
+part = 1
+document = "en-doclaynet-nasdaq-sanm-2004-p9"
+page = 1
+quote = "Our 48,000 worldwide employees are dedicated to delivering results, providing customer satisfaction and increasing shareholder value."
+
+[[questions]]
+id = "en-17"
+language = "en"
+question = "How much yearly turnover was the company's own-design server business generating at the end of the year?"
+answerable = true
+kind = "fact"
+features = ["broken_text_layer", "multi_column", "synonym", "abbreviation"]
+answer = "An annual revenue run-rate of approximately 200 million dollars (Newisys, the ODM enterprise-class server division)."
+shared_terms = ["server", "year"]
+term_variants = ["own-design -> ODM, Original Design and Manufacture", "yearly turnover -> annual revenue run-rate", "business -> division"]
+
+[[questions.evidence]]
+part = 1
+document = "en-doclaynet-nasdaq-sanm-2004-p9"
+page = 1
+quote = "Newisys®, our ODM enterprise-class server division, finished the year at an annual revenue run-rate of approximately $200 million."
+
+[[questions]]
+id = "en-18"
+language = "en"
+question = "In the test table on the first slide, what does row R2 show under Class1, column C?"
+answerable = true
+kind = "table_value"
+features = ["office", "digital_table", "merged_cells"]
+answer = "True (row R2: Class1 A merged with B empty, Class1 C True, Class2 A False)."
+shared_terms = ["R2"]
+term_variants = []
+notes = "Synthetic test file without real content; the question is artificial by necessity and tests merged header cells (Class1 spans three columns, A merged with B spans two)."
+
+[[questions.evidence]]
+part = 1
+document = "en-docling-powerpoint-sample"
+slide = 1
+quote = "R2 | True | False"
+
+[[questions]]
+id = "en-19"
+language = "en"
+question = "What do the presenter notes of the last slide say?"
+answerable = true
+kind = "fact"
+features = ["office", "speaker_notes", "synonym"]
+answer = "Final notes on the third slide. Second line of notes."
+shared_terms = ["notes", "slide"]
+term_variants = ["presenter notes -> notes page of the slide", "last slide -> third slide"]
+notes = "Synthetic test file. The Markdown output of the parser test contains no speaker notes; whether the parser yields them at all decides this question."
+
+[[questions.evidence]]
+part = 1
+document = "en-docling-powerpoint-sample"
+slide = 3
+quote = "Final notes on the third slide. Second line of notes."
+
+[[questions]]
+id = "en-20"
+language = "en"
+question = "How much energy does a serving of berries provide according to the duck's food table?"
+answerable = true
+kind = "table_value"
+features = ["office", "digital_table", "synonym"]
+answer = "150 calories per portion (blueberry, strawberry, cranberry)."
+shared_terms = ["berries"]
+term_variants = ["energy -> Calories per portion (column header)", "serving -> portion"]
+
+[[questions.evidence]]
+part = 1
+document = "en-docling-word-sample"
+heading_path = ["Let’s swim!", "Let’s eat"]
+quote = "Berries | Blueberry, Strawberry, Cranberry | 150"
+
+[[questions]]
+id = "en-21"
+language = "en"
+question = "How many milliseconds does TableFormer need to process one table?"
+answerable = false
+kind = "unanswerable"
+features = []
+answer = "The paper gives no timing figures; it only states that TableFormer is more efficient in training and inference and describes caching to speed up decoding."
+shared_terms = ["TableFormer"]
+term_variants = ["process -> inference"]
+
+[[questions.near_miss]]
+document = "en-arxiv-2203-01017v2-tableformer"
+page = 6
+quote = "To speed up the inference, the image undergoes a single forward pass through the CNN Backbone Network and transformer encoder."
+reason = "Speed-up technique without a number."
+
+[[questions.near_miss]]
+document = "en-arxiv-2203-01017v2-tableformer"
+page = 2
+quote = "Across all benchmark datasets TableFormer significantly outperforms existing state-of-the-art metrics, while being much more efficient in training and inference to existing works."
+reason = "Claim of efficiency without a number."
+
+[[questions]]
+id = "en-22"
+language = "en"
+question = "What were HNI's net sales in 2003?"
+answerable = false
+kind = "unanswerable"
+features = []
+answer = "The page does not give net sales; it only shows net income ($98,105,000 in 2003) and tax and equity details."
+shared_terms = ["net"]
+term_variants = []
+
+[[questions.near_miss]]
+document = "en-doclaynet-nyse-hni-2003-p48"
+page = 1
+quote = "Numerators for both basic and diluted EPS net income | $ 98,105,000 | $ 91,360,000"
+reason = "Net income, not net sales."
+
+[[questions]]
+id = "en-23"
+language = "en"
+question = "What anti-dumping duty does the EU charge on biodiesel from Malaysia?"
+answerable = false
+kind = "unanswerable"
+features = []
+answer = "The Official Journal issue only covers biodiesel from Argentina and Indonesia; Malaysia is not mentioned."
+shared_terms = ["anti-dumping", "duty", "biodiesel"]
+term_variants = []
+
+[[questions.near_miss]]
+document = "en-eu-official-journal-l-141-2013"
+page = 1
+quote = "Commission Regulation (EU) No 490/2013 of 27 May 2013 imposing a provisional anti-dumping duty on imports of biodiesel originating in Argentina and Indonesia"
+reason = "Same measure, other countries."
+
+[[questions.near_miss]]
+document = "en-eu-official-journal-l-141-2013"
+page = 26
+quote = "The rates of the provisional anti-dumping duty applicable to the product described in paragraph 1 and produced by the companies below shall be as follows"
+reason = "Duty table for Argentina and Indonesia only."
+
+[[questions]]
+id = "en-24"
+language = "en"
+question = "What was Germany's unemployment rate in February 2025?"
+answerable = false
+kind = "unanswerable"
+features = []
+answer = "The review gives only EU-wide unemployment (5.7 % in February 2025), no figure for Germany."
+shared_terms = ["February", "2025"]
+term_variants = []
+
+[[questions.near_miss]]
+document = "en-eu-esde-quarterly-review-ke0125067enn"
+page = 8
+quote = "Continuing its downward trend, EU unemployment reached a new record low in February 2025, with 5.7% of the population in the labour force being unemployed."
+reason = "EU value, not Germany."

@@ -1,0 +1,399 @@
+# Test corpus manifest. One [[documents]] table per file in documents/.
+# Checked by verify.py (sha256, size_bytes, no file without entry).
+# Field reference and license obligations: README.md.
+
+schema_version = 1
+
+[[documents]]
+id = "de-bundestag-plenarprotokoll-01-001"
+proposal_no = 1
+file = "de-bundestag-plenarprotokoll-01-001.pdf"
+title = "Deutscher Bundestag, Plenarprotokoll 1/1, 1. Sitzung, 7. September 1949"
+source_url = "https://dserver.bundestag.de/btp/01/01001.pdf"
+retrieved = "2026-11-15"
+license = "DE-official-work-UrhG-5"
+license_evidence = "https://www.bundestag.de/services/impressum"
+attribution = "Deutscher Bundestag, Plenarprotokoll 1/1 vom 7. September 1949, https://dserver.bundestag.de/btp/01/01001.pdf"
+unmodified_required = true
+language = "de"
+format = "pdf"
+pages = 8
+sha256 = "c9b716c4b4d1dc6ae9e7e6aecac3fab1c983816cfa95d600757952f29c02870c"
+size_bytes = 718178
+checks = ["scan", "multi_column", "umlauts", "ocr_layer"]
+whole_document = true
+notes = "Scan with OCR layer; the OCR layer contains errors, expected text needs hand-checked lines."
+
+[[documents]]
+id = "de-bundestag-drucksache-01-00001"
+proposal_no = 2
+file = "de-bundestag-drucksache-01-00001.pdf"
+title = "Deutscher Bundestag, Drucksache 1/1, Alphabetisches Verzeichnis der Mitglieder des Bundestags"
+source_url = "https://dserver.bundestag.de/btd/01/000/0100001.pdf"
+retrieved = "2026-11-15"
+license = "DE-official-work-UrhG-5"
+license_evidence = "https://www.bundestag.de/services/impressum"
+attribution = "Deutscher Bundestag, Drucksache 1/1, https://dserver.bundestag.de/btd/01/000/0100001.pdf"
+unmodified_required = true
+language = "de"
+format = "pdf"
+pages = 17
+sha256 = "0388d1e40f8e476c631d48ac451982d248b58adbb1de9495c570627656d86fbf"
+size_bytes = 1010891
+checks = ["scan", "table", "umlauts", "ocr_layer"]
+whole_document = false
+notes = "Scanned table (name, parliamentary group, place of residence); contains 1949 home addresses of members."
+
+[[documents]]
+id = "de-bgbl-1949-nr-02-wahlgesetz"
+proposal_no = 3
+file = "de-bgbl-1949-nr-02-wahlgesetz.pdf"
+title = "Bundesgesetzblatt 1949 Nr. 2 vom 15. Juni 1949 (Wahlgesetz zum ersten Bundestag)"
+source_url = "https://commons.wikimedia.org/wiki/File:Bundesgesetzblatt_Nr._2,_1949.pdf"
+download_url = "https://upload.wikimedia.org/wikipedia/commons/3/35/Bundesgesetzblatt_Nr._2%2C_1949.pdf"
+retrieved = "2026-11-15"
+license = "DE-official-work-UrhG-5"
+license_evidence = "https://commons.wikimedia.org/wiki/File:Bundesgesetzblatt_Nr._2,_1949.pdf"
+attribution = "Bundesgesetzblatt 1949 Nr. 2, Deutscher Bundestag; Digitalisat: offenegesetze.de via Wikimedia Commons"
+unmodified_required = false
+language = "de"
+format = "pdf"
+pages = 4
+sha256 = "d2c7c28b59a50f84d4a86742e37610886f4aea65d7bcb49eaf5c9b720e884a45"
+size_bytes = 306164
+checks = ["scan", "multi_column", "umlauts", "ocr_layer"]
+whole_document = true
+notes = "Commons license tag PD-GermanGov; Commons SHA-1 8a6ff0fd745838c725da34798a944c07762e5565 matches."
+
+[[documents]]
+id = "de-bundestag-plenarprotokoll-21-001"
+proposal_no = 4
+file = "de-bundestag-plenarprotokoll-21-001.pdf"
+title = "Deutscher Bundestag, Plenarprotokoll 21/1, 1. Sitzung, 25. März 2025"
+source_url = "https://dserver.bundestag.de/btp/21/21001.pdf"
+retrieved = "2026-11-15"
+license = "DE-official-work-UrhG-5"
+license_evidence = "https://www.bundestag.de/services/impressum"
+attribution = "Deutscher Bundestag, Plenarprotokoll 21/1 vom 25. März 2025, https://dserver.bundestag.de/btp/21/21001.pdf"
+unmodified_required = true
+language = "de"
+format = "pdf"
+pages = 44
+sha256 = "14c62527c812debbecab833ebbd8350f286b4ca841b2e3a8428b4c4ee544d7aa"
+size_bytes = 513592
+checks = ["multi_column", "umlauts"]
+whole_document = true
+notes = "Born-digital, two to four columns, name lists in columns."
+
+[[documents]]
+id = "de-eu-amtsblatt-l-141-2013"
+proposal_no = 5
+file = "de-eu-amtsblatt-l-141-2013.pdf"
+title = "Amtsblatt der Europäischen Union L 141 vom 28. Mai 2013 (deutsche Ausgabe)"
+source_url = "https://commons.wikimedia.org/wiki/File:OJ_L_141_of_2013_-_DE_German.pdf"
+download_url = "https://upload.wikimedia.org/wikipedia/commons/4/42/OJ_L_141_of_2013_-_DE_German.pdf"
+retrieved = "2026-11-15"
+license = "EU-reuse-2011-833-EU"
+license_evidence = "https://web.archive.org/web/20251230180829/https://eur-lex.europa.eu/content/legal-notice/legal-notice.html"
+attribution = "Amtsblatt der Europäischen Union, L 141, 28.5.2013, © Europäische Union, https://eur-lex.europa.eu/; Kopie von Wikimedia Commons"
+unmodified_required = false
+language = "de"
+format = "pdf"
+pages = 60
+sha256 = "5dd43979a82c2e84231abc948041b9ebd5edd933885110f2b9ee32b6f92f8b5c"
+size_bytes = 2401050
+checks = ["table", "multi_column", "umlauts", "soft_hyphens", "parallel_text"]
+whole_document = true
+notes = "Parallel text to en-eu-official-journal-l-141-2013.pdf. Commons tags PD-EUGov and PD-EdictGov; Commons SHA-1 982501445927c7997e9026ee8b0311e237c495ed matches."
+
+[[documents]]
+id = "en-eu-official-journal-l-141-2013"
+proposal_no = 6
+file = "en-eu-official-journal-l-141-2013.pdf"
+title = "Official Journal of the European Union L 141 of 28 May 2013 (English edition)"
+source_url = "https://commons.wikimedia.org/wiki/File:OJ_L_141_of_2013_-_EN_English.pdf"
+download_url = "https://upload.wikimedia.org/wikipedia/commons/7/78/OJ_L_141_of_2013_-_EN_English.pdf"
+retrieved = "2026-11-15"
+license = "EU-reuse-2011-833-EU"
+license_evidence = "https://web.archive.org/web/20251230180829/https://eur-lex.europa.eu/content/legal-notice/legal-notice.html"
+attribution = "Official Journal of the European Union, L 141, 28.5.2013, © European Union, https://eur-lex.europa.eu/; copy from Wikimedia Commons"
+unmodified_required = false
+language = "en"
+format = "pdf"
+pages = 60
+sha256 = "073ea5fb27e04029892a1b3f4140d0ecebc0b0129c570d6d4f17c238ded2c438"
+size_bytes = 2368526
+checks = ["table", "multi_column", "parallel_text"]
+whole_document = true
+notes = "Parallel text to de-eu-amtsblatt-l-141-2013.pdf. Commons SHA-1 56bf7b52514371223162384de1e4e912b3809033 matches."
+
+[[documents]]
+id = "de-destatis-grunddaten-krankenhaeuser-2120611257005"
+proposal_no = 7
+file = "de-destatis-grunddaten-krankenhaeuser-2120611257005.xlsx"
+title = "Statistischer Bericht – Grunddaten der Krankenhäuser – Deutschland – 2025 (Artikelnummer 2120611257005)"
+source_url = "https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Gesundheit/Krankenhauser/Publikationen/Downloads-Krankenhaeuser/statistischer-bericht-grunddaten-krankenhaeuser-deutschland-2120611257005.html"
+download_url = "https://www.destatis.de/DE/Themen/Gesellschaft-Umwelt/Gesundheit/Krankenhauser/Publikationen/Downloads-Krankenhaeuser/statistischer-bericht-grunddaten-krankenhaeuser-deutschland-2120611257005.xlsx?__blob=publicationFile&v=3"
+retrieved = "2026-11-15"
+license = "Destatis-reuse-with-source"
+license_evidence = "https://www.destatis.de/DE/Service/Impressum/_inhalt.html"
+attribution = "© Statistisches Bundesamt (Destatis), Statistischer Bericht – Grunddaten der Krankenhäuser – Deutschland – 2025, abgerufen am 15.11.2026"
+unmodified_required = false
+language = "de"
+format = "xlsx"
+sheets = 129
+sha256 = "df4de40c8250244b8d5c02d1c4ae70b473bc158d11c735b90efc06702b1dd355"
+size_bytes = 1519015
+checks = ["table", "office", "umlauts"]
+whole_document = false
+notes = "No pages, only cell coordinates. Same reuse statement on the Impressum sheet of the workbook. Server Last-Modified 2026-10-28."
+
+[[documents]]
+id = "de-zenodo-10409864-mustervertrag-datennutzung-v3"
+proposal_no = 8
+file = "de-zenodo-10409864-mustervertrag-datennutzung-v3.docx"
+title = "Mustervertrag Datennutzung KonsortSWD, Version 3.0.0, Fassung ohne Nachverfolgung"
+source_url = "https://zenodo.org/records/10409864"
+download_url = "https://zenodo.org/api/records/10409864/files/Mustervertrag%20Datennutzung_v3-0-0_ohne_Nachverfolgung.docx/content"
+retrieved = "2026-11-15"
+license = "CC-BY-4.0"
+license_evidence = "https://zenodo.org/records/10409864"
+attribution = "Jan Schallaböck, Ute Hoffstätter, Daniel Buck, Monika Linne: Mustervertrag Datennutzung KonsortSWD, Version 3.0.0, 2023, https://doi.org/10.5281/zenodo.10409864, lizenziert unter CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)"
+unmodified_required = false
+language = "de"
+format = "docx"
+sha256 = "8a02e7e3ba93b2e89b4d25acb7b2701561e2abb2ec4f043f5d75fd2fc1462bd8"
+size_bytes = 129078
+checks = ["table", "office", "umlauts"]
+whole_document = true
+notes = "17 tables, 221 headings per analysis; no embedded media. Zenodo MD5 1d26e6bbada08711a72eed79a7324312 matches."
+
+[[documents]]
+id = "de-wikipedia-bundestagswahl-2025-rev-271660576"
+proposal_no = 11
+file = "de-wikipedia-bundestagswahl-2025-rev-271660576.html"
+title = "Wikipedia: Bundestagswahl 2025, Revision 271660576 (Parsoid-HTML)"
+source_url = "https://de.wikipedia.org/w/index.php?title=Bundestagswahl_2025&oldid=271660576"
+download_url = "https://de.wikipedia.org/api/rest_v1/page/html/Bundestagswahl_2025/271660576"
+retrieved = "2026-11-15"
+license = "CC-BY-SA-4.0"
+license_evidence = "https://de.wikipedia.org/w/index.php?title=Bundestagswahl_2025&oldid=271660576"
+attribution = "„Bundestagswahl 2025“, Wikipedia – Die freie Enzyklopädie, Revision 271660576 vom 27.10.2026, Autorinnen und Autoren: https://de.wikipedia.org/w/index.php?title=Bundestagswahl_2025&action=history, lizenziert unter CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)"
+unmodified_required = false
+language = "de"
+format = "html"
+sha256 = "cc77f435a7a881feeef487bbae046093046319fc2f3b6379475574af7b98037e"
+size_bytes = 838929
+checks = ["table", "umlauts"]
+whole_document = true
+notes = "15 tables per analysis. Text only; images are referenced by URL, not embedded. The REST rendering of a fixed revision can change if templates change; the checksum pins the retrieved state."
+
+[[documents]]
+id = "de-grundgesetz-bundestag-gesetze-77abca2"
+proposal_no = 12
+file = "de-grundgesetz-bundestag-gesetze-77abca2.md"
+title = "Grundgesetz für die Bundesrepublik Deutschland, Markdown aus bundestag/gesetze (Commit 77abca2, Stand 2022-03-26)"
+source_url = "https://github.com/bundestag/gesetze/blob/77abca2ceea3b7b89ea70afb13b5dd55415eb124/g/gg/index.md"
+download_url = "https://raw.githubusercontent.com/bundestag/gesetze/77abca2ceea3b7b89ea70afb13b5dd55415eb124/g/gg/index.md"
+retrieved = "2026-11-15"
+license = "Unlicense"
+license_evidence = "https://github.com/bundestag/gesetze/blob/77abca2ceea3b7b89ea70afb13b5dd55415eb124/LICENSE"
+attribution = "bundestag/gesetze, https://github.com/bundestag/gesetze (Gesetzestext: amtliches Werk nach § 5 UrhG)"
+unmodified_required = false
+language = "de"
+format = "markdown"
+sha256 = "829d444bcccf7b0dbb65622b5b4557c92ea18d62dabeff8491a67e16d474df5a"
+size_bytes = 179363
+checks = ["umlauts"]
+whole_document = true
+notes = "Last change listed in the file: 29.9.2020; may differ from the Grundgesetz in force today. Questions refer to this file only."
+
+[[documents]]
+id = "de-gvbl-berlin-1954-s0295"
+proposal_no = 13
+file = "de-gvbl-berlin-1954-s0295.jpg"
+title = "Gesetz- und Verordnungsblatt für Berlin 1954, Seite 295"
+source_url = "https://commons.wikimedia.org/wiki/File:Gesetz-_und_Verordnungsblatt_f%C3%BCr_Berlin_1954_0295.jpg"
+download_url = "https://upload.wikimedia.org/wikipedia/commons/0/09/Gesetz-_und_Verordnungsblatt_f%C3%BCr_Berlin_1954_0295.jpg"
+retrieved = "2026-11-15"
+license = "DE-official-work-UrhG-5"
+license_evidence = "https://commons.wikimedia.org/wiki/Template:Gesetz-_und_Verordnungsblatt_f%C3%BCr_Berlin_1954"
+attribution = "Gesetz- und Verordnungsblatt für Berlin 1954, S. 295; Scan via Wikimedia Commons"
+unmodified_required = false
+language = "de"
+format = "jpeg"
+pages = 1
+sha256 = "307318c81f509f18b58112cc8933362d6fcdd5676000c819c6794e43f7aef9a5"
+size_bytes = 1539262
+checks = ["scan", "multi_column", "umlauts"]
+whole_document = false
+notes = "2393 x 3366 px, Antiqua, compounds. Commons tag PD-GermanGov (via book template); uploader and scan origin not documented. Commons SHA-1 1aab98d5ed4a8c796594e2e2b9657da2d637e7f9 matches."
+
+[[documents]]
+id = "en-arxiv-2203-01017v2-tableformer"
+proposal_no = 15
+file = "en-arxiv-2203-01017v2-tableformer.pdf"
+title = "TableFormer: Table Structure Understanding with Transformers (arXiv:2203.01017v2)"
+source_url = "https://arxiv.org/abs/2203.01017v2"
+download_url = "https://raw.githubusercontent.com/docling-project/docling/440492ac0d0e14952b32dda28fede7495611c899/tests/data/pdf/sources/2203.01017v2.pdf"
+retrieved = "2026-11-15"
+license = "CC-BY-4.0"
+license_evidence = "https://arxiv.org/abs/2203.01017v2"
+attribution = "Ahmed Nassar, Nikolaos Livathinos, Maksym Lysak, Peter Staar: TableFormer: Table Structure Understanding with Transformers, arXiv:2203.01017v2, lizenziert unter CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)"
+unmodified_required = false
+language = "en"
+format = "pdf"
+pages = 16
+sha256 = "4fa8dff93d74a84069210c84a38d14d62a39ec8f4e4c90bf955fdebdebcf6636"
+size_bytes = 7215177
+checks = ["table", "multi_column", "docling_reference"]
+whole_document = true
+notes = "Byte-identical to https://arxiv.org/pdf/2203.01017v2 and to the Docling test file. Python-Docling reference output: tests/data/pdf/groundtruth/2203.01017v2.json in docling-project/docling (not included)."
+
+[[documents]]
+id = "en-eu-esde-quarterly-review-ke0125067enn"
+proposal_no = 16
+file = "en-eu-esde-quarterly-review-ke0125067enn.pdf"
+title = "Employment and Social Developments in Europe – Quarterly Review April 2025 (KE-01-25-067-EN-N)"
+source_url = "https://huggingface.co/datasets/vidore/vidore_v3_hr/blob/0cdf0979f2c5a0fd3e335e6373b9da48a9fe3bc3/pdfs/employment_and_social_developments_in_europe-KE0125067ENN.pdf"
+download_url = "https://huggingface.co/datasets/vidore/vidore_v3_hr/resolve/0cdf0979f2c5a0fd3e335e6373b9da48a9fe3bc3/pdfs/employment_and_social_developments_in_europe-KE0125067ENN.pdf"
+retrieved = "2026-11-15"
+license = "EU-reuse-2011-833-EU"
+license_evidence = "legal notice on page 2 of the PDF; ViDoRe documents_metadata license cc-by-4.0"
+attribution = "© European Union, 2025: Employment and Social Developments in Europe – Quarterly Review April 2025, doi:10.2767/4445904; Bereitstellung über ViDoRe V3 HR (https://huggingface.co/datasets/vidore/vidore_v3_hr)"
+unmodified_required = false
+language = "en"
+format = "pdf"
+pages = 25
+sha256 = "1b347c2b832740be3abf136eeedc6f7bbacbf162c33c0227fa611cbfb9e31615"
+size_bytes = 1809747
+checks = ["table", "human_ground_truth"]
+whole_document = true
+notes = "Dataset provides questions with evidence pages and boxes (CC BY 4.0), questions also in German. PDF producer is PlotSoft PDFill; not compared with the copy at op.europa.eu."
+
+[[documents]]
+id = "en-docling-word-sample"
+proposal_no = 17
+file = "en-docling-word-sample.docx"
+title = "Docling test data: word_sample.docx"
+source_url = "https://github.com/docling-project/docling/blob/440492ac0d0e14952b32dda28fede7495611c899/tests/data/docx/sources/word_sample.docx"
+download_url = "https://raw.githubusercontent.com/docling-project/docling/440492ac0d0e14952b32dda28fede7495611c899/tests/data/docx/sources/word_sample.docx"
+retrieved = "2026-11-15"
+license = "MIT"
+license_evidence = "https://github.com/docling-project/docling/blob/440492ac0d0e14952b32dda28fede7495611c899/LICENSE"
+attribution = "Copyright The Docling Contributors, MIT License (licenses/MIT-docling.txt)"
+unmodified_required = false
+language = "en"
+format = "docx"
+sha256 = "ae4f3f6edd7ccd636b893ec8355d5eade6b0413fa779606452c561e334f390f7"
+size_bytes = 103966
+checks = ["table", "office", "docling_reference"]
+whole_document = false
+notes = "Authors in docProps: Docling contributors; only embedded image is the Docling logo. Python-Docling reference output under tests/data/docx/groundtruth/ (not included)."
+
+[[documents]]
+id = "en-docling-powerpoint-sample"
+proposal_no = 18
+file = "en-docling-powerpoint-sample.pptx"
+title = "Docling test data: powerpoint_sample.pptx"
+source_url = "https://github.com/docling-project/docling/blob/440492ac0d0e14952b32dda28fede7495611c899/tests/data/pptx/sources/powerpoint_sample.pptx"
+download_url = "https://raw.githubusercontent.com/docling-project/docling/440492ac0d0e14952b32dda28fede7495611c899/tests/data/pptx/sources/powerpoint_sample.pptx"
+retrieved = "2026-11-15"
+license = "MIT"
+license_evidence = "https://github.com/docling-project/docling/blob/440492ac0d0e14952b32dda28fede7495611c899/LICENSE"
+attribution = "Copyright The Docling Contributors, MIT License (licenses/MIT-docling.txt)"
+unmodified_required = false
+language = "en"
+format = "pptx"
+slides = 3
+sha256 = "24191d47fda511e11984e875f8676506da5ae1fbcaefcc63d81be377d3a3950c"
+size_bytes = 45849
+checks = ["table", "office", "merged_cells", "speaker_notes", "docling_reference"]
+whole_document = false
+notes = "Authors in docProps: Docling contributors; no embedded media. Python-Docling reference output under tests/data/pptx/groundtruth/ (not included)."
+
+[[documents]]
+id = "en-doclaynet-nyse-hni-2003-p48"
+proposal_no = 19
+file = "en-doclaynet-nyse-hni-2003-p48.pdf"
+title = "DocLayNet v1.2, test split row 4: NYSE_HNI_2003.pdf, page 48"
+source_url = "https://huggingface.co/datasets/docling-project/DocLayNet-v1.2"
+download_url = "https://datasets-server.huggingface.co/rows?dataset=docling-project%2FDocLayNet-v1.2&config=default&split=test&offset=4&length=1"
+retrieved = "2026-11-15"
+license = "CDLA-Permissive-1.0"
+license_evidence = "https://github.com/DS4SD/DocLayNet/blob/main/LICENSE"
+attribution = "DocLayNet v1.2 (B. Pfitzmann, C. Auer, M. Dolfi, A. S. Nassar, P. Staar: DocLayNet, KDD 2022), Data Provider: IBM Research, docling-project/DocLayNet-v1.2 (Revision 0daf93102e2efce76c3e11a274a5e0d0969391d3), CDLA-Permissive-1.0 (licenses/CDLA-Permissive-1.0.txt); Originaldokument: HNI Corporation, Annual Report 2003, Seite 48"
+unmodified_required = false
+language = "en"
+format = "pdf"
+pages = 1
+sha256 = "beec82eeb722fb0336f248e93001ddc6c5f5f307629e2fafe02a026cd317f2e9"
+size_bytes = 79965
+checks = ["table", "human_ground_truth"]
+whole_document = false
+notes = "Single-page PDF from the binary column 'pdf', base64-decoded from the dataset viewer API at revision 0daf931; page_hash a5acc4c1c47a19543362fccf014eec02c7efd931db5e2a34e66444ee8b8e5079. Human layout boxes in the same dataset row. PNG page image not included."
+
+[[documents]]
+id = "de-zenodo-10409864-mustervertrag-datennutzung-v3-tracked-changes"
+proposal_no = 9
+substitute = true
+file = "de-zenodo-10409864-mustervertrag-datennutzung-v3-tracked-changes.docx"
+title = "Mustervertrag Datennutzung KonsortSWD, Version 3.0.0, Fassung mit Nachverfolgung"
+source_url = "https://zenodo.org/records/10409864"
+download_url = "https://zenodo.org/api/records/10409864/files/Mustervertrag%20Datennutzung_v3-0-0_mit_Nachverfolgung.docx/content"
+retrieved = "2026-11-15"
+license = "CC-BY-4.0"
+license_evidence = "https://zenodo.org/records/10409864"
+attribution = "Jan Schallaböck, Ute Hoffstätter, Daniel Buck, Monika Linne: Mustervertrag Datennutzung KonsortSWD, Version 3.0.0, 2023, https://doi.org/10.5281/zenodo.10409864, lizenziert unter CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)"
+unmodified_required = false
+language = "de"
+format = "docx"
+sha256 = "47a0fa5f0127f9be2e19d5957e2926d7bae5d6975142695c08d4a2fd4d8be8fb"
+size_bytes = 130564
+checks = ["table", "office", "umlauts", "tracked_changes"]
+whole_document = false
+notes = "Substitute for proposal no. 9 (ADR 0016). Same contract as de-zenodo-10409864-mustervertrag-datennutzung-v3.docx with tracked changes (21 insertions, 11 deletions); not used for questions to avoid duplicate answers. No embedded media. Zenodo MD5 c5d39abe945e2ba5a833bcaba0c1e8ab matches."
+
+[[documents]]
+id = "de-gvbl-berlin-1954-s0293"
+proposal_no = 14
+substitute = true
+file = "de-gvbl-berlin-1954-s0293.jpg"
+title = "Gesetz- und Verordnungsblatt für Berlin 1954, Seite 293 (Anlage: Preise für Steinkohle, Steinkohlenkoks und Steinkohlenbriketts)"
+source_url = "https://commons.wikimedia.org/wiki/File:Gesetz-_und_Verordnungsblatt_f%C3%BCr_Berlin_1954_0293.jpg"
+download_url = "https://upload.wikimedia.org/wikipedia/commons/7/74/Gesetz-_und_Verordnungsblatt_f%C3%BCr_Berlin_1954_0293.jpg"
+retrieved = "2026-11-15"
+license = "DE-official-work-UrhG-5"
+license_evidence = "https://commons.wikimedia.org/wiki/Template:Gesetz-_und_Verordnungsblatt_f%C3%BCr_Berlin_1954"
+attribution = "Gesetz- und Verordnungsblatt für Berlin 1954, S. 293; Scan via Wikimedia Commons"
+unmodified_required = false
+language = "de"
+format = "jpeg"
+pages = 1
+sha256 = "ad5dfc6bb7dca7d1bfcdff7dc44ee258dedebb52fcabe356dd1c8786af441410"
+size_bytes = 1110930
+checks = ["scan", "table", "multi_column", "umlauts"]
+whole_document = false
+notes = "Substitute for proposal no. 14 (ADR 0016). 2388 x 3371 px. Three price tables (7 columns with multi-line headers, more than 20 rows; two smaller tables side by side) with footnotes and dot leaders; umlauts and ß in cells (Förderkohlen, Stücke, Nuß, Mischnüsse, Gießereikoks, Würfelbriketts). Commons tag PD-GermanGov (via book template); uploader and scan origin not documented. Commons SHA-1 c84274af81e628e6fc6e156ce9ebe754fe670554 matches."
+
+[[documents]]
+id = "en-doclaynet-nasdaq-sanm-2004-p9"
+proposal_no = 20
+substitute = true
+file = "en-doclaynet-nasdaq-sanm-2004-p9.pdf"
+title = "DocLayNet v1.2, test split row 261: NASDAQ_SANM_2004.pdf, page 9"
+source_url = "https://huggingface.co/datasets/docling-project/DocLayNet-v1.2"
+download_url = "https://datasets-server.huggingface.co/rows?dataset=docling-project%2FDocLayNet-v1.2&config=default&split=test&offset=261&length=1"
+retrieved = "2026-11-15"
+license = "CDLA-Permissive-1.0"
+license_evidence = "https://github.com/DS4SD/DocLayNet/blob/main/LICENSE"
+attribution = "DocLayNet v1.2 (B. Pfitzmann, C. Auer, M. Dolfi, A. S. Nassar, P. Staar: DocLayNet, KDD 2022), Data Provider: IBM Research, docling-project/DocLayNet-v1.2 (Revision 0daf93102e2efce76c3e11a274a5e0d0969391d3), CDLA-Permissive-1.0 (licenses/CDLA-Permissive-1.0.txt); Originaldokument: Sanmina-SCI Corporation, Annual Report 2004, Seite 9"
+unmodified_required = false
+language = "en"
+format = "pdf"
+pages = 1
+sha256 = "b2c232a1e358806950d33115cdf2d23853e6ee96cdb1cbee704d91a0b4d3dc00"
+size_bytes = 57423
+checks = ["multi_column", "broken_text_layer", "human_ground_truth"]
+whole_document = false
+notes = "Substitute for proposal no. 20 (ADR 0016). Single-page PDF from the binary column 'pdf', base64-decoded from the dataset viewer API at revision 0daf931; page_hash c9755e6972e3150a1c02565ec8070bfc26503d0fe09d056e418d6dcd6ea43cd9. Two-column letter to shareholders; the text layer yields garbled characters, so the parser has to fall back to OCR. No table: the human annotation has no Table box (Text, Section-header, Caption, Picture, Page-header)."
