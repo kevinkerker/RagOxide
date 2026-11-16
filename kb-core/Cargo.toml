@@ -1,0 +1,38 @@
+[package]
+name = "kb-core"
+description = "Shared contract of the knowledge base: data types, traits, errors, configuration and mocks"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[features]
+# Mock implementations of every trait plus JSON fixtures, e.g.
+# `kb-core = { workspace = true, features = ["mock"] }` under [dev-dependencies].
+# Allowed in tests, examples and development binaries, never in shipped builds.
+mock = ["dep:serde_json"]
+# Derives `ts_rs::TS` on every serialised type, so the app can generate its
+# TypeScript types from kb-core. Costs nothing when disabled.
+ts = ["dep:ts-rs"]
+
+[dependencies]
+async-trait = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true, optional = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+tokio-util = { workspace = true }
+toml = { workspace = true }
+ts-rs = { workspace = true, optional = true }
+unicode-normalization = { workspace = true }
+
+[dev-dependencies]
+# Enables `mock` and `ts` for this crate's own integration tests.
+kb-core = { path = ".", features = ["mock", "ts"] }
+serde_json = { workspace = true }
+ts-rs = { workspace = true }
+
+[lints]
+workspace = true

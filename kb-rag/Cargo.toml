@@ -1,0 +1,14 @@
+[package]
+name = "kb-rag"
+description = "Question to answer: retrieval, reranking, prompt, streaming, citation check (package I, implements kb_core::Answerer)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+kb-core = { workspace = true }
+
+[lints]
+workspace = true

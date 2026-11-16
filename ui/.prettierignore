@@ -1,0 +1,7 @@
+dist
+node_modules
+playwright-report
+test-results
+pnpm-lock.yaml
+# Generated from the Rust types, checked by cargo test.
+api/bindings.ts

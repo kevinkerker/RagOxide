@@ -1,0 +1,62 @@
+{
+  "productName": "RagOxide",
+  "loading": "Wird geladen …",
+  "startFailed": "RagOxide konnte nicht starten.",
+  "mockBadge": "Beispieldaten",
+  "mockHint": "Die Oberfläche läuft ohne Desktop-App mit Beispieldaten.",
+  "nav": {
+    "label": "Navigation",
+    "newChat": "Neuer Chat",
+    "chats": "Chats",
+    "library": "Bibliothek",
+    "settings": "Einstellungen",
+    "setup": "Einrichtung",
+    "setupStep": "Schritt {step} von {total}",
+    "setupStepShort": "{step}/{total}",
+    "setupProgress": "{percent} %",
+    "menu": "Chats und Navigation",
+    "close": "Schließen",
+    "jump": "Springen zu",
+    "answer": "Antwort",
+    "evidence": "Belege"
+  },
+  "evidence": {
+    "label": "Belege",
+    "collapse": "Belege einklappen",
+    "divider": "Breite der Belegspalte"
+  },
+  "status": {
+    "label": "Stand der Bibliothek",
+    "idle": {
+      "one": "Bibliothek aktuell · {count} Dokument",
+      "other": "Bibliothek aktuell · {count} Dokumente"
+    },
+    "ingest": "Liest ein: {completed} von {total} Dateien",
+    "ingestShort": "{completed} von {total}",
+    "download": "Modelle werden geladen: {done} von {total} GB · {percent} %",
+    "downloadShort": "Modelle {percent} %",
+    "errors": {
+      "one": "{count} Datei mit Fehler",
+      "other": "{count} Dateien mit Fehler"
+    },
+    "watchFailed": "Ordnerüberwachung angehalten",
+    "unavailable": "{folder} nicht erreichbar",
+    "unavailableMany": "{count} Ordner nicht erreichbar",
+    "unavailableShort": "Ordner offline",
+    "downloadFailed": "Modell-Download unterbrochen",
+    "announce": {
+      "idle": "Bibliothek aktuell",
+      "ingest": "Bibliothek liest ein",
+      "download": "Modelle werden geladen",
+      "downloadFailed": "Modell-Download unterbrochen",
+      "errors": "Dateien mit Fehler",
+      "watchFailed": "Ordnerüberwachung angehalten",
+      "unavailable": "Ordner nicht erreichbar"
+    }
+  },
+  "askLock": {
+    "checking": "Einen Moment, die Modelle werden geprüft.",
+    "modelsMissing": "Fragen geht, sobald das Antwortmodell bereitliegt. Starte dafür die Einrichtung.",
+    "downloading": "Fragen geht, sobald die Modelle geladen sind. Du kannst solange Ordner anmelden."
+  }
+}

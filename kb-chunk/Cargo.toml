@@ -1,0 +1,14 @@
+[package]
+name = "kb-chunk"
+description = "Chunker: splits a kb_core::Document into chunks along headings with full provenance (package B, implements kb_core::Chunker)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+kb-core = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,137 @@
+[
+  {
+    "chunk": {
+      "id": "doc-pruefordnung#1",
+      "text": "Jedes Gerät wird mindestens einmal jährlich geprüft. Geräte, bei denen Mängel festgestellt wurden, müssen innerhalb von vier Wochen erneut geprüft werden. Über jede Prüfung ist ein Protokoll zu führen, das Prüfdatum, Ergebnis und die Unterschrift der prüfenden Person enthält.",
+      "language": "de",
+      "provenance": {
+        "source": {
+          "document_id": "doc-pruefordnung",
+          "path": "C:\\Ablage\\pruefordnung.pdf",
+          "name": "pruefordnung.pdf",
+          "content_hash": "1e930c6231195d03f61e416d8ffbf4fa1d1e76421d58cfe96a25cf41c7a461c8"
+        },
+        "heading_path": [
+          "Prüfordnung für Kühl- und Gefriergeräte",
+          "§ 2 Prüffristen"
+        ],
+        "anchors": [
+          {
+            "type": "page",
+            "page": 1,
+            "bbox": {
+              "left": 72.0,
+              "top": 716.0,
+              "right": 523.0,
+              "bottom": 790.0
+            }
+          },
+          {
+            "type": "page",
+            "page": 2,
+            "bbox": {
+              "left": 72.0,
+              "top": 60.0,
+              "right": 523.0,
+              "bottom": 104.0
+            }
+          }
+        ]
+      }
+    },
+    "retrieval_score": 0.016393442,
+    "vector_score": 0.4114756,
+    "rerank_score": 0.6666667
+  },
+  {
+    "chunk": {
+      "id": "doc-schulung#3",
+      "text": "Notiz für die Vortragenden: Wie oft die Fluchtwege geprüft werden, regelt die Prüfordnung. Der Hausmeister geht sie monatlich ab.",
+      "language": "de",
+      "provenance": {
+        "source": {
+          "document_id": "doc-schulung",
+          "path": "C:\\Ablage\\schulung.pptx",
+          "name": "schulung.pptx",
+          "content_hash": "0dccfe980cb20c9d8c0046d35caca7ba2d04d8dedb6374d75728591f969714cc"
+        },
+        "heading_path": [
+          "Sicherheitsunterweisung 2026",
+          "Fluchtwege"
+        ],
+        "anchors": [
+          {
+            "type": "slide",
+            "slide": 2,
+            "in_notes": true
+          }
+        ]
+      }
+    },
+    "retrieval_score": 0.016001023,
+    "vector_score": 0.23570225,
+    "rerank_score": 0.5
+  },
+  {
+    "chunk": {
+      "id": "doc-pruefordnung#2",
+      "text": "| Gerät | Prüfdatum | Ergebnis |\n| --- | --- | --- |\n| Kühlschrank Süd | 04.11.2026 | bestanden |\n| Wärmepumpe Ost | 05.11.2026 | Mängel |",
+      "language": "de",
+      "provenance": {
+        "source": {
+          "document_id": "doc-pruefordnung",
+          "path": "C:\\Ablage\\pruefordnung.pdf",
+          "name": "pruefordnung.pdf",
+          "content_hash": "1e930c6231195d03f61e416d8ffbf4fa1d1e76421d58cfe96a25cf41c7a461c8"
+        },
+        "heading_path": [
+          "Prüfordnung für Kühl- und Gefriergeräte",
+          "§ 3 Übersicht der Prüfergebnisse"
+        ],
+        "anchors": [
+          {
+            "type": "page",
+            "page": 2,
+            "bbox": {
+              "left": 72.0,
+              "top": 160.0,
+              "right": 523.0,
+              "bottom": 240.0
+            }
+          }
+        ]
+      }
+    },
+    "retrieval_score": 0.016001023,
+    "vector_score": 0.24494895,
+    "rerank_score": 0.16666667
+  },
+  {
+    "chunk": {
+      "id": "doc-schulung#0",
+      "text": "Grundregeln für alle Beschäftigten",
+      "language": "de",
+      "provenance": {
+        "source": {
+          "document_id": "doc-schulung",
+          "path": "C:\\Ablage\\schulung.pptx",
+          "name": "schulung.pptx",
+          "content_hash": "0dccfe980cb20c9d8c0046d35caca7ba2d04d8dedb6374d75728591f969714cc"
+        },
+        "heading_path": [
+          "Sicherheitsunterweisung 2026"
+        ],
+        "anchors": [
+          {
+            "type": "slide",
+            "slide": 1,
+            "in_notes": false
+          }
+        ]
+      }
+    },
+    "retrieval_score": 0.0078125,
+    "vector_score": 0.20412414,
+    "rerank_score": 0.0
+  }
+]

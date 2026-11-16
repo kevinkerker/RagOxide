@@ -1,0 +1,8 @@
+{
+  "title": "Settings",
+  "setupTitle": "Setup",
+  "download": "Download models",
+  "downloadSize": "To download: {size} GB",
+  "ready": "All models are ready.",
+  "finish": "Done, to the library"
+}

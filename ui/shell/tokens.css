@@ -1,0 +1,122 @@
+/*
+ * Design tokens of the design system "Lesepult" (ADR 0026, docs/analyse/designstudie-
+ * designsystem.md, variant 4) with the usage rules of the frame study (round 2, ADR 0034).
+ * Components use only these variables, never raw values.
+ *
+ * Every colour role is a pair of surface and text with a checked contrast; use the text
+ * colour that belongs to the surface. No blur, no transparency, no motion that carries
+ * meaning. Values are `light-dark(<light>, <dark>)`; which one applies follows
+ * `color-scheme` on the root: the operating system by default, forced by the setting
+ * through `data-color-scheme="light"` or `"dark"` (set by the shell, ADR 0024).
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces and their text */
+  --color-frame: light-dark(#f3f2ee, #191816); /* window background; text: --color-text */
+  --color-sheet: light-dark(#ffffff, #22201d); /* reading sheet, fields; text: --color-text */
+  --color-side: light-dark(#ebe9e3, #1e1c1a); /* sidebar, status bar, evidence column */
+  --color-text: light-dark(#1b1a17, #ece7df);
+  --color-text-muted: light-dark(#57534b, #b5afa5); /* on every surface above */
+  /* Addition of the shell, not in the Lesepult table: decorative separators between
+     surfaces that already differ (1.29:1 light, 1.50:1 dark on the frame). Never the
+     only sign of a control or a state; lines of controls use --color-field. */
+  --color-hairline: light-dark(#dad6cd, #3a3732);
+  --color-field: light-dark(
+    #8c877c,
+    #7d776d
+  ); /* border of fields and controls on sheet and frame */
+  /* Rule of round 2: controls on the side surface take a border in --color-text-muted,
+     because --color-field reaches only 2.95:1 there. */
+  --color-field-on-side: var(--color-text-muted);
+
+  /* Ink (accent, ADR 0029) */
+  --color-accent: light-dark(#1f4e8c, #2f5fa8); /* filled controls, selected marker */
+  --color-on-accent: #ffffff;
+  --color-accent-text: light-dark(#1f4e8c, #9dbdf0); /* accent as text or line on any surface */
+  /* Selection bar of the navigation; dark uses #9DBDF0 (round 2), ink reaches 2.69:1. */
+  --color-selection: light-dark(#1f4e8c, #9dbdf0);
+  /* Addition of the shell: background of the selected or hovered navigation entry. Light
+     is the sheet colour; dark #2C2A26 lies between side and sheet. The selection is
+     carried by the bar (--color-selection, 6.9:1 / 8.9:1) and the weight, not by this
+     surface (1.21:1 / 1.19:1 to the sidebar); text on it 17.4:1 / 11.6:1. */
+  --color-nav-active: light-dark(#ffffff, #2c2a26);
+  --color-focus: light-dark(#1f4e8c, #9dbdf0); /* focus ring, separate from selection */
+
+  /* Citation marker (ADR 0028): unselected pair; selected uses accent / on-accent */
+  --color-marker: light-dark(#e3eaf5, #2a3a55);
+  --color-marker-text: light-dark(#1f4e8c, #c6d8f5);
+
+  /* Highlighter for the cited passage, the only second marking colour */
+  --color-highlight: light-dark(#ffe38a, #5a4610);
+  --color-highlight-text: light-dark(#1b1a17, #fff1c9);
+  --color-highlight-edge: light-dark(#a87b00, #d9a93a);
+
+  /* States */
+  --color-danger: light-dark(#fbe9e7, #3b1e1b);
+  --color-danger-text: light-dark(#a4231c, #ffaaa0);
+  --color-warning: light-dark(#fcf1d6, #33290f);
+  --color-warning-text: light-dark(#6b4700, #f0c46a);
+  --color-success-text: light-dark(#2e6b30, #8fd19a);
+  /* Addition of the shell: empty part of a progress bar, the hairline colour. The filled
+     part (--color-accent-text) carries the value: 5.7:1 light, 6.2:1 dark to the track;
+     the number stands in the text next to it. */
+  --color-track: light-dark(#dad6cd, #3a3732);
+
+  /* Type (ADR 0030): controls in the system font, reading text in Literata */
+  --font-ui:
+    "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "SF Pro Text", "Helvetica Neue",
+    sans-serif;
+  --font-read: "Literata", Georgia, serif;
+  /* Control sizes of Lesepult variant 4: 24/32 (titles), 17/24, 15/22, 13/18 */
+  --text-ui-xl: 24px;
+  --leading-ui-xl: 32px;
+  --text-ui-md: 17px;
+  --leading-ui-md: 24px;
+  --text-ui: 15px;
+  --leading-ui: 22px;
+  --text-ui-sm: 13px;
+  --leading-ui-sm: 18px;
+  /* Reading sizes: running text 17/30, document headings 22/30, quotes italic 15/24 */
+  --text-read: 17px;
+  --leading-read: 30px;
+  --text-read-heading: 22px;
+  --text-quote: 15px;
+  --leading-quote: 24px;
+
+  /* Spacing 4 to 32, radii 2 (marking), 4 (controls), 8 (surfaces, sheet) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-half: 2px; /* offsets of a hairline or a control inside a corner */
+  --radius-mark: 2px;
+  --radius-control: 4px;
+  --radius-surface: 8px;
+
+  /* Sizes */
+  --target: 44px; /* minimum hit target of every control */
+  --sidebar-width: 248px; /* wide layout, from 1100px */
+  --rail-width: 96px; /* medium layout, 700 to 1099px; fits "Einstellungen" at 13px */
+  --statusbar-height: 44px;
+  --page-max: 900px; /* settings and setup; the library takes the full width */
+  --divider-grab: 24px; /* grab area of the divider, ADR 0035 exception to --target */
+  --line-strong: 2px; /* visible line of the divider, focus ring */
+  --selection-bar: 3px; /* width of the selection bar in the navigation */
+  --progress-height: 4px;
+  --progress-width: 80px; /* progress bar in the status bar */
+  --rail-item: 56px; /* entries of the rail: icon over label */
+  --expand-min: 120px; /* collapsed evidence column: the "Belege" strip */
+  --document-min: 160px; /* document view in the narrow layout */
+}
+
+:root[data-color-scheme="light"] {
+  color-scheme: light;
+}
+
+:root[data-color-scheme="dark"] {
+  color-scheme: dark;
+}

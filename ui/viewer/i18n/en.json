@@ -1,0 +1,12 @@
+{
+  "emptyTitle": "No passage chosen yet",
+  "emptyHint": "Click a number in the answer or in the list. The passage then appears here, highlighted in the document.",
+  "position": "Passage {current} of {total}",
+  "previous": "Previous passage",
+  "next": "Next passage",
+  "marginLabel": "Passage of source {number}",
+  "label": "Document view",
+  "backToAnswer": "Back to the answer",
+  "changed": "The source changed since the answer.",
+  "removed": "The source is no longer in the library."
+}

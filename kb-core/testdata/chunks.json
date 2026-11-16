@@ -1,0 +1,519 @@
+[
+  {
+    "id": "doc-budget#0",
+    "text": "| Category | Q1 | Q2 |\n| --- | --- | --- |\n| Travel | 12,000 | 9,500 |\n| Training | 8,000 | 11,000 |",
+    "language": "en",
+    "provenance": {
+      "source": {
+        "document_id": "doc-budget",
+        "path": "C:\\Ablage\\budget.xlsx",
+        "name": "budget.xlsx",
+        "content_hash": "a8a48b44f87b2d1ef8cf792d72d0fc05f3200e38d686d1d467e9a11ac885ac1b"
+      },
+      "heading_path": [],
+      "anchors": [
+        {
+          "type": "sheet",
+          "sheet": "Budget",
+          "range": {
+            "start_row": 2,
+            "start_col": 1,
+            "end_row": 4,
+            "end_col": 3
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-budget#1",
+    "text": "Approved by the finance committee on 2026-10-15.",
+    "language": "en",
+    "provenance": {
+      "source": {
+        "document_id": "doc-budget",
+        "path": "C:\\Ablage\\budget.xlsx",
+        "name": "budget.xlsx",
+        "content_hash": "a8a48b44f87b2d1ef8cf792d72d0fc05f3200e38d686d1d467e9a11ac885ac1b"
+      },
+      "heading_path": [],
+      "anchors": [
+        {
+          "type": "sheet",
+          "sheet": "Notes",
+          "range": {
+            "start_row": 0,
+            "start_col": 0,
+            "end_row": 0,
+            "end_col": 0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-faq#0",
+    "text": "The service desk is open Monday to Friday from 8 am to 5 pm.",
+    "language": "en",
+    "provenance": {
+      "source": {
+        "document_id": "doc-faq",
+        "path": "C:\\Ablage\\faq.html",
+        "name": "faq.html",
+        "content_hash": "b1692b0dd57ebda37976c4dcd845b112b429b2fde3033725345b0f6cf747cb5c"
+      },
+      "heading_path": [
+        "Frequently Asked Questions",
+        "Opening Hours"
+      ],
+      "anchors": [
+        {
+          "type": "paragraph",
+          "element": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-faq#1",
+    "text": "The service desk is closed on public holidays.",
+    "language": "en",
+    "provenance": {
+      "source": {
+        "document_id": "doc-faq",
+        "path": "C:\\Ablage\\faq.html",
+        "name": "faq.html",
+        "content_hash": "b1692b0dd57ebda37976c4dcd845b112b429b2fde3033725345b0f6cf747cb5c"
+      },
+      "heading_path": [
+        "Frequently Asked Questions",
+        "Opening Hours"
+      ],
+      "anchors": [
+        {
+          "type": "paragraph",
+          "element": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-notizen#0",
+    "text": "Die nächste Prüfung der Kühlgeräte ist für März 2027 geplant.",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-notizen",
+        "path": "C:\\Ablage\\notizen.md",
+        "name": "notizen.md",
+        "content_hash": "4ccddc3fd0a86dbc7ed6a247bb050109c43ba9f4166b4062f38ba8d944a1b527"
+      },
+      "heading_path": [
+        "Notizen zur Prüfung"
+      ],
+      "anchors": [
+        {
+          "type": "paragraph",
+          "element": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-notizen#1",
+    "text": "Ersatzteile für den Gefrierschrank Nord bestellen.",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-notizen",
+        "path": "C:\\Ablage\\notizen.md",
+        "name": "notizen.md",
+        "content_hash": "4ccddc3fd0a86dbc7ed6a247bb050109c43ba9f4166b4062f38ba8d944a1b527"
+      },
+      "heading_path": [
+        "Notizen zur Prüfung"
+      ],
+      "anchors": [
+        {
+          "type": "paragraph",
+          "element": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-onboarding#0",
+    "text": "Pick up your badge at the front desk before 9 am. Your manager will walk you through the safety briefing.",
+    "language": "en",
+    "provenance": {
+      "source": {
+        "document_id": "doc-onboarding",
+        "path": "C:\\Ablage\\onboarding.docx",
+        "name": "onboarding.docx",
+        "content_hash": "296285032af2d7bb517d75014182511c95d295a28c13a389bbd0a27779fad02a"
+      },
+      "heading_path": [
+        "Onboarding Guide",
+        "First Day"
+      ],
+      "anchors": [
+        {
+          "type": "paragraph",
+          "element": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-onboarding#1",
+    "text": "Bring a valid photo ID.",
+    "language": "en",
+    "provenance": {
+      "source": {
+        "document_id": "doc-onboarding",
+        "path": "C:\\Ablage\\onboarding.docx",
+        "name": "onboarding.docx",
+        "content_hash": "296285032af2d7bb517d75014182511c95d295a28c13a389bbd0a27779fad02a"
+      },
+      "heading_path": [
+        "Onboarding Guide",
+        "First Day"
+      ],
+      "anchors": [
+        {
+          "type": "paragraph",
+          "element": 3
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-onboarding#2",
+    "text": "Set up your laptop together with the IT team.",
+    "language": "en",
+    "provenance": {
+      "source": {
+        "document_id": "doc-onboarding",
+        "path": "C:\\Ablage\\onboarding.docx",
+        "name": "onboarding.docx",
+        "content_hash": "296285032af2d7bb517d75014182511c95d295a28c13a389bbd0a27779fad02a"
+      },
+      "heading_path": [
+        "Onboarding Guide",
+        "First Day"
+      ],
+      "anchors": [
+        {
+          "type": "paragraph",
+          "element": 4
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-onboarding#3",
+    "text": "Travel expenses are reimbursed within 30 days if you submit the original receipts.",
+    "language": "en",
+    "provenance": {
+      "source": {
+        "document_id": "doc-onboarding",
+        "path": "C:\\Ablage\\onboarding.docx",
+        "name": "onboarding.docx",
+        "content_hash": "296285032af2d7bb517d75014182511c95d295a28c13a389bbd0a27779fad02a"
+      },
+      "heading_path": [
+        "Onboarding Guide",
+        "Travel Expenses"
+      ],
+      "anchors": [
+        {
+          "type": "paragraph",
+          "element": 6
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-pruefordnung#0",
+    "text": "Diese Ordnung gilt für alle Kühlschränke, Gefriertruhen und Wärmepumpen, die in den Gebäuden der Musterstadt GmbH betrieben werden, unabhängig von ihrer Größe.",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-pruefordnung",
+        "path": "C:\\Ablage\\pruefordnung.pdf",
+        "name": "pruefordnung.pdf",
+        "content_hash": "1e930c6231195d03f61e416d8ffbf4fa1d1e76421d58cfe96a25cf41c7a461c8"
+      },
+      "heading_path": [
+        "Prüfordnung für Kühl- und Gefriergeräte",
+        "§ 1 Geltungsbereich"
+      ],
+      "anchors": [
+        {
+          "type": "page",
+          "page": 1,
+          "bbox": {
+            "left": 72.0,
+            "top": 156.0,
+            "right": 523.0,
+            "bottom": 200.0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-pruefordnung#1",
+    "text": "Jedes Gerät wird mindestens einmal jährlich geprüft. Geräte, bei denen Mängel festgestellt wurden, müssen innerhalb von vier Wochen erneut geprüft werden. Über jede Prüfung ist ein Protokoll zu führen, das Prüfdatum, Ergebnis und die Unterschrift der prüfenden Person enthält.",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-pruefordnung",
+        "path": "C:\\Ablage\\pruefordnung.pdf",
+        "name": "pruefordnung.pdf",
+        "content_hash": "1e930c6231195d03f61e416d8ffbf4fa1d1e76421d58cfe96a25cf41c7a461c8"
+      },
+      "heading_path": [
+        "Prüfordnung für Kühl- und Gefriergeräte",
+        "§ 2 Prüffristen"
+      ],
+      "anchors": [
+        {
+          "type": "page",
+          "page": 1,
+          "bbox": {
+            "left": 72.0,
+            "top": 716.0,
+            "right": 523.0,
+            "bottom": 790.0
+          }
+        },
+        {
+          "type": "page",
+          "page": 2,
+          "bbox": {
+            "left": 72.0,
+            "top": 60.0,
+            "right": 523.0,
+            "bottom": 104.0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-pruefordnung#2",
+    "text": "| Gerät | Prüfdatum | Ergebnis |\n| --- | --- | --- |\n| Kühlschrank Süd | 04.11.2026 | bestanden |\n| Wärmepumpe Ost | 05.11.2026 | Mängel |",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-pruefordnung",
+        "path": "C:\\Ablage\\pruefordnung.pdf",
+        "name": "pruefordnung.pdf",
+        "content_hash": "1e930c6231195d03f61e416d8ffbf4fa1d1e76421d58cfe96a25cf41c7a461c8"
+      },
+      "heading_path": [
+        "Prüfordnung für Kühl- und Gefriergeräte",
+        "§ 3 Übersicht der Prüfergebnisse"
+      ],
+      "anchors": [
+        {
+          "type": "page",
+          "page": 2,
+          "bbox": {
+            "left": 72.0,
+            "top": 160.0,
+            "right": 523.0,
+            "bottom": 240.0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-pruefordnung#3",
+    "text": "Tabelle 1: Prüfergebnisse November 2026",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-pruefordnung",
+        "path": "C:\\Ablage\\pruefordnung.pdf",
+        "name": "pruefordnung.pdf",
+        "content_hash": "1e930c6231195d03f61e416d8ffbf4fa1d1e76421d58cfe96a25cf41c7a461c8"
+      },
+      "heading_path": [
+        "Prüfordnung für Kühl- und Gefriergeräte",
+        "§ 3 Übersicht der Prüfergebnisse"
+      ],
+      "anchors": [
+        {
+          "type": "page",
+          "page": 2,
+          "bbox": {
+            "left": 72.0,
+            "top": 246.0,
+            "right": 400.0,
+            "bottom": 258.0
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-schulung#0",
+    "text": "Grundregeln für alle Beschäftigten",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-schulung",
+        "path": "C:\\Ablage\\schulung.pptx",
+        "name": "schulung.pptx",
+        "content_hash": "0dccfe980cb20c9d8c0046d35caca7ba2d04d8dedb6374d75728591f969714cc"
+      },
+      "heading_path": [
+        "Sicherheitsunterweisung 2026"
+      ],
+      "anchors": [
+        {
+          "type": "slide",
+          "slide": 1,
+          "in_notes": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-schulung#1",
+    "text": "Fluchtwege müssen jederzeit frei bleiben.",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-schulung",
+        "path": "C:\\Ablage\\schulung.pptx",
+        "name": "schulung.pptx",
+        "content_hash": "0dccfe980cb20c9d8c0046d35caca7ba2d04d8dedb6374d75728591f969714cc"
+      },
+      "heading_path": [
+        "Sicherheitsunterweisung 2026",
+        "Fluchtwege"
+      ],
+      "anchors": [
+        {
+          "type": "slide",
+          "slide": 2,
+          "in_notes": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-schulung#2",
+    "text": "Feuerlöscher hängen neben jeder Tür.",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-schulung",
+        "path": "C:\\Ablage\\schulung.pptx",
+        "name": "schulung.pptx",
+        "content_hash": "0dccfe980cb20c9d8c0046d35caca7ba2d04d8dedb6374d75728591f969714cc"
+      },
+      "heading_path": [
+        "Sicherheitsunterweisung 2026",
+        "Fluchtwege"
+      ],
+      "anchors": [
+        {
+          "type": "slide",
+          "slide": 2,
+          "in_notes": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-schulung#3",
+    "text": "Notiz für die Vortragenden: Wie oft die Fluchtwege geprüft werden, regelt die Prüfordnung. Der Hausmeister geht sie monatlich ab.",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-schulung",
+        "path": "C:\\Ablage\\schulung.pptx",
+        "name": "schulung.pptx",
+        "content_hash": "0dccfe980cb20c9d8c0046d35caca7ba2d04d8dedb6374d75728591f969714cc"
+      },
+      "heading_path": [
+        "Sicherheitsunterweisung 2026",
+        "Fluchtwege"
+      ],
+      "anchors": [
+        {
+          "type": "slide",
+          "slide": 2,
+          "in_notes": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-schulung#4",
+    "text": "Abbildung 1: Lageplan des Erdgeschosses",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-schulung",
+        "path": "C:\\Ablage\\schulung.pptx",
+        "name": "schulung.pptx",
+        "content_hash": "0dccfe980cb20c9d8c0046d35caca7ba2d04d8dedb6374d75728591f969714cc"
+      },
+      "heading_path": [
+        "Sicherheitsunterweisung 2026",
+        "Fluchtwege"
+      ],
+      "anchors": [
+        {
+          "type": "slide",
+          "slide": 3,
+          "in_notes": false
+        }
+      ]
+    }
+  },
+  {
+    "id": "doc-wartung-scan#0",
+    "text": "Die Wärmepumpe Ost wurde am 05.11.2026 gewartet. Der Filter wurde getauscht, die Dichtungen sind in Ordnung.",
+    "language": "de",
+    "provenance": {
+      "source": {
+        "document_id": "doc-wartung-scan",
+        "path": "C:\\Ablage\\wartung-scan.png",
+        "name": "wartung-scan.png",
+        "content_hash": "67fe72cc4cba3979e6fa300e5db95e984690a5ba32a3efb35f364b486e9cdfd2"
+      },
+      "heading_path": [
+        "Wartungsprotokoll Wärmepumpe Ost"
+      ],
+      "anchors": [
+        {
+          "type": "page",
+          "page": 1,
+          "bbox": {
+            "left": 200.0,
+            "top": 340.0,
+            "right": 800.0,
+            "bottom": 460.0
+          }
+        },
+        {
+          "type": "page",
+          "page": 1,
+          "bbox": {
+            "left": 854.0,
+            "top": 340.0,
+            "right": 1450.0,
+            "bottom": 400.0
+          }
+        }
+      ]
+    }
+  }
+]

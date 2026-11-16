@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: fmt, clippy, test, deny
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # rustup reads rust-toolchain.toml and installs the pinned toolchain.
+      - name: Install toolchain
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: cargo fmt
+        run: cargo fmt --all --check
+
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      # ui/api/bindings.ts must match the Rust types of app/ (regenerate: pnpm gen:types).
+      - name: generated TypeScript bindings up to date
+        run: cargo test --package ragoxide-app --test bindings
+
+      - name: cargo test
+        run: cargo test --workspace
+
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny
+
+      - name: cargo deny
+        run: cargo deny check
+
+  ui:
+    name: ui lint, typecheck, test, build, e2e
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version from "packageManager" in ui/package.json.
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ui/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+
+      - name: install
+        run: pnpm install --frozen-lockfile
+
+      - name: lint (eslint, prettier)
+        run: pnpm lint
+
+      - name: typecheck (svelte-check)
+        run: pnpm check
+
+      - name: unit and component tests (vitest)
+        run: pnpm test
+
+      - name: build
+        run: pnpm build
+
+      # The app as it ships: embedded interface and CSP (`tauri build` sets this feature).
+      # Without it, cargo builds a development app that loads devUrl and has no CSP.
+      - name: Install Rust toolchain
+        working-directory: .
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: app with embedded interface
+        working-directory: .
+        run: cargo build --package ragoxide-app --features tauri/custom-protocol
+
+      # Browser test against the mock backend in the Edge preinstalled on the runner.
+      - name: e2e (playwright)
+        run: pnpm e2e

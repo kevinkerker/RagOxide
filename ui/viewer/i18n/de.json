@@ -1,0 +1,12 @@
+{
+  "emptyTitle": "Noch keine Fundstelle gewählt",
+  "emptyHint": "Klick auf eine Nummer in der Antwort oder in der Liste. Die Stelle erscheint dann hier, im Dokument markiert.",
+  "position": "Fundstelle {current} von {total}",
+  "previous": "Vorherige Fundstelle",
+  "next": "Nächste Fundstelle",
+  "marginLabel": "Fundstelle von Quelle {number}",
+  "label": "Dokumentansicht",
+  "backToAnswer": "Zur Antwort",
+  "changed": "Die Quelle wurde seit der Antwort geändert.",
+  "removed": "Die Quelle ist nicht mehr in der Bibliothek."
+}

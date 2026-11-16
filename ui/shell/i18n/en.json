@@ -1,0 +1,62 @@
+{
+  "productName": "RagOxide",
+  "loading": "Loading …",
+  "startFailed": "RagOxide could not start.",
+  "mockBadge": "Sample data",
+  "mockHint": "The interface runs without the desktop app on sample data.",
+  "nav": {
+    "label": "Navigation",
+    "newChat": "New chat",
+    "chats": "Chats",
+    "library": "Library",
+    "settings": "Settings",
+    "setup": "Setup",
+    "setupStep": "Step {step} of {total}",
+    "setupStepShort": "{step}/{total}",
+    "setupProgress": "{percent} %",
+    "menu": "Chats and navigation",
+    "close": "Close",
+    "jump": "Jump to",
+    "answer": "Answer",
+    "evidence": "Sources"
+  },
+  "evidence": {
+    "label": "Sources",
+    "collapse": "Collapse sources",
+    "divider": "Width of the sources column"
+  },
+  "status": {
+    "label": "Library status",
+    "idle": {
+      "one": "Library up to date · {count} document",
+      "other": "Library up to date · {count} documents"
+    },
+    "ingest": "Reading: {completed} of {total} files",
+    "ingestShort": "{completed} of {total}",
+    "download": "Downloading models: {done} of {total} GB · {percent} %",
+    "downloadShort": "Models {percent} %",
+    "errors": {
+      "one": "{count} file with an error",
+      "other": "{count} files with errors"
+    },
+    "watchFailed": "Folder watching stopped",
+    "unavailable": "{folder} unreachable",
+    "unavailableMany": "{count} folders unreachable",
+    "unavailableShort": "Folder offline",
+    "downloadFailed": "Model download interrupted",
+    "announce": {
+      "idle": "Library up to date",
+      "ingest": "Library reading",
+      "download": "Downloading models",
+      "downloadFailed": "Model download interrupted",
+      "errors": "Files with errors",
+      "watchFailed": "Folder watching stopped",
+      "unavailable": "Folder unreachable"
+    }
+  },
+  "askLock": {
+    "checking": "One moment, checking the models.",
+    "modelsMissing": "You can ask as soon as the answer model is ready. Start the setup for it.",
+    "downloading": "You can ask as soon as the models are downloaded. Meanwhile you can add folders."
+  }
+}

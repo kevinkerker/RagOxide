@@ -1,0 +1,442 @@
+# Shared model manifest: the only place for model names, sources, checksums, tiers and
+# answer levels. Parsed into `kb_core::ModelManifest`, read by kb-hub and kb-llm.
+# Models: ADR 0013 (embedding, reranker, fallbacks), ADR 0055 and 0063 (answer models
+# in three levels), ADR 0011 (parser models from docling.rs).
+#
+# Sources (ADR 0077): every file has exactly one `source`, without a fallback:
+#   source = { kind = "hugging_face", repo = "<owner>/<name>", revision = "<commit>" }
+#     unchanged file, https://huggingface.co/<repo>/resolve/<revision>/<path>
+#   source = { kind = "github_release", repo = "<owner>/<name>", tag = "<tag>", asset = "<name>" }
+#     file made or changed by the project, https://github.com/<repo>/releases/download/<tag>/<asset>
+# A source with an open part (no repo, revision or tag yet) or no source at all has no
+# address; kb-hub cannot download such a file and reports it as `Error::Model`.
+# Files made or changed by the project are assets of releases in the project
+# repository kevinkerker/RagOxide (ADR 0079). Release tags are numbered: the first is
+# models-1, the next models-2 and so on (ADR 0090). The tag is entered once the release
+# exists; until then it stays open.
+#
+# PLACEHOLDERS. A missing `source` part or `sha256` is not an oversight but means "not
+# verified yet". Values for the answer models and llama-server are taken from
+# docs/analyse/tempomessung.md, for embedding and reranker from
+# docs/analyse/embedding-test.md ("Dateien und Prüfsummen"): downloaded through the
+# pinned commit, sizes exact, SHA-256 computed locally and equal to the checksum Hugging
+# Face or GitHub states. Everything else is not verified: `size_bytes` marked UNVERIFIED
+# is a rounded size from the analyses (decimal units) for showing the download size, a
+# missing one is unknown. kb-hub must reject any file without `sha256`.
+#
+# Licences: the licence of each entry is its `license` field (SPDX). For the answer
+# models it is the licence the Hugging Face API states (docs/analyse/tempomessung.md),
+# for embedding and reranker the one on the model cards (docs/analyse/embedding-test.md);
+# for the parser models it is taken from the documentation of docling.rs
+# (docs/analyse/docling-rs.md), not checked against the model cards of their makers;
+# for the fallback entries it is not verified. Files made or changed by the project
+# (the release assets) are marked as changed from the original, and the licence text
+# is attached to the release (Apache 2.0, section 4 b; ADR 0077).
+#
+# Units: `preference` 1 = planned model, 2 = first fallback, 3 = second fallback.
+# Tiers (ADR 0056): "supported" (16 GB and more, all levels, with reranker) and
+# "below_minimum" (attempt allowed, fast level only, no reranker).
+# Levels (ADR 0055, names ADR 0067): "fast" (Schnell), "balanced" (Ausgewogen),
+# "thorough" (Gründlich).
+# Embedding: every file variant of an embedding model needs its own `id`, so that the
+# index notices a change of variant (docs/analyse/embedding-test.md).
+
+schema_version = 4
+
+# ---------------------------------------------------------------- runtimes
+# Shipped with the installer (package O), not downloaded.
+
+[[runtimes]]
+id = "llama-server"
+name = "llama.cpp llama-server (CPU build for Windows x64)"
+# The Windows binaries are in release b12359 (marked as pre-release on GitHub). The tag
+# v1.0.0 points at the same commit b1b770d90d94cad9e9ea5b993bdbc383a522fb28 but its
+# release holds only nightly-tag.txt (docs/analyse/tempomessung.md).
+version = "b12359"
+license = "MIT"
+source = "https://github.com/ggml-org/llama.cpp/releases/tag/b12359"
+
+[[runtimes.files]]
+path = "llama-b12359-bin-win-cpu-x64.zip"
+source = { kind = "github_release", repo = "ggml-org/llama.cpp", tag = "b12359", asset = "llama-b12359-bin-win-cpu-x64.zip" }
+sha256 = "837c1655e87df3b66989f4be33a792a1399c785bf259038dc75c900096683e69"
+size_bytes = 25097509
+
+# Files from the archive that the measurement used; the other files of the archive
+# (further CPU backends among them) are not listed and not verified one by one.
+[[runtimes.files]]
+path = "llama-server.exe"
+archive = "llama-b12359-bin-win-cpu-x64.zip"
+sha256 = "38c5affb81c9a8f88f5538c7d11bc445e13bc46a2c6eda05694b8b31a8d45995"
+size_bytes = 9728
+
+[[runtimes.files]]
+path = "llama-server-impl.dll"
+archive = "llama-b12359-bin-win-cpu-x64.zip"
+sha256 = "c81c23738405831cacda737e64ce8f08870d4f44beb63e3aa9515b3ad2e4286e"
+size_bytes = 10343424
+
+[[runtimes.files]]
+path = "ggml-cpu-alderlake.dll"
+archive = "llama-b12359-bin-win-cpu-x64.zip"
+sha256 = "f4bd2a5bd4c99669a5efcbc0edf5326c6f51cf556c3301ae5c8fc2994b913440"
+size_bytes = 1459200
+
+[[runtimes]]
+id = "onnxruntime"
+name = "ONNX Runtime (bundled through the ort crate)"
+# ort =2.0.0-rc.15 links ONNX Runtime 1.31.0 statically (build info git-branch
+# rel-1.31.0, git-commit-id 402979a; docs/analyse/embedding-test.md, "Hardware und
+# Versionen"). The version holds for ort 2.0.0-rc.15; package C pins ort in its
+# Cargo.toml, which does not exist yet.
+version = "1.31.0"
+license = "MIT"
+source = "https://github.com/microsoft/onnxruntime"
+
+# ---------------------------------------------------------------- embedding
+
+[[models]]
+id = "embeddinggemma-2"
+name = "EmbeddingGemma 2 (ONNX, INT8 q8, graph with accuracy_level 4)"
+role = "embedding"
+tiers = ["supported", "below_minimum"]
+preference = 1
+# Native size; Matryoshka truncation to 512 or 256 is decided in Phase 2.
+dimension = 768
+license = "Apache-2.0"
+source = "https://huggingface.co/onnx-community/embeddinggemma-2-ONNX"
+# Licence: Apache-2.0 per the model cards of onnx-community/embeddinggemma-2-ONNX and
+# google/embeddinggemma-2 (no LICENSE file in either repo). The card of the original
+# also says "Deployments must adhere to the Gemma Prohibited Use Policy"; whether that
+# binds is open and belongs to the licence review (embedding-test.md, Empfehlung).
+
+# Own file: the INT8 graph of onnx-community with accuracy_level 4, changed from
+# onnx/model_quantized.onnx (not used: slow on the CPU); it reads the unchanged weights
+# below. Marked as changed from the original.
+[[models.files]]
+path = "onnx/model_q8_acc4.onnx"
+# tag: OPEN - the first release, models-1, does not exist yet (ADR 0079, ADR 0090)
+source = { kind = "github_release", repo = "kevinkerker/RagOxide", asset = "model_q8_acc4.onnx" }
+# The file to ship: its external data points to the unchanged weights next to it
+# (onnx/model_quantized.onnx_data), made reproducibly as described in
+# docs/analyse/embedding-test.md ("geänderter Graph zur Auslieferung"). The graph of the
+# measurement (b1e92051...) points to another weights name and is not shipped.
+sha256 = "4bd9649778ba6f6460858103b138df6a70ddb22fb4c6ac844fe6fd20e56d691c"
+size_bytes = 498523
+
+[[models.files]]
+path = "onnx/model_quantized.onnx_data"
+source = { kind = "hugging_face", repo = "onnx-community/embeddinggemma-2-ONNX", revision = "daa72c51243991dfcaf9f9137d2c573d8f7790c0" }
+sha256 = "278a7ff1248c3618e4bd11a607fc54f7bdc7778854230f3956d3f86bd9db4f3b"
+size_bytes = 313724928
+
+[[models.files]]
+path = "tokenizer.json"
+source = { kind = "hugging_face", repo = "onnx-community/embeddinggemma-2-ONNX", revision = "daa72c51243991dfcaf9f9137d2c573d8f7790c0" }
+sha256 = "4d777ef5bdc1aa36227abdfb77c3e49e7b9c892d16e1b6bda41c393504828be4"
+size_bytes = 32170510
+
+[[models]]
+id = "qwen3-embedding-0.6b"
+name = "Qwen3-Embedding-0.6B (ONNX, INT8 weights)"
+role = "embedding"
+tiers = ["supported", "below_minimum"]
+preference = 2
+dimension = 1024
+license = "Apache-2.0"
+source = "https://huggingface.co/Qdrant/Qwen3-Embedding-0.6B-onnx"
+
+[[models.files]]
+path = "model_quantized.onnx"
+# revision: OPEN
+source = { kind = "hugging_face", repo = "Qdrant/Qwen3-Embedding-0.6B-onnx" }
+# sha256: UNVERIFIED
+# size_bytes: UNVERIFIED - rounded value from docs/analyse/modell-stack.md
+size_bytes = 1120000000
+
+[[models.files]]
+path = "tokenizer.json"
+# revision: OPEN
+source = { kind = "hugging_face", repo = "Qdrant/Qwen3-Embedding-0.6B-onnx" }
+# sha256: UNVERIFIED
+# size_bytes: OPEN
+
+[[models]]
+id = "bge-m3"
+name = "BGE-M3 (ONNX, float32)"
+role = "embedding"
+tiers = ["supported", "below_minimum"]
+preference = 3
+dimension = 1024
+license = "MIT"
+source = "https://huggingface.co/BAAI/bge-m3"
+
+[[models.files]]
+path = "onnx/model.onnx"
+# revision: OPEN
+source = { kind = "hugging_face", repo = "BAAI/bge-m3" }
+# sha256: UNVERIFIED
+# size_bytes: OPEN
+
+[[models.files]]
+path = "onnx/model.onnx_data"
+# revision: OPEN
+source = { kind = "hugging_face", repo = "BAAI/bge-m3" }
+# sha256: UNVERIFIED
+# size_bytes: UNVERIFIED - rounded value from docs/analyse/modell-stack.md
+size_bytes = 2270000000
+
+[[models.files]]
+path = "tokenizer.json"
+# revision: OPEN
+source = { kind = "hugging_face", repo = "BAAI/bge-m3" }
+# sha256: UNVERIFIED
+# size_bytes: OPEN
+
+# ---------------------------------------------------------------- reranker
+# Only the supported tier has a reranker; below the minimum the app runs without one
+# (ADR 0056).
+
+[[models]]
+id = "bge-reranker-v2-m3"
+name = "bge-reranker-v2-m3 (ONNX, dynamic INT8, own export)"
+role = "reranker"
+tiers = ["supported"]
+preference = 1
+license = "Apache-2.0"
+source = "https://huggingface.co/BAAI/bge-reranker-v2-m3"
+# Licence: Apache-2.0 per the model card of BAAI/bge-reranker-v2-m3 (no LICENSE file).
+# Score one candidate per call (batch 1): with this dynamically quantised file the score
+# of a chunk otherwise depends on the other chunks in the batch (embedding-test.md).
+
+# Own file: exported from model.safetensors of BAAI/bge-reranker-v2-m3 at revision
+# 953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e and quantised to dynamic INT8. Marked as
+# changed from the original.
+[[models.files]]
+path = "model_int8.onnx"
+# tag: OPEN - the first release, models-1, does not exist yet (ADR 0079, ADR 0090)
+source = { kind = "github_release", repo = "kevinkerker/RagOxide", asset = "model_int8.onnx" }
+sha256 = "ba1439bf4e36e81efff0e89a32aa12bf9680fa196c6f54e0d74428d1dd3a7ca2"
+size_bytes = 568992063
+
+[[models.files]]
+path = "tokenizer.json"
+source = { kind = "hugging_face", repo = "BAAI/bge-reranker-v2-m3", revision = "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e" }
+sha256 = "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15"
+size_bytes = 17098273
+
+[[models]]
+id = "qwen3-reranker-0.6b"
+name = "Qwen3-Reranker-0.6B (GGUF for llama-server --reranking)"
+role = "reranker"
+tiers = ["supported"]
+preference = 2
+license = "Apache-2.0"
+source = "https://huggingface.co/Qwen/Qwen3-Reranker-0.6B"
+
+[[models.files]]
+path = "qwen3-reranker-0.6b.gguf"
+# repo, revision: OPEN - no GGUF source chosen
+# sha256: UNVERIFIED
+# size_bytes: OPEN
+
+# ---------------------------------------------------------------- answer models (ADR 0055)
+# One model per level; `mtp_draft` switches multi-token prediction on when the server
+# starts (ADR 0063), on the hardware tiers in `mtp_tiers` (ADR 0084): below the minimum
+# the fast model runs without its drafter, which is then neither provided nor loaded. Gains in generation speed from docs/analyse/tempomessung.md
+# ("Multi-Token Prediction", alternating comparison): E2B x1.63 at 916 prompt tokens and
+# x0.93 at 7,968; E4B x1.36 and x1.29; 12B Q4_K_M with its own drafter x1.34. The prompt
+# cap of about 4,000 tokens (ADR 0081) lies between the two E2B points and is not
+# measured. Google's 12B QAT file is not used: MTP slows it down (B4, ADR 0063).
+
+[[models]]
+id = "gemma-4-e2b"
+name = "Gemma 4 E2B (GGUF Q4_K_M, MTP drafter Q8_0)"
+role = "generator"
+level = "fast"
+tiers = ["supported", "below_minimum"]
+preference = 1
+# Not on below_minimum (ADR 0084): there the drafter would cost about 0.18 GB more
+# working set, where the calculation for 8 GB leaves 0.1 GB reserve without reranker
+# (tempomessung.md).
+# REPRODUCIBILITY: with this drafter, greedy texts (temperature 0) differ from those
+# without it (measured at 1,000 and 8,000 prompt tokens; E4B and 12B stay word for word
+# identical, tempomessung.md "Antworten"). kb-eval and tests must not expect E2B texts
+# to be word for word equal across MTP on and off; repeated runs with MTP are not
+# examined.
+mtp_draft = "mtp-gemma-4-E2B-it.gguf"
+mtp_tiers = ["supported"]
+license = "Apache-2.0"
+source = "https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF"
+
+[[models.files]]
+path = "gemma-4-E2B-it-Q4_K_M.gguf"
+source = { kind = "hugging_face", repo = "unsloth/gemma-4-E2B-it-GGUF", revision = "0314792d7f1f7e229411f620751375812bb9faf2" }
+sha256 = "740185b21d22ceb83a11c3aa62ad5842ef32c70f6096d756bbee85a1e4ec34b8"
+size_bytes = 3106738272
+
+[[models.files]]
+path = "mtp-gemma-4-E2B-it.gguf"
+source = { kind = "hugging_face", repo = "unsloth/gemma-4-E2B-it-GGUF", revision = "0314792d7f1f7e229411f620751375812bb9faf2" }
+sha256 = "9eba819938efccfd6044f8af84e3bbfddc639a2bcf32ebc36420e6a649191919"
+size_bytes = 97817664
+
+[[models]]
+id = "gemma-4-e4b"
+name = "Gemma 4 E4B (GGUF Q4_K_M, MTP drafter Q8_0)"
+role = "generator"
+level = "balanced"
+tiers = ["supported"]
+preference = 1
+mtp_draft = "mtp-gemma-4-E4B-it.gguf"
+mtp_tiers = ["supported"]
+license = "Apache-2.0"
+source = "https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF"
+
+[[models.files]]
+path = "gemma-4-E4B-it-Q4_K_M.gguf"
+source = { kind = "hugging_face", repo = "unsloth/gemma-4-E4B-it-GGUF", revision = "bfc15c382204943c3a8fff0c750b94ae2364d7a3" }
+sha256 = "85a896a047553e842f25297ee5b031d64ff30147d9c4af17b1e4b394cd1fab87"
+size_bytes = 4977171584
+
+[[models.files]]
+path = "mtp-gemma-4-E4B-it.gguf"
+source = { kind = "hugging_face", repo = "unsloth/gemma-4-E4B-it-GGUF", revision = "bfc15c382204943c3a8fff0c750b94ae2364d7a3" }
+sha256 = "b6a723115efa510d3b3215db1e26790dae84cd08c2134a764f3d194f1f0c3376"
+size_bytes = 98653248
+
+[[models]]
+id = "gemma-4-12b"
+name = "Gemma 4 12B (GGUF Q4_K_M, MTP drafter Q8_0)"
+role = "generator"
+level = "thorough"
+tiers = ["supported"]
+preference = 1
+mtp_draft = "mtp-gemma-4-12b-it.gguf"
+mtp_tiers = ["supported"]
+license = "Apache-2.0"
+source = "https://huggingface.co/unsloth/gemma-4-12b-it-GGUF"
+
+[[models.files]]
+path = "gemma-4-12b-it-Q4_K_M.gguf"
+source = { kind = "hugging_face", repo = "unsloth/gemma-4-12b-it-GGUF", revision = "fc034cfff751157913579611efad8462ac1be606" }
+sha256 = "0a270ec9fe6b34f4a0d33992b6135117b484ebc4766ab76b51d4ae8c457e4c42"
+size_bytes = 7121861440
+
+[[models.files]]
+path = "mtp-gemma-4-12b-it.gguf"
+source = { kind = "hugging_face", repo = "unsloth/gemma-4-12b-it-GGUF", revision = "fc034cfff751157913579611efad8462ac1be606" }
+sha256 = "145db9094bc0f85f1701e255a2ed216dcc9800fc8bc8631ad00905b456bd451b"
+size_bytes = 465109248
+
+# Fallback (ADR 0013, ADR 0055): kept as the fallback of the small model, i.e. of the
+# fast level. No MTP drafter exists for it.
+[[models]]
+id = "qwen3.5-4b"
+name = "Qwen3.5-4B (GGUF Q4_K_M)"
+role = "generator"
+level = "fast"
+tiers = ["supported", "below_minimum"]
+preference = 2
+license = "Apache-2.0"
+source = "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF"
+
+[[models.files]]
+path = "Qwen3.5-4B-Q4_K_M.gguf"
+source = { kind = "hugging_face", repo = "unsloth/Qwen3.5-4B-GGUF", revision = "e87f176479d0855a907a41277aca2f8ee7a09523" }
+sha256 = "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4"
+size_bytes = 2740937888
+
+# ---------------------------------------------------------------- parser (docling.rs, ADR 0011)
+# Origin: release "models-v1" of docling-project/docling.rs on GitHub, a rolling release
+# whose bytes change on re-export. They become assets of a release with a fixed tag in
+# the project repository kevinkerker/RagOxide (ADR 0077, ADR 0079); until it exists,
+# `source` (tag and asset names) and `sha256` stay OPEN.
+
+[[models]]
+id = "docling-layout-heron"
+name = "Docling layout heron (RT-DETR, ONNX INT8)"
+role = "layout"
+tiers = ["supported", "below_minimum"]
+preference = 1
+license = "Apache-2.0"
+source = "https://github.com/docling-project/docling.rs/releases/tag/models-v1"
+
+[[models.files]]
+path = "layout_heron_int8.onnx"
+# sha256: UNVERIFIED
+# size_bytes: UNVERIFIED - rounded value from docs/analyse/docling-rs.md
+size_bytes = 69000000
+
+[[models]]
+id = "docling-tableformer"
+name = "Docling TableFormer (ONNX)"
+role = "table_structure"
+tiers = ["supported", "below_minimum"]
+preference = 1
+license = "CDLA-Permissive-2.0 AND Apache-2.0"
+source = "https://github.com/docling-project/docling.rs/releases/tag/models-v1"
+
+[[models.files]]
+path = "tableformer/encoder.onnx"
+# sha256: UNVERIFIED
+# size_bytes: UNVERIFIED - rounded value from docs/analyse/docling-rs.md
+size_bytes = 108000000
+
+[[models.files]]
+path = "tableformer/decoder_kv_layers.onnx"
+# sha256: UNVERIFIED
+# size_bytes: counted in tableformer/decoder_kv.onnx.data (pair total in docs/analyse/docling-rs.md)
+
+[[models.files]]
+path = "tableformer/decoder_kv.onnx.data"
+# sha256: UNVERIFIED
+# size_bytes: UNVERIFIED - rounded value (decoder_kv_layers.onnx + decoder_kv.onnx.data together)
+size_bytes = 116000000
+
+[[models.files]]
+path = "tableformer/bbox.onnx"
+# sha256: UNVERIFIED
+# size_bytes: counted in tableformer/bbox.onnx.data (pair total in docs/analyse/docling-rs.md)
+
+[[models.files]]
+path = "tableformer/bbox.onnx.data"
+# sha256: UNVERIFIED
+# size_bytes: UNVERIFIED - rounded value (bbox.onnx + bbox.onnx.data together)
+size_bytes = 40000000
+
+[[models]]
+id = "pp-ocrv6-det"
+name = "PP-OCRv6 text line detector (ONNX)"
+role = "ocr_detection"
+tiers = ["supported", "below_minimum"]
+preference = 1
+license = "Apache-2.0"
+source = "https://github.com/docling-project/docling.rs/releases/tag/models-v1"
+
+[[models.files]]
+path = "ocr_det.onnx"
+# sha256: UNVERIFIED
+# size_bytes: UNVERIFIED - rounded value from docs/analyse/docling-rs.md
+size_bytes = 10000000
+
+# Mandatory for German scans: only its dictionary contains ä ö ü Ä Ö Ü ß (ADR 0011).
+[[models]]
+id = "pp-ocrv6-rec"
+name = "PP-OCRv6 multilingual text recognition (ONNX)"
+role = "ocr_recognition"
+tiers = ["supported", "below_minimum"]
+preference = 1
+license = "Apache-2.0"
+source = "https://github.com/docling-project/docling.rs/releases/tag/models-v1"
+
+[[models.files]]
+path = "ocr_rec_v6.onnx"
+# sha256: UNVERIFIED
+# size_bytes: UNVERIFIED - rounded value (model and dictionary together)
+size_bytes = 21000000
+
+[[models.files]]
+path = "ocr_rec_v6_dict.txt"
+# sha256: UNVERIFIED - dictionary file name not seen
+# size_bytes: counted in ocr_rec_v6.onnx (total in docs/analyse/docling-rs.md)

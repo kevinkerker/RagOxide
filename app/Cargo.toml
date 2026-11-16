@@ -1,0 +1,36 @@
+[package]
+name = "ragoxide-app"
+description = "Desktop shell (Tauri 2): commands and events for the user interface over KnowledgeBase and ModelHub."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+default-run = "ragoxide"
+
+[lib]
+name = "ragoxide_app"
+
+[[bin]]
+name = "ragoxide"
+path = "src/main.rs"
+
+[dependencies]
+# Phase 0 wires the mocks of kb-core; the real crates replace them in Phase 2. The
+# `mock` feature must not reach a shipped build (kb-core README). `ts` derives the
+# TypeScript types the bindings are generated from.
+kb-core = { workspace = true, features = ["mock", "ts"] }
+
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tauri = { version = "2.12.5", features = [] }
+tauri-plugin-dialog = "2.8.4"
+tauri-plugin-opener = "2.7.3"
+ts-rs = { workspace = true }
+
+[build-dependencies]
+tauri-build = { version = "2.7.4", features = [] }
+
+[lints]
+workspace = true

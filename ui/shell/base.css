@@ -1,0 +1,77 @@
+/* Global base styles on top of the tokens. */
+
+/* Literata 3.103 (SIL OFL 1.1), embedded unchanged so it loads without network; see
+   fonts/OFL.txt and ui/README.md. Variable in weight and optical size. */
+@font-face {
+  font-family: "Literata";
+  src: url("./fonts/Literata-opsz-wght.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Literata";
+  src: url("./fonts/Literata-Italic-opsz-wght.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 200 900;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--color-frame);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-ui);
+  line-height: var(--leading-ui);
+}
+
+#app {
+  height: 100%;
+}
+
+h1 {
+  margin: 0;
+  font-size: var(--text-ui-xl);
+  line-height: var(--leading-ui-xl);
+  font-weight: 600;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Placeholders in the muted text colour, not the browser grey. */
+::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+/* Focus is a ring, separate from selection (bar, fill). */
+:focus-visible {
+  outline: var(--line-strong) solid var(--color-focus);
+  outline-offset: var(--space-half);
+}
+
+/* Reading text: answers, sources, text view. */
+.read {
+  font-family: var(--font-read);
+  font-size: var(--text-read);
+  line-height: var(--leading-read);
+}

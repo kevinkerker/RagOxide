@@ -1,0 +1,12 @@
+{
+  "de": {
+    "watch": "Ordner für die Bibliothek wählen",
+    "exclude": "Unterordner zum Ausschließen wählen",
+    "offline_package": "Ordner mit dem Offline-Paket wählen"
+  },
+  "en": {
+    "watch": "Choose a folder for the library",
+    "exclude": "Choose a subfolder to exclude",
+    "offline_package": "Choose the folder with the offline package"
+  }
+}

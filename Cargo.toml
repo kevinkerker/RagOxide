@@ -1,0 +1,58 @@
+[workspace]
+resolver = "3"
+members = [
+    "kb-core",
+    "kb-parse",
+    "kb-chunk",
+    "kb-models",
+    "kb-hub",
+    "kb-index",
+    "kb-llm",
+    "kb-store",
+    "kb-ingest",
+    "kb-rag",
+    "kb-mcp",
+    "kb-cli",
+    "kb-eval",
+    "app",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96"
+publish = false
+license = "FSL-1.1-ALv2"
+
+# Shared dependency versions. Crates opt in with `name = { workspace = true }`.
+[workspace.dependencies]
+kb-core = { path = "kb-core" }
+
+# Parser library for kb-parse: own fork, branch `ragoxide-patches`, two fixes on
+# top of v2.84.2 (ADR 0032, patches/docling-rs). The pinned commit contains the two
+# patches in patches/docling-rs/; it is still to be raised for the three further
+# ones (ADRs 0093, 0094, 0097). Raise the revision only together with the patches
+# and the parser retest. kb-parse selects the features it needs.
+docling = { git = "https://github.com/kevinkerker/docling.rs", rev = "0887d4c5a62d22bdf448bc924cd4f8bb358bd4e8", default-features = false }
+
+async-trait = "0.1.89"
+futures = "0.3.32"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+sha2 = "0.10.9"
+thiserror = "2.0.18"
+tokio-util = { version = "0.7.18", default-features = false }
+toml = "1.2"
+ts-rs = "12.0.1"
+unicode-normalization = "0.1.25"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+missing_docs = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"

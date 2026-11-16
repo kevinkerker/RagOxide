@@ -1,0 +1,34 @@
+{
+  "newTitle": "New chat",
+  "question": "Your question",
+  "inputLabel": "Question to your documents",
+  "placeholder": "Ask a question …",
+  "send": "Send",
+  "marker": "Source {number}",
+  "empty": "Ask a question about your documents.",
+  "sources": "Sources ({count})",
+  "selected": "selected",
+  "noSources": "No sources yet.",
+  "historyEmpty": "No chats yet.",
+  "phase": {
+    "waiting": "Waiting for a running answer …",
+    "searching": "Searching the library …",
+    "starting_model": "Starting the answer model …",
+    "reading_sources": "Reading the sources …",
+    "writing": "Writing the answer …"
+  },
+  "cancel": "Cancel",
+  "cancelled": "Cancelled",
+  "failed": "Failed",
+  "levelLabel": "Level",
+  "level": {
+    "fast": "Fast",
+    "balanced": "Balanced",
+    "thorough": "Thorough"
+  },
+  "modelMissing": "The model for “{level}” is not there yet ({size} GB). Your question has not been asked.",
+  "modelReady": "The model is ready. Ask the question again.",
+  "download": "Download model",
+  "cancelDownload": "Pause download",
+  "downloadFailed": "The download was interrupted. You can resume it."
+}

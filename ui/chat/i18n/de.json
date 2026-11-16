@@ -1,0 +1,34 @@
+{
+  "newTitle": "Neuer Chat",
+  "question": "Deine Frage",
+  "inputLabel": "Frage an deine Dokumente",
+  "placeholder": "Frage stellen …",
+  "send": "Senden",
+  "marker": "Quelle {number}",
+  "empty": "Stell eine Frage an deine Dokumente.",
+  "sources": "Quellen ({count})",
+  "selected": "ausgewählt",
+  "noSources": "Noch keine Quellen.",
+  "historyEmpty": "Noch keine Chats.",
+  "phase": {
+    "waiting": "Wartet auf eine laufende Antwort …",
+    "searching": "Die Bibliothek wird durchsucht …",
+    "starting_model": "Das Antwortmodell wird gestartet …",
+    "reading_sources": "Die Quellen werden gelesen …",
+    "writing": "Die Antwort wird geschrieben …"
+  },
+  "cancel": "Abbrechen",
+  "cancelled": "Abgebrochen",
+  "failed": "Fehlgeschlagen",
+  "levelLabel": "Stufe",
+  "level": {
+    "fast": "Schnell",
+    "balanced": "Ausgewogen",
+    "thorough": "Gründlich"
+  },
+  "modelMissing": "Für „{level}“ fehlt noch das Modell ({size} GB). Deine Frage ist noch nicht gestellt.",
+  "modelReady": "Das Modell ist bereit. Stell die Frage noch einmal.",
+  "download": "Modell laden",
+  "cancelDownload": "Laden anhalten",
+  "downloadFailed": "Das Laden ist unterbrochen. Du kannst es fortsetzen."
+}
