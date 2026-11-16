@@ -12,6 +12,9 @@ all-features = true
 [advisories]
 version = 2
 yanked = "deny"
+# An unmaintained crate fails the check only if a workspace crate depends on it
+# directly. Vulnerabilities and yanked versions fail for the whole tree (ADR 0104).
+unmaintained = "workspace"
 
 [licenses]
 version = 2

@@ -4,8 +4,6 @@ Stand 2026-11-16.
 
 ## Wartet auf dich
 
-- Abnahme von `kb-core` und Freigabe von Tor 1 (ADR 0006). Lesestoff: `kb-core/README.md`, `ui/README.md`, `docs/pruefung/tor-1.md`, in `docs/pruefung/kb-core.md` der zehnte Durchgang mit den beiden Nachträgen danach, in `docs/pruefung/schnittstelle.md` der siebte Durchgang, die vier Nachträge und die ergänzende Prüfung an der Desktop-App. Nach der Abnahme ändert kein Agent mehr `kb-core` ohne Freigabe.
-- Danach die vier Commits, Liste unten (ADR 0087). Ohne ersten Commit keine Worktrees für Phase 1.
 - Drei weitere Patches in den Fork von docling.rs bringen (ADRs 0093, 0094, 0097): Excel-Formate, Herkunft der Textschicht, mehrseitige TIFF. Sie liegen fertig mit Tests in der Arbeitsablage unter `RagOxide\fork-patches\ergebnis` (drei Patch-Dateien, `README-ergaenzung.md`, `pruefprotokoll.md`), Stand und Grenzen in `docs/analyse/fork-patches-0003-0005.md`. Die Patches passen auf den festgelegten Commit, aber nur gegen den eingecheckten Stand mit LF: im vorhandenen Klon scheitert ein einfaches `git apply`, weil die Arbeitsdateien dort CRLF haben. Entweder frisch klonen mit `git clone -c core.autocrlf=false …` und dort `git apply` in der Reihenfolge 0003, 0004, 0005, oder im vorhandenen Klon je Patch `git apply --cached <datei>`, dann committen und mit `git checkout -- .` die Arbeitsdateien nachziehen. Danach pushen; dann kommen die Patch-Dateien samt Beschreibung nach `patches/docling-rs/` und der neue Commit in `Cargo.toml`.
 - Stichprobe des Fragenkatalogs abnehmen: zehn Fragen in `corpus/questions-sample.md` (ADR 0005). Genauer hinsehen bei de-17, de-21, en-11, en-17 und en-19, die Hinweise stehen an der Frage.
 - Projekt-Repo `kevinkerker/RagOxide` öffentlich schalten und ein Release mit den eigenen Modelldateien anlegen (ADRs 0077, 0079): Reranker `model_int8.onnx` (0,57 GB), Embedding-Graph `model_q8_acc4.onnx` (0,5 MB), später die Parser-Modelle. Dateien liegen in der Arbeitsablage im Ordner `RagOxide\embedding-test\models`: der Graph unter `app-layout\onnx` (nicht die gleichnamige Messdatei im Unterordner `messung`), Prüfsummen und Lizenzhinweise in `docs/analyse/embedding-test.md`. Das erste Release heißt `models-1` (ADR 0090), die Asset-Namen wie in `models.toml`. Danach den Tag in `models.toml` eintragen lassen.
@@ -15,6 +13,7 @@ Stand 2026-11-16.
 
 ## Lohnt sich bald
 
+- Stand Tor 1: Der Inhaber hat `kb-core` am 2026-11-16 abgenommen und Tor 1 freigegeben (ADR 0006). Seitdem ändert kein Agent `kb-core` ohne Freigabe. Die vier Commits (ADR 0087) sind auf `main` und im Projekt-Repo; damit ist der Weg für Worktrees in Phase 1 frei.
 - Die Analysedokumente liegen nicht im Repo, sondern im Projektgedächtnis unter `docs/memory/analyse/` (ADR 0088). Verweise `docs/analyse/<datei>` in dieser Datei und im übrigen Repo meinen diese Dateien (ADR 0089). Neue Analysen und Code-Reviews entstehen ebenfalls dort.
 - `kb-core`: zehnter Prüfdurchgang PASS gegen Fassung 7 (35 Kriterien, K05 mit dem ganzen Workspace, Sperre ja). Danach kamen Fassung 8 und 9 der Kriterien (ADRs 0092 bis 0098) und die Vorschläge des zehnten Durchgangs, zuletzt nur noch Texte nach den ADRs 0098 bis 0103, siehe die beiden Nachträge im Prüfbericht.
 - Schnittstelle: siebter Prüfdurchgang PASS im Browser. Die Desktop-App wurde am 2026-11-16 zum ersten Mal gebaut und gestartet: Bau, IPC, CSP, Dateigrenzen und Titelleiste (S10, soweit prüfbar) bestanden. Die Verbindungen der WebView2-Laufzeit nach außen bleiben vorerst (ADR 0099). Die Fähigkeiten des Fensters sind seitdem auf das Abonnieren von Ereignissen beschränkt, und die CI baut die App mit eingebetteter Oberfläche.
@@ -41,7 +40,7 @@ Stand 2026-11-16.
 
 ## Commit-Liste für Tor 1
 
-Nach der Abnahme (ADR 0087): vier Commits in dieser Reihenfolge, auf `main`, signiert durch den Inhaber. Jeder Stand baut. Vorher prüfen, dass `git diff --cached` leer ist. Befehle für PowerShell, je Zeile einzeln:
+Erledigt am 2026-11-16. Zur Nachvollziehbarkeit: Nach der Abnahme (ADR 0087): vier Commits in dieser Reihenfolge, auf `main`, signiert durch den Inhaber. Jeder Stand baut. Vorher prüfen, dass `git diff --cached` leer ist. Befehle für PowerShell, je Zeile einzeln:
 
 1. Doku und ADRs
 
@@ -88,7 +87,7 @@ Hinweise:
 - Paket B: PDF-Überschriften kommen aus docling.rs alle auf Ebene 1, mit `heading_hierarchy` werden Zwischenrufe zu Überschriften (`docs/analyse/docling-rs.md`, `docs/analyse/parser-test.md`).
 - Paket A: zerstörte Textschicht immer ersetzen lassen, alte OCR-Schichten werden sonst samt Fehlern übernommen, erzwungene OCR braucht bis 4,8 GB, docling.rs nutzt mehr Threads als eingestellt (`docs/analyse/parser-test.md`).
 - Deutsches PPTX für den Korpus, sobald eine Datei mit klarer Lizenz gefunden ist (ADR 0016).
-- `cargo-deny` ist lokal nicht installiert, die Lizenzprüfung lief bisher nur von Hand und noch nie in der CI.
+- `cargo-deny` ist lokal nicht installiert und läuft nur in der CI. Dort zählt „unmaintained“ nur bei direkten Abhängigkeiten (ADR 0104). Zu beobachten bleiben vier nicht mehr gepflegte Crates im Linux-Zweig von Tauri: `proc-macro-error` (über GTK) und `zvariant`, `zbus_names`, `zvariant_derive` (über `zbus` 5); sie erledigen sich mit einer neueren Tauri-Version.
 - macOS-Installer und Offline-Paket in Phase 3 (ADRs 0056, 0003).
 - MCP-Client und externer Endpunkt als mögliche spätere Pakete (ADRs 0004, 0015).
 - Arbeitsordner der Sitzung aufräumen: docling-Spike und Zwischen-Downloads.

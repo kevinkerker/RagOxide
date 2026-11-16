@@ -1,7 +1,7 @@
 # 0012: Privates Projekt, kommerzielle Nutzung möglich
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen
+- **Status:** angenommen; ergänzt durch [0104](0104-unmaintained-nur-bei-direkten-abhaengigkeiten.md)
 
 ## Kontext
 
