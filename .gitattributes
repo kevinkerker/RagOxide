@@ -1,0 +1,11 @@
+# Text files are stored and checked out with LF line endings on every platform.
+* text=auto eol=lf
+
+# Test documents must stay byte-identical (checksums in the corpus manifest).
+corpus/documents/** -text
+
+# Generated from the Rust types in app/ (pnpm gen:types); collapsed in diffs.
+ui/api/bindings.ts linguist-generated=true
+
+# Embedded font and its license text stay byte-identical to the upstream release.
+ui/shell/fonts/** -text
