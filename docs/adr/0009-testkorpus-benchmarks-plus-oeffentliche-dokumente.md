@@ -1,7 +1,7 @@
 # 0009: Testkorpus aus Benchmarks und öffentlichen Dokumenten
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen, ersetzt [0001](0001-testkorpus-oeffentliche-benchmarks.md)
+- **Status:** angenommen, ersetzt [0001](0001-testkorpus-oeffentliche-benchmarks.md); ergänzt durch [0118](0118-hybrid-messung-mit-echten-vektoren.md)
 
 ## Kontext
 

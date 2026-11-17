@@ -1,7 +1,7 @@
 # 0025: Überwachte Ordner mit Ausschlussliste
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen, ersetzt [0022](0022-bibliothek-spiegelt-ueberwachte-ordner.md); ergänzt durch [0085](0085-ausschluss-nicht-unterstuetzter-dateien-erlaubt.md)
+- **Status:** angenommen, ersetzt [0022](0022-bibliothek-spiegelt-ueberwachte-ordner.md); ergänzt durch [0085](0085-ausschluss-nicht-unterstuetzter-dateien-erlaubt.md) und [0120](0120-geloeschte-inhalte-ueberschreiben.md)
 
 ## Kontext
 

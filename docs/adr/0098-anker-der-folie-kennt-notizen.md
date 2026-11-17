@@ -1,7 +1,7 @@
 # 0098: Der Anker einer Folie sagt, ob die Stelle in den Notizen steht
 
 - **Datum:** 2026-11-16
-- **Status:** angenommen (2026-11-16 vom Inhaber bestätigt), ergänzt [0010](0010-zitat-anker-je-format.md) und [0095](0095-notizen-und-fussnoten-einlesen.md)
+- **Status:** angenommen (2026-11-16 vom Inhaber bestätigt), ergänzt [0010](0010-zitat-anker-je-format.md) und [0095](0095-notizen-und-fussnoten-einlesen.md); ergänzt durch [0117](0117-notizen-ausgeblendeter-folien-einlesen.md) und [0125](0125-fundstelle-in-der-quellenzeile.md)
 
 ## Kontext
 

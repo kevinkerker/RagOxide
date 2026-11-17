@@ -1,7 +1,7 @@
 # 0014: Große Tabellen werden zeilenweise geteilt
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen
+- **Status:** angenommen; ergänzt durch [0116](0116-excel-kopfzeilen-nach-eigener-regel.md)
 
 ## Kontext
 

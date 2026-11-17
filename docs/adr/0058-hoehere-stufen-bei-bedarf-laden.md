@@ -1,7 +1,7 @@
 # 0058: Modelle der höheren Stufen werden bei Bedarf geladen
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen, ergänzt [0003](0003-modelle-nachladen-und-offline-paket.md)
+- **Status:** angenommen, ergänzt [0003](0003-modelle-nachladen-und-offline-paket.md); ergänzt durch [0126](0126-download-abbruch-im-stufenmenue.md)
 
 ## Kontext
 

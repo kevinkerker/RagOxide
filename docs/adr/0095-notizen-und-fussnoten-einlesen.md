@@ -1,7 +1,7 @@
 # 0095: Foliennotizen und Fußnoten werden eingelesen, Verborgenes und Kommentare nicht
 
 - **Datum:** 2026-11-16
-- **Status:** angenommen, ergänzt [0010](0010-zitat-anker-je-format.md); ergänzt durch [0098](0098-anker-der-folie-kennt-notizen.md)
+- **Status:** angenommen, ergänzt [0010](0010-zitat-anker-je-format.md); ergänzt durch [0098](0098-anker-der-folie-kennt-notizen.md) und [0117](0117-notizen-ausgeblendeter-folien-einlesen.md)
 
 ## Kontext
 

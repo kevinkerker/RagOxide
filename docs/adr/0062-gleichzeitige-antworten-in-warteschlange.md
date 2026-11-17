@@ -1,7 +1,7 @@
 # 0062: Gleichzeitige Antworten laufen in einer Warteschlange mit Anzeige
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen, ergänzt [0054](0054-phasen-der-antwort-reihenfolge-und-suche.md)
+- **Status:** angenommen, ergänzt [0054](0054-phasen-der-antwort-reihenfolge-und-suche.md); ergänzt durch [0122](0122-nur-ein-prozess-oeffnet-die-datenbank.md)
 
 ## Kontext
 

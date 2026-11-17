@@ -1,7 +1,7 @@
 # 0023: Chats lassen sich löschen
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen
+- **Status:** angenommen; ergänzt durch [0120](0120-geloeschte-inhalte-ueberschreiben.md)
 
 ## Kontext
 

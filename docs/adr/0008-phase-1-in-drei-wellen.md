@@ -1,7 +1,7 @@
 # 0008: Phase 1 in drei Wellen zu fünf Paketen
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen
+- **Status:** angenommen; ergänzt durch [0107](0107-wellen-nach-risiko.md), [0109](0109-abnahmekriterien-je-welle.md), [0110](0110-branch-je-paket-merge-je-welle.md) und [0114](0114-enge-ausnahmen-vom-eigenen-verzeichnis.md); die Annahme „fünf Pakete gleichzeitig“ ist ersetzt durch [0108](0108-hoechstens-zwei-agenten-gleichzeitig.md)
 
 ## Kontext
 

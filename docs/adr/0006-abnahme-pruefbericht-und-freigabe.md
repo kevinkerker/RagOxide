@@ -1,7 +1,7 @@
 # 0006: Abnahme der Tore durch Prüfbericht und Freigabe
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen
+- **Status:** angenommen; ergänzt durch [0109](0109-abnahmekriterien-je-welle.md)
 
 ## Kontext
 

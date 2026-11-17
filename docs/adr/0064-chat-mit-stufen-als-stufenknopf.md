@@ -1,7 +1,7 @@
 # 0064: Chat mit Stufen als Stufenknopf
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen, ergänzt [0042](0042-chat-als-faden.md)
+- **Status:** angenommen, ergänzt [0042](0042-chat-als-faden.md); ergänzt durch [0126](0126-download-abbruch-im-stufenmenue.md)
 
 ## Kontext
 

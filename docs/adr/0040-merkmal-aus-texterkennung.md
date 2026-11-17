@@ -1,7 +1,7 @@
 # 0040: Merkmal „aus Texterkennung“ je Seite
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen; ergänzt durch [0094](0094-ocr-merkmal-aus-dem-fork.md)
+- **Status:** angenommen; ergänzt durch [0094](0094-ocr-merkmal-aus-dem-fork.md) und [0125](0125-fundstelle-in-der-quellenzeile.md)
 
 ## Kontext
 
