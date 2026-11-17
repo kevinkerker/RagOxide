@@ -1,7 +1,7 @@
 # 0094: Die Herkunft einer Textschicht gibt der Fork von docling.rs aus
 
 - **Datum:** 2026-11-16
-- **Status:** angenommen, ergänzt [0091](0091-vorhandene-ocr-schicht-uebernehmen.md) und [0040](0040-merkmal-aus-texterkennung.md), und den Stand des Forks aus [0032](0032-gepatchtes-docling-rs-im-eigenen-fork.md)
+- **Status:** angenommen, ergänzt [0091](0091-vorhandene-ocr-schicht-uebernehmen.md) und [0040](0040-merkmal-aus-texterkennung.md), und den Stand des Forks aus [0032](0032-gepatchtes-docling-rs-im-eigenen-fork.md); ergänzt durch [0106](0106-scan-merkmal-nach-lage-der-zeichen.md)
 
 ## Kontext
 

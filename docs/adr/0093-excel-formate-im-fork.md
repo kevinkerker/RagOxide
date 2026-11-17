@@ -1,7 +1,7 @@
 # 0093: Die fehlenden Excel-Formate werden im Fork von docling.rs ergänzt
 
 - **Datum:** 2026-11-16
-- **Status:** angenommen, ergänzt [0018](0018-docling-rs-behalten-zwei-fehler-beheben.md) und [0032](0032-gepatchtes-docling-rs-im-eigenen-fork.md)
+- **Status:** angenommen, ergänzt [0018](0018-docling-rs-behalten-zwei-fehler-beheben.md) und [0032](0032-gepatchtes-docling-rs-im-eigenen-fork.md); ergänzt durch [0105](0105-eingebaute-excel-formate-37-bis-40-mit-minus.md)
 
 ## Kontext
 

@@ -1,7 +1,7 @@
 # 0092: Excel-Zellen stehen in der US-Schreibweise von docling.rs
 
 - **Datum:** 2026-11-16
-- **Status:** angenommen, ergänzt [0041](0041-excel-zellen-wie-angezeigt.md)
+- **Status:** angenommen, ergänzt [0041](0041-excel-zellen-wie-angezeigt.md); ergänzt durch [0105](0105-eingebaute-excel-formate-37-bis-40-mit-minus.md)
 
 ## Kontext
 

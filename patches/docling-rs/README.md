@@ -1,6 +1,6 @@
 # Korrekturen für docling.rs
 
-Stand 2026-11-15. Zwei Patches gegen docling.rs aus dem Reparaturversuch nach [ADR 0018](../../docs/adr/0018-docling-rs-behalten-zwei-fehler-beheben.md). Messaufbau, Korpus und Vorher-Werte stehen in [`docs/analyse/parser-test.md`](../../docs/analyse/parser-test.md), der Nachtest dort im Abschnitt „Nachtest mit Korrekturen“.
+Stand 2026-11-15, Abschnitt zum Fork zuletzt geändert am 2026-11-17. Drei weitere Patches (Excel-Zahlenformate, Herkunft der Textschicht, mehrseitige TIFF) beschreibt [`README-0003-0005.md`](README-0003-0005.md). Hier: zwei Patches gegen docling.rs aus dem Reparaturversuch nach [ADR 0018](../../docs/adr/0018-docling-rs-behalten-zwei-fehler-beheben.md). Messaufbau, Korpus und Vorher-Werte stehen in [`docs/analyse/parser-test.md`](../../docs/analyse/parser-test.md), der Nachtest dort im Abschnitt „Nachtest mit Korrekturen“.
 
 ## Basisstand
 
@@ -27,7 +27,7 @@ cargo test -p docling-core --lib
 cargo test -p docling-pdf --lib
 ```
 
-Im Projekt hängt der Workspace am Fork `kevinkerker/docling.rs`, Zweig `ragoxide-patches`, der beide Patches enthält (ADR 0032); der feste Commit steht in `Cargo.toml` als Workspace-Abhängigkeit `docling`, und `deny.toml` lässt nur diesen Fork als Git-Quelle zu. Die Pfad-Abhängigkeit auf einen lokalen Klon war nur der Weg des Parser-Tests. Gemeldet werden die Patches an das Projekt nicht (ADR 0033). Die Patches stehen wie docling.rs unter MIT (ADR 0019). Drei weitere Patches sind beschlossen und noch nicht im Fork: fehlende Excel-Zahlenformate (ADR 0093), Herkunft der Textschicht je Seite (ADR 0094) und mehrseitige TIFF (ADR 0097). Der Vertrag von `kb-core` setzt sie voraus; bis der Inhaber sie in den Fork gebracht hat und der feste Commit in `Cargo.toml` angehoben ist, liefert der hier beschriebene Stand diese drei Dinge nicht. Abgeglichen am 2026-11-16 im lokalen Klon des Forks: Der feste Commit liegt genau zwei Commits über v2.84.2 (`92d4901a`), und seine geänderten Zeilen sind dieselben wie in den beiden Patch-Dateien. In `Cargo.lock` steht die Revision erst, wenn ein Crate die Abhängigkeit nutzt (Paket A).
+Im Projekt hängt der Workspace am Fork `kevinkerker/docling.rs`, Zweig `ragoxide-patches` (ADR 0032); der feste Commit steht in `Cargo.toml` als Workspace-Abhängigkeit `docling`, und `deny.toml` lässt nur diesen Fork als Git-Quelle zu. Seit dem 2026-11-17 ist das `8587fe9b1e16a5c0598f24f8fd34086bb27d9577`: v2.84.2 (`92d4901a`), darauf die beiden Patches dieser Datei (`7d4ef21a`, `0887d4c5`) und die drei weiteren aus `README-0003-0005.md` (`cdd3c25b`, `504b38ff`, `8587fe9b`; ADRs 0093, 0094, 0097, 0105, 0106). Die Pfad-Abhängigkeit auf einen lokalen Klon war nur der Weg des Parser-Tests. Gemeldet werden die Patches an das Projekt nicht (ADR 0033). Die Patches stehen wie docling.rs unter MIT (ADR 0019). Abgeglichen: Am 2026-11-16 lag der damalige Commit `0887d4c5` genau zwei Commits über v2.84.2, mit denselben geänderten Zeilen wie in den beiden Patch-Dateien. Am 2026-11-17 sind die 27 Dateien, die die drei weiteren Commits ändern, byte-gleich mit dem Stand, den die unabhängige Prüfung getestet hat (`docs/pruefung/fork-patches.md`, dritter Durchgang). In `Cargo.lock` steht die Revision erst, wenn ein Crate die Abhängigkeit nutzt (Paket A).
 
 ## 0001: Box je Spalte bei Spaltenumbrüchen
 
