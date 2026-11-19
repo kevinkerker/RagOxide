@@ -1,7 +1,7 @@
 # 0112: Paket E vergleicht zuerst die deutsche Volltextsuche, der Inhaber wählt danach
 
 - **Datum:** 2026-11-17
-- **Status:** angenommen
+- **Status:** angenommen; ergänzt durch [0129](0129-index-in-lancedb-mit-eigener-analyse.md) und [0130](0130-volltext-zerlegung-beidseitig-mit-partizipien.md)
 
 ## Kontext
 

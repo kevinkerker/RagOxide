@@ -1,7 +1,7 @@
 # 0032: Gepatchtes docling.rs im eigenen Fork
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen; ergänzt durch [0093](0093-excel-formate-im-fork.md), [0094](0094-ocr-merkmal-aus-dem-fork.md) und [0097](0097-mehrseitige-tiff-im-fork.md)
+- **Status:** angenommen; ergänzt durch [0093](0093-excel-formate-im-fork.md), [0094](0094-ocr-merkmal-aus-dem-fork.md), [0097](0097-mehrseitige-tiff-im-fork.md) und [0131](0131-word-formatvorlagen-ueber-den-namen-im-fork.md)
 
 ## Kontext
 
