@@ -19,7 +19,9 @@ Option 1: Der gepatchte Stand liegt in einem Fork von docling.rs unter dem GitHu
 
 Stand 2026-11-15: Fork `https://github.com/kevinkerker/docling.rs`, Zweig `ragoxide-patches`, Commit `0887d4c5a62d22bdf448bc924cd4f8bb358bd4e8`. Der Zweig enthält genau die zwei Patches auf der Basis `92d4901a`. Der Commit war bis zum 2026-11-17 im Wurzel-`Cargo.toml` als Workspace-Abhängigkeit `docling` eingetragen.
 
-Stand 2026-11-17: Commit `8587fe9b1e16a5c0598f24f8fd34086bb27d9577` auf demselben Zweig. Er enthält zusätzlich die drei Patches nach den ADRs 0093, 0094 und 0097 (`cdd3c25b`, `504b38ff`, `8587fe9b`), unabhängig geprüft in `docs/pruefung/fork-patches.md`, und ist im Wurzel-`Cargo.toml` eingetragen.
+Stand 2026-11-17: Commit `8587fe9b1e16a5c0598f24f8fd34086bb27d9577` auf demselben Zweig. Er enthält zusätzlich die drei Patches nach den ADRs 0093, 0094 und 0097 (`cdd3c25b`, `504b38ff`, `8587fe9b`), unabhängig geprüft in `docs/pruefung/fork-patches.md`, und war bis zum 2026-11-19 im Wurzel-`Cargo.toml` eingetragen.
+
+Stand 2026-11-19: Commit `85bca86131779f28297b281f4c36b8e62e9dc571` auf demselben Zweig. Er enthält zusätzlich den sechsten Patch nach ADR 0131 (`85bca861`), unabhängig geprüft in `docs/pruefung/fork-patch-0006.md`, und ist im Wurzel-`Cargo.toml` eingetragen.
 
 ## Folgen
 

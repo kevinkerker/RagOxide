@@ -28,12 +28,12 @@ license = "FSL-1.1-ALv2"
 [workspace.dependencies]
 kb-core = { path = "kb-core" }
 
-# Parser library for kb-parse: own fork, branch `ragoxide-patches`, five fixes on
+# Parser library for kb-parse: own fork, branch `ragoxide-patches`, six fixes on
 # top of v2.84.2 (ADR 0032, patches/docling-rs). The pinned commit contains all
-# five patches in patches/docling-rs/ (ADRs 0018, 0093, 0094, 0097). Raise the
+# six patches in patches/docling-rs/ (ADRs 0018, 0093, 0094, 0097, 0131). Raise the
 # revision only together with the patches and the parser retest. kb-parse selects
 # the features it needs.
-docling = { git = "https://github.com/kevinkerker/docling.rs", rev = "8587fe9b1e16a5c0598f24f8fd34086bb27d9577", default-features = false }
+docling = { git = "https://github.com/kevinkerker/docling.rs", rev = "85bca86131779f28297b281f4c36b8e62e9dc571", default-features = false }
 
 async-trait = "0.1.89"
 futures = "0.3.32"

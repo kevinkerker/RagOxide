@@ -1,4 +1,14 @@
----\nfeature: fork-patch-0006\ndatum: 2026-11-18\ncommit: Fork kevinkerker/docling.rs, Zweig ragoxide-patches, Basis 8587fe9b1e16a5c0598f24f8fd34086bb27d9577, darauf die Patch-Datei 0006 (noch nicht im Fork)\nspec: docs/adr/0131-word-formatvorlagen-ueber-den-namen-im-fork.md, docs/abnahme-kb-parse.md (A15, A47)\nergebnis: FAIL ohne Blocker (erster Durchgang 2026-11-18: übernehmen ja mit Auflage)\n---\n\nHinweis zur Übernahme: Der Bericht ist unverändert übernommen. Weggelassen ist nur der Anhang des Prüfers zur Übergabe (Pfade seines Arbeitsordners), den er selbst als nicht zum Bericht gehörig gekennzeichnet hat.\n\n# Prüfbericht Fork-Patch 0006
+---
+feature: fork-patch-0006
+datum: 2026-11-18
+commit: Fork kevinkerker/docling.rs, Zweig ragoxide-patches, Basis 8587fe9b1e16a5c0598f24f8fd34086bb27d9577, darauf die Patch-Datei 0006
+spec: docs/adr/0131-word-formatvorlagen-ueber-den-namen-im-fork.md, docs/abnahme-kb-parse.md (A15, A47)
+ergebnis: PASS (zweiter Durchgang 2026-11-19: übernehmen ja, ohne Auflage; erster Durchgang 2026-11-18 FAIL ohne Blocker)
+---
+
+Hinweis zur Übernahme: Die Berichte sind unverändert übernommen. Weggelassen ist je Durchgang nur der Anhang des Prüfers zur Übergabe (Pfade seines Arbeitsordners), den er selbst als nicht zum Bericht gehörig gekennzeichnet hat.
+
+# Prüfbericht Fork-Patch 0006
 
 - Datum: 2026-11-18
 - Commit/Bereich: Fork `kevinkerker/docling.rs`, Zweig `ragoxide-patches`, Basis `8587fe9b1e16a5c0598f24f8fd34086bb27d9577`, darauf `0006-docx-resolve-styles-by-name.patch`
@@ -119,3 +129,82 @@ Eigene Vorlage mit Kennung `Codebeschriftung` und Namen `Listing Caption`, numme
 
 1. Sollen `index heading` und `toa heading` in allen Sprachen Überschriften sein (wie heute bei englischen Kennungen), in keiner, oder bleibt der Unterschied als beschriebene Grenze?
 2. Ist die Folge von V2 gewollt: eine eigene Vorlage, deren Name mit „List“ oder „Normal“ beginnt, verliert in Dateien anderer Programme die Beschriftungsnummer als Text und wird Listenpunkt?
+
+## Zweiter Durchgang (2026-11-19)
+
+- Commit/Bereich: Fork `kevinkerker/docling.rs`, Zweig `ragoxide-patches`, Basis `8587fe9b1e16a5c0598f24f8fd34086bb27d9577`, darauf die zweite Fassung von `0006-docx-resolve-styles-by-name.patch`
+- Spezifikation: wie im ersten Durchgang, dazu die beiden Festlegungen zu `index heading` / `toa heading` und zur Listen-Ausnahme an der Wortgrenze
+- Gesamtergebnis: **PASS.** Kein Blocker, kein FAIL; eine Testlücke als Kleinigkeit.
+
+### Geprüfter Stand
+
+| Datei | SHA-256 zweite Fassung | Diff gegen erste Fassung |
+|---|---|---|
+| `0006-docx-resolve-styles-by-name.patch` | `4043b25e669094693c9cc36aa3fecbffbe3305d7df2ef44728808978f0f4b4b2` | 155 Zeilen |
+| `README-0006.md` | `31de80a4056c45744e011fa6fac33dfc4361f58f66155a41eb7ddca77a1d9010` | 34 Zeilen |
+| `pruefprotokoll-0006.md` | `48b6be6e3f8b31f3e935cd93949943164487fbad82ed7c1a495c107a2dda63c1` | 37 Zeilen |
+
+Im Quelltext unterscheiden sich die Fassungen nur in `docx.rs` (32 Zeilen) und `docx_tree.rs` (79 Zeilen). Jede Änderung gehört zu einem Befund:
+
+- **V1:** neue Funktion `english_heading_label` in `docx.rs`; aufgerufen im Markdown-Weg (`docx.rs:1805`) und im Baum-Weg (`docx_tree.rs:1142`).
+- **V2:** in `caption_numbering_marker` gilt der Name nur noch an der Wortgrenze (`docx.rs:4039–4044`); die Prüfung der Kennung ist unverändert.
+- **K1:** Kommentar in `docx_tree.rs` berichtigt.
+- **K2 und Tests zu V1, V2:** drei neue Tests.
+
+Sonst ist nichts dazugekommen.
+
+Geprüft in einem neuen Klon mit LF. Wiederverwendet aus dem ersten Durchgang: die Testdateien, die Ausgaben und die Testergebnisse des Basisstands (Commit unverändert). Word lief in diesem Durchgang nicht.
+
+### Kriterien
+
+| ID | Kriterium | Ergebnis | Nachweis |
+|---|---|---|---|
+| W01 | Anwenden, Text | PASS | `git apply` auf frischem LF-Klon rc=0, `2 files changed, 264 insertions(+), 7 deletions(-)`, `git diff --check` leer. Patch-Datei für Git Text (350 Zeilen), 0 NUL, 0 CR. Berührt dieselben zwei Dateien wie die erste Fassung; die Patches 0001 bis 0005 ändern sie nicht. Klon mit `core.autocrlf=true` nicht wiederholt. |
+| W02 | fmt, clippy, Workspace, Tests | PASS | `cargo fmt --all --check` rc=0. `cargo clippy -p docling --all-targets` rc=0, 0 Warnungen. `cargo check --offline --workspace --all-targets` rc=0, 0 Warnungen. `cargo test -p docling --tests --no-fail-fast`: 1 102 bestanden (Lib 795), 1 gescheitert (`pandoc`, auf der Basis ebenso; Basis 1 096). Sechs neue Tests gegenüber der Basis, keiner entfällt, keiner wechselt von grün auf rot. |
+| W03 | Titel und Ebenen aus deutschem Word | PASS | Gegliederter Text aus deutschem Word: alle acht Sprachfassungen in JSON und Markdown gleich der englischen, 49 von 49 Elementen. 13 synthetische Paare deutsch/englisch: alle gleich. |
+| W04 | Alle Stellen, an denen die Kennung entscheidet | PASS | Dokument mit allen 97 eingebauten Absatzvorlagen: alle acht Sprachfassungen in JSON und Markdown gleich der englischen, 109 von 109 Elementen. `index heading` und `toa heading` sind jetzt in jeder Fassung `section_header` Ebene 1 und `## …`. Die englische Fassung ist byte-gleich zur Basis. |
+| W05 | Gegenrichtung, keine Regression | PASS | Testdaten des Forks: 109 von 111 umgewandelt (2 brauchen ein Kennwort, wie auf der Basis); 108 byte-gleich zur Basis, geändert nur `test.docx`, und zwar genau wie in der ersten Fassung. Korpus: 1 von 3 byte-gleich, die beiden deutschen Dateien geändert wie in der ersten Fassung. Die DOCX der beiden anderen Programme byte-gleich zur Basis. |
+| W06 | Robustheit | PASS | Alle 16 beschädigten Dateien: `status=Success`, kein Abbruch; alle Ausgaben byte-gleich zur ersten Fassung. |
+| W07 | Qualität und Tests | PASS | Hinzugefügter Code außerhalb der Tests ohne `unwrap`, `expect`, `panic`, `unsafe`. Gegenproben: 11 von 12 rot, darunter die beiden früher grünen. Alle Änderungen zurückgebaut (wie Basis): vier der sechs neuen Tests scheitern, zwei bestehen, wie in der README angegeben. |
+| W08 | README und Prüfprotokoll | PASS | Nachgemessen und zutreffend: Umfang +264/−7, 219 Testzeilen, Testzahlen 795 und 1 102 + 1, welche Tests auf der Basis scheitern, die Tabelle der abweichenden Elemente (50, 39, 74), die fünf französischen Dateien, die Aussage zu eigenen Vorlagen namens `Title`. Die Grenzen entsprechen dem Code. Keine Benutzer-, Temp- oder Sitzungspfade, Werkzeugnamen, Mailadressen, Geheimnisse. |
+
+Gezielte neue Fälle, jeweils Basis gegen zweite Fassung:
+
+| Fall | Basis | zweite Fassung | nach Festlegung |
+|---|---|---|---|
+| Name `Listing Caption`, fremde Kennung, Nummer `Teil %1.%2` | Text mit Nummer | Text mit Nummer | richtig |
+| Namen `Listenabsatz`, `Normality`, `My List Style`, fremde Kennung | Text mit Nummer | Text mit Nummer | richtig |
+| Namen `List`, `Normal`, `normal`, `LIST BULLET`, `Normal (Web)`, fremde oder lokale Kennung | Text mit Nummer | Listenpunkt | richtig |
+| Name `Normal Hinweis`, fremde Kennung | Text mit Nummer | Listenpunkt | folgt der Regel „beginnt mit `normal `“ |
+| Namen `Table Heading`, `Heading`, `Heading Note`, `Index Heading`, `Index Headings` | Überschrift | Überschrift | unverändert |
+| Namen `heading`, `my heading text`, `subheading`, `index heading 2` | Text | Text | unverändert |
+| Namen `index heading`, `toa heading`, `INDEX HEADING` mit lokaler oder fremder Kennung; davon abgeleitete Vorlage | Text | Überschrift Ebene 1 | richtig |
+
+### Gesamtergebnis und Empfehlung
+
+**In den Fork übernehmen: ja.** Keine Auflage. `README-0006.md` und `pruefprotokoll-0006.md` können ins Repo.
+
+### Stand der Befunde des ersten Durchgangs
+
+| Befund | Stand | Nachweis |
+|---|---|---|
+| V1 `index heading`, `toa heading` | behoben | W04; Mutanten „Baum-Weg ohne Abbildung“, „Markdown-Weg ohne Abbildung“, „nur eine der beiden Vorlagen“ werden rot. |
+| V2 Listen-Ausnahme am Namen | behoben nach Festlegung | `Listing Caption` wieder Text mit Nummer; Mutanten „ohne Wortgrenze“, „Teilwort“, „nur genauer Name“ werden rot. |
+| K1 Aussage „Word reserviert die Namen“ | behoben | README und Kommentar nennen jetzt das belegte Verhalten. |
+| K2 zwei grüne Mutanten | behoben | beide rot (Name `title` in Kleinschreibung; `contains` statt Wortgrenze). |
+| K3 Vorlage `Normal` namens `Title` | als Grenze beschrieben | konstruierter Fall, Verhalten unverändert. |
+| K4 Französisch nur nachgebildet | behoben | fünf Dateien aus französischem Word in den Testdaten des Forks genannt. |
+| K5 Strict-Fassung, Listenebene | offen | nicht Teil des Patches. |
+
+### Neue Befunde
+
+**Blocker:** keine. **Vorschläge:** keine.
+
+**Kleinigkeit:** Ein Mutant bleibt grün: Vergleich von `index heading` mit Groß- und Kleinschreibung statt ohne (`docx.rs:1819`). Die Tests benutzen nur die klein geschriebenen Namen. Ein Fall mit `Index heading` oder `INDEX HEADING` und fremder Kennung würde ihn fangen; an einer eigenen Testdatei liest sich `INDEX HEADING` richtig als Überschrift.
+
+### Nicht geprüft
+
+- Lib- und Integrationstests des Basisstands: nicht wiederholt (Commit unverändert, Werte aus dem ersten Durchgang).
+- Word: keine neuen Dateien erzeugt; die Dateien des ersten Durchgangs wurden wiederverwendet.
+- Klon mit `core.autocrlf=true`, die binäre `.doc` und die Strict-Fassung: nicht wiederholt.
+- Wie zuvor: Word mit anderer Oberflächensprache, weitere Programme, die Tests des Parser-Pakets gegen die neue Revision, Konformitäts-Snapshots, Python-Anbindung, wasm32, Linux und macOS.
