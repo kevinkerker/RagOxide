@@ -10,5 +10,11 @@ license.workspace = true
 [dependencies]
 kb-core = { workspace = true }
 
+[dev-dependencies]
+# Mocks and fixtures of the contract, for tests only (never in shipped builds).
+kb-core = { workspace = true, features = ["mock"] }
+# Executor for the asynchronous tests.
+futures = { workspace = true }
+
 [lints]
 workspace = true
