@@ -1,7 +1,7 @@
 # 0096: Bei HTML liest der Parser den Hauptinhalt wie ein Lesemodus
 
 - **Datum:** 2026-11-16
-- **Status:** angenommen, ergänzt [0011](0011-parser-docling-rs-mit-auflagen.md)
+- **Status:** angenommen, ergänzt [0011](0011-parser-docling-rs-mit-auflagen.md); ergänzt durch [0135](0135-html-fenstertitel-nur-als-dokumenttitel.md)
 
 ## Kontext
 

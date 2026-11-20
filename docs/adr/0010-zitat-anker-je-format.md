@@ -1,7 +1,7 @@
 # 0010: Zitat-Anker je Dokumentformat
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen; ergänzt durch [0095](0095-notizen-und-fussnoten-einlesen.md), [0098](0098-anker-der-folie-kennt-notizen.md), [0115](0115-pdf-ueberschriftenebenen-ableiten-parser-filtert.md) und [0125](0125-fundstelle-in-der-quellenzeile.md)
+- **Status:** angenommen; ergänzt durch [0095](0095-notizen-und-fussnoten-einlesen.md), [0098](0098-anker-der-folie-kennt-notizen.md), [0115](0115-pdf-ueberschriftenebenen-ableiten-parser-filtert.md) und [0125](0125-fundstelle-in-der-quellenzeile.md), [0133](0133-falsche-dateiendung-ist-ein-fehler.md)
 
 ## Kontext
 

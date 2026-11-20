@@ -6,6 +6,9 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # Test binaries that link the index library take tens of gigabytes with full debug
+  # information; the runner has no room for that (docs/todo.md).
+  CARGO_PROFILE_DEV_DEBUG: 0
 
 jobs:
   check:
@@ -19,6 +22,12 @@ jobs:
         run: rustup show active-toolchain || rustup toolchain install
 
       - uses: Swatinem/rust-cache@v2
+
+      # The build of the index library generates code with protoc (ADR 0129).
+      - name: Install protoc
+        uses: taiki-e/install-action@v2
+        with:
+          tool: protoc
 
       - name: cargo fmt
         run: cargo fmt --all --check

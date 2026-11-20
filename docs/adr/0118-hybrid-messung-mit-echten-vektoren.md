@@ -1,7 +1,7 @@
 # 0118: „Hybrid schlägt Einzelsuchen“ wird mit echten Vektoren aus dem Embedding-Test gemessen
 
 - **Datum:** 2026-11-17
-- **Status:** angenommen, ergänzt [0009](0009-testkorpus-benchmarks-plus-oeffentliche-dokumente.md)
+- **Status:** angenommen, ergänzt [0009](0009-testkorpus-benchmarks-plus-oeffentliche-dokumente.md); ergänzt durch [0132](0132-fusionskonstante-vorlaeufig-fuenf.md)
 
 ## Kontext
 

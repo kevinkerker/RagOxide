@@ -1,7 +1,7 @@
 # 0011: Parser ist docling.rs, mit Auflagen
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen; ergänzt durch [0096](0096-html-hauptinhalt-wie-lesemodus.md) und [0111](0111-parser-modelle-aus-lokalem-modellordner.md)
+- **Status:** angenommen; ergänzt durch [0096](0096-html-hauptinhalt-wie-lesemodus.md) und [0111](0111-parser-modelle-aus-lokalem-modellordner.md), [0134](0134-parser-begrenzt-gleichzeitige-pdf-aufrufe.md)
 
 ## Kontext
 

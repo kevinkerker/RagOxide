@@ -1,7 +1,7 @@
 # 0018: docling.rs behalten und zwei Fehler selbst beheben
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen, ergänzt [0011](0011-parser-docling-rs-mit-auflagen.md); ergänzt durch [0091](0091-vorhandene-ocr-schicht-uebernehmen.md), [0093](0093-excel-formate-im-fork.md) und [0097](0097-mehrseitige-tiff-im-fork.md)
+- **Status:** angenommen, ergänzt [0011](0011-parser-docling-rs-mit-auflagen.md); ergänzt durch [0091](0091-vorhandene-ocr-schicht-uebernehmen.md), [0093](0093-excel-formate-im-fork.md) und [0097](0097-mehrseitige-tiff-im-fork.md), [0134](0134-parser-begrenzt-gleichzeitige-pdf-aufrufe.md)
 
 ## Kontext
 

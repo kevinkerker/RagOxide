@@ -1,7 +1,7 @@
 # 0129: LanceDB trägt Vektoren und Volltext, mit eigener deutscher Analyse vor dem Volltextindex
 
 - **Datum:** 2026-11-18
-- **Status:** angenommen, ergänzt [0112](0112-volltextsuche-erst-messen.md)
+- **Status:** angenommen, ergänzt [0112](0112-volltextsuche-erst-messen.md); ergänzt durch [0132](0132-fusionskonstante-vorlaeufig-fuenf.md)
 
 ## Kontext
 
