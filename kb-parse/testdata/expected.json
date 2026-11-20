@@ -1,0 +1,417 @@
+{
+  "exif6-150dpi.jpg": {
+    "pages": [
+      {
+        "height": 1240,
+        "markers": {
+          "OBENLINKS": [
+            87,
+            63,
+            540,
+            122
+          ],
+          "UNTENRECHTS": [
+            1069,
+            1154,
+            1666,
+            1213
+          ]
+        },
+        "width": 1754
+      }
+    ]
+  },
+  "exif6-nodpi.jpg": {
+    "pages": [
+      {
+        "height": 1240,
+        "markers": {
+          "OBENLINKS": [
+            87,
+            63,
+            540,
+            122
+          ],
+          "UNTENRECHTS": [
+            1069,
+            1154,
+            1666,
+            1213
+          ]
+        },
+        "width": 1754
+      }
+    ]
+  },
+  "frames": [
+    "rotate-0",
+    "rotate-90",
+    "rotate-180",
+    "rotate-270",
+    "cropbox",
+    "cropbox-rotate-90",
+    "negative-origin"
+  ],
+  "frames-scan.pdf": {
+    "pages": [
+      {
+        "height": 842.0,
+        "markers": {
+          "OBENLINKS": [
+            41.0,
+            43.75,
+            164.75,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            406.75,
+            785.5,
+            570.0,
+            802.25
+          ]
+        },
+        "width": 595.0
+      },
+      {
+        "height": 595.0,
+        "markers": {
+          "OBENLINKS": [
+            41.25,
+            43.75,
+            165.25,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            654.0,
+            538.5,
+            817.25,
+            555.25
+          ]
+        },
+        "width": 842.0
+      },
+      {
+        "height": 842.0,
+        "markers": {
+          "OBENLINKS": [
+            41.0,
+            44.25,
+            165.0,
+            61.0
+          ],
+          "UNTENRECHTS": [
+            407.0,
+            786.0,
+            570.25,
+            802.75
+          ]
+        },
+        "width": 595.0
+      },
+      {
+        "height": 595.0,
+        "markers": {
+          "OBENLINKS": [
+            41.0,
+            43.75,
+            164.75,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            653.75,
+            539.0,
+            816.75,
+            555.75
+          ]
+        },
+        "width": 842.0
+      },
+      {
+        "height": 660.0,
+        "markers": {
+          "OBENLINKS": [
+            41.0,
+            43.75,
+            164.75,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            271.75,
+            603.75,
+            434.75,
+            620.5
+          ]
+        },
+        "width": 460.0
+      },
+      {
+        "height": 460.0,
+        "markers": {
+          "OBENLINKS": [
+            41.25,
+            43.75,
+            165.25,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            472.0,
+            403.5,
+            635.25,
+            420.25
+          ]
+        },
+        "width": 660.0
+      },
+      {
+        "height": 842.0,
+        "markers": {
+          "OBENLINKS": [
+            41.0,
+            43.75,
+            164.75,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            406.75,
+            785.5,
+            570.0,
+            802.25
+          ]
+        },
+        "width": 595.0
+      }
+    ]
+  },
+  "frames-text.pdf": {
+    "pages": [
+      {
+        "height": 842.0,
+        "markers": {
+          "OBENLINKS": [
+            40.75,
+            43.75,
+            165.0,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            407.0,
+            785.75,
+            570.25,
+            802.5
+          ]
+        },
+        "width": 595.0
+      },
+      {
+        "height": 595.0,
+        "markers": {
+          "OBENLINKS": [
+            40.75,
+            43.75,
+            165.0,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            654.0,
+            538.75,
+            817.25,
+            555.5
+          ]
+        },
+        "width": 842.0
+      },
+      {
+        "height": 842.0,
+        "markers": {
+          "OBENLINKS": [
+            40.75,
+            43.75,
+            165.0,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            407.0,
+            785.75,
+            570.25,
+            802.5
+          ]
+        },
+        "width": 595.0
+      },
+      {
+        "height": 595.0,
+        "markers": {
+          "OBENLINKS": [
+            40.75,
+            43.75,
+            165.0,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            654.0,
+            538.75,
+            817.25,
+            555.5
+          ]
+        },
+        "width": 842.0
+      },
+      {
+        "height": 660.0,
+        "markers": {
+          "OBENLINKS": [
+            40.75,
+            43.75,
+            165.0,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            272.0,
+            603.75,
+            435.25,
+            620.5
+          ]
+        },
+        "width": 460.0
+      },
+      {
+        "height": 460.0,
+        "markers": {
+          "OBENLINKS": [
+            40.75,
+            43.75,
+            165.0,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            472.0,
+            403.75,
+            635.25,
+            420.5
+          ]
+        },
+        "width": 660.0
+      },
+      {
+        "height": 842.0,
+        "markers": {
+          "OBENLINKS": [
+            40.75,
+            43.75,
+            165.0,
+            60.5
+          ],
+          "UNTENRECHTS": [
+            407.0,
+            785.75,
+            570.25,
+            802.5
+          ]
+        },
+        "width": 595.0
+      }
+    ]
+  },
+  "pages.tif": {
+    "pages": [
+      {
+        "height": 1754,
+        "markers": {
+          "OBENLINKS": [
+            62,
+            80,
+            381,
+            122
+          ],
+          "UNTENRECHTS": [
+            759,
+            1623,
+            1178,
+            1665
+          ]
+        },
+        "width": 1240
+      },
+      {
+        "height": 1170,
+        "markers": {
+          "OBENLINKS": [
+            82,
+            59,
+            511,
+            115
+          ],
+          "UNTENRECHTS": [
+            1005,
+            1089,
+            1571,
+            1145
+          ]
+        },
+        "width": 1654
+      },
+      {
+        "height": 1400,
+        "markers": {
+          "OBENLINKS": [
+            50,
+            65,
+            309,
+            97
+          ],
+          "UNTENRECHTS": [
+            608,
+            1297,
+            950,
+            1329
+          ]
+        },
+        "width": 1000
+      }
+    ]
+  },
+  "portrait-300dpi.png": {
+    "pages": [
+      {
+        "height": 1754,
+        "markers": {
+          "OBENLINKS": [
+            62,
+            80,
+            381,
+            122
+          ],
+          "UNTENRECHTS": [
+            759,
+            1623,
+            1178,
+            1665
+          ]
+        },
+        "width": 1240
+      }
+    ]
+  },
+  "single.tif": {
+    "pages": [
+      {
+        "height": 1754,
+        "markers": {
+          "OBENLINKS": [
+            62,
+            80,
+            381,
+            122
+          ],
+          "UNTENRECHTS": [
+            759,
+            1623,
+            1178,
+            1665
+          ]
+        },
+        "width": 1240
+      }
+    ]
+  }
+}

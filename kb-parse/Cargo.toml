@@ -9,6 +9,29 @@ license.workspace = true
 
 [dependencies]
 kb-core = { workspace = true }
+# Parser library (ADR 0011, ADR 0032): the fork pinned in the workspace. `pdf` brings the
+# PDF and image pipeline with ONNX Runtime; the Office, HTML and Markdown backends are
+# always built.
+docling = { workspace = true, features = ["pdf"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+unicode-normalization = { workspace = true }
+# Worker process: spawn, read its output, kill it on cancel, without blocking the executor;
+# one PDF or image call at a time (ADR 0134).
+tokio = { version = "1.54.1", features = ["fs", "process", "io-util", "rt", "macros", "time", "sync"] }
+# HTML main content (ADR 0096): the HTML parser docling.rs uses as well.
+scraper = "0.27.0"
+# HTML in other encodings than UTF-8: decoded like docling.rs does it (same crate and
+# version as in docling.rs).
+encoding_rs = "0.8.44"
+# XLSX: hidden rows and columns (ADR 0117) are read from the sheet XML.
+zip = { version = "9.6.1", default-features = false, features = ["deflate-flate2"] }
+roxmltree = "0.20.0"
+
+[dev-dependencies]
+# Reading `corpus/manifest.toml` and `corpus/questions.toml` in tests.
+toml = { workspace = true }
+tokio = { version = "1.54.1", features = ["fs", "process", "io-util", "rt", "rt-multi-thread", "macros", "time"] }
 
 [lints]
 workspace = true
