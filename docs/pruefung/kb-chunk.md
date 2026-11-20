@@ -3,7 +3,7 @@ feature: kb-chunk
 datum: 2026-11-20
 commit: Branch paket-b-kb-chunk, HEAD 561e404, Arbeit des Pakets uncommittet
 spec: docs/abnahme-kb-chunk.md
-ergebnis: PASS (erster Durchgang 2026-11-20: 46 Kriterien PASS, B09 PASS in der Lesart des Vertrags; Empfehlung ja mit Auflage, der Inhaber entscheidet den Wortlaut von B09)
+ergebnis: PASS (zweiter Durchgang 2026-11-20 gegen Fassung 2: alle 51 Kriterien PASS, Empfehlung ja ohne Auflage; erster Durchgang 2026-11-20: 46 Kriterien PASS, B09 PASS in der Lesart des Vertrags)
 ---
 
 Hinweis zur Übernahme: Die Berichte sind unverändert übernommen. Weggelassen ist je Durchgang nur der Anhang des Prüfers zur Übergabe (Pfade seines Arbeitsordners), den er selbst als nicht zum Bericht gehörig gekennzeichnet hat.
@@ -198,3 +198,190 @@ Keine.
 2. **Tabellen mit vielen leeren Zeilen (V3):** Sichert Paket A zu, dass `num_rows` und `num_cols` zur Zahl der Zellen passen, oder soll der Chunker leere Zeilen weglassen oder unsinnige Angaben mit `InvalidInput` abweisen?
 3. **`kb-chunk/BERICHT.md`:** Soll der Bericht des Bearbeiters im Repo bleiben?
 4. **Strenge Ankerprüfung (V4):** Ist gewollt, dass ein Anker der falschen Variante das ganze Dokument abweist?
+
+# Prüfbericht Paket B (kb-chunk), zweiter Durchgang
+
+- Datum: 2026-11-20
+- Commit/Bereich: Worktree des Pakets, Branch `paket-b-kb-chunk`, HEAD `07945f8` (gleich `main`), Arbeit des Pakets uncommittet
+- Spezifikation: `docs/abnahme-kb-chunk.md`, Fassung 2 (B01 bis B51), Stand im Haupt-Repo; dazu ADR 0136 und ADR 0137 und der geänderte Vertrag `Chunker::chunk` in `kb-core`
+- Gesamtergebnis: **PASS**. Alle 51 Kriterien PASS, kein FAIL, kein NICHT TESTBAR.
+- Empfehlung: **Paket abnehmen: ja.** Kein Blocker, keine Auflage. Neu sind ein Vorschlag und drei Kleinigkeiten. Die Festlegung, beim Zusammenführen der Welle echte Parser-Ausgaben durch den Chunker zu schicken, steht noch aus.
+
+## Befunde des ersten Durchgangs: Stand
+
+| Befund | Stand | Nachweis |
+|---|---|---|
+| V1, B09 und der Tabellenkopf | entschieden (ADR 0136) und behoben | Der Kopf kommt als eigener Teil, wenn er mit keiner Zeilengruppe passt. P03: Die 10 Fälle mit verlorenem Kopf sind weg. P15, P10. |
+| V2, Testlücke: Element genau an der Grenze | behoben | Gegenprobe M01 rot: `b51_an_element_exactly_at_the_limit_stays_one_piece` |
+| V2, Testlücke: Tabelle nur aus Kopfzeilen | behoben | M02 rot: `b51_a_table_of_header_rows_only_keeps_its_content_as_rows`, `b49_only_header_rows_left_…` |
+| V2, Testlücke: Zellen nicht sortiert | behoben | M03 rot: `b51_cells_in_any_order_give_the_same_chunks` |
+| V2, Testlücke: Teil nur aus leeren Zeilen trägt Anker der Tabelle | entfallen (ADR 0137), ersetzt | Die Regel gibt es nicht mehr. M04 (leere Zeilengruppen bleiben) rot: drei Tests zu B49. |
+| V3, Aufwand nach `num_rows` | entschieden (ADR 0137) und behoben | P12: 2 Zellen bei `num_rows` 1.000.000 ergeben 3 Chunks in 2 ms statt 7.695 in 4 s. P17: `u32::MAX` in 0,3 ms. Rest siehe Kleinigkeit N1. |
+| V4, strenge Ankerprüfung | entschieden: bleibt (Festlegung vom 2026-11-20) | P06: weiterhin `InvalidInput`. Der Lauf mit echten Parser-Ausgaben beim Zusammenführen steht aus. |
+| K1, Kopfzeilen bei leerer erster Zeile | behoben (B49) | P16: Zeile 1 leer, Grenze 15 → erster Teil trägt den Bereich ab der Kopfzeile. P11: mit Kopf-Teil gleich dem Mock. |
+| K2, Entdoppeln der Anker quadratisch | bewusst offen (nicht verlangt) | unverändert: 100.000 Absätze bei Grenze `usize::MAX` 59,7 s (unter Fremdlast), bei Grenze 400 1,0 s |
+| K3, Bezeichner `schulung` | behoben | jetzt `training` in `tests/contract.rs:171` und `tests/structure.rs:284` |
+| K4, Element nur aus unsichtbaren Zeichen | bewusst offen | unverändert (P08: ein Chunk) |
+| K5, Leerraum am Rand über der Grenze | bewusst offen | unverändert (P08: `["abc", "de", "xyz"]`); der neue Test zu B51 hält das Verhalten fest |
+| K6, Version von `futures` über den Workspace | bewusst offen | `Cargo.toml` und `Cargo.lock` unverändert |
+| K7, Satzende nach kurzer Zahl | bewusst offen (README nennt es) | P19: „Das regelt Art. 5 Abs. 1. Neuer Satz hier.“ bleibt ein Satz |
+| K8, `BERICHT.md` im Paketordner | entschieden: bleibt | Festlegung vom 2026-11-20 |
+| Offene Frage 1 (B09) | entschieden | ADR 0136, Option 2 |
+| Offene Frage 2 (leere Zeilen) | entschieden | ADR 0137, Option 1 |
+| Offene Frage 3 (`BERICHT.md`) | entschieden | bleibt |
+| Offene Frage 4 (strenge Prüfung) | entschieden | bleibt |
+
+## Geprüfter Stand
+
+- **Diff:** wieder 14 geänderte oder neue Dateien; außerhalb von `kb-chunk/` nur `Cargo.lock` mit einer Zeile (`"futures"`). `git diff main -- kb-core docs` ist leer.
+- **Seit dem ersten Durchgang geändert** (Vergleich mit den damaligen Prüfsummen): 9 Dateien, nämlich `src/lib.rs`, `src/table.rs`, `tests/common/mod.rs`, `tests/contract.rs`, `tests/limits.rs`, `tests/structure.rs`, `tests/tables.rs`, `README.md`, `BERICHT.md`.
+  - `src/lib.rs`: nur acht Zeilen neu (`:192-199`, Tabelle ohne jeden Text).
+  - `src/table.rs`: neu geschrieben (Zeilen aus den Zellen, leere Gruppen, Kopf-Teil).
+- **Unverändert:** `Cargo.lock`, `kb-chunk/Cargo.toml`, `src/pass.rs`, `src/sentence.rs`, `tests/pipeline.rs`.
+- **Unverändertheit:** SHA-256 der 14 Dateien zu Beginn und am Ende gleich, auch nach den Gegenproben. HEAD unverändert, nichts gestagt, keine Probedatei im Worktree.
+- **Prüfbefehle** (mit `CARGO_PROFILE_DEV_DEBUG=0`, `CARGO_BUILD_JOBS=4`, Ausgabe angesehen):
+  - `cargo fmt --all --check` → exit 0.
+  - `cargo clippy --workspace --all-targets --all-features -- -D warnings` → exit 0, keine Warnung.
+  - `cargo test --workspace` → exit 0, 251 bestanden, 0 fehlgeschlagen. Davon 62 in `kb-chunk` (3+13+10+4+13+19), 160 in `kb-core`, 29 in der App.
+  - `cargo doc --workspace --no-deps` → exit 0, keine Warnung; für `kb-chunk` auch mit `-D warnings`.
+- **Eigenproben:** P01 bis P19 gegen die öffentliche Schnittstelle, alle grün. Das Referenzmodell ist auf Fassung 2 umgestellt (Kopf-Teil, leere Zeilengruppen, Tabelle ohne Text). Neu sind P15 (Kopf-Teil), P16 (leere Zeilen), P17 (Aufwand), P18 (Kopf ohne Text), P19 (Satzregeln).
+- **Gegenproben:** 25 Änderungen an Kernzeilen, jede sofort zurückgesetzt: 24 rot, 1 grün (Kleinigkeit N3).
+- **Kein Release-Bau.**
+
+## Kriterien
+
+| ID | Kriterium | Ergebnis | Nachweis |
+|---|---|---|---|
+| B01 bis B08 | Grundzusagen: Typ, Kennungen, Quelle, Text, Sprache, Determinismus, Reihenfolge | PASS | wie erster Durchgang. P01 erneut: 18.000 Läufe, 12,4 Mio. Chunks, keine Verletzung. P02 über die Testdokumente (420 Läufe), P14. |
+| B09 | Kein Inhalt verloren oder doppelt, Kopf in mindestens einem Teil | PASS | P03 wörtlich über die 7 Testdokumente und 2 eigene Tabellen bei 1, 5, 20, 400: 35 von 36 Fällen wortgleich. Der eine Fall: Die erste Zeilengruppe passt nicht mit dem Kopf, er steht in den späteren Teilen; ohne Kopfzeilen sind beide Seiten gleich. P01 prüft Tabellenzeilen je einmal in Reihenfolge und den Kopf-Teil in 21.993 Fällen. Der Test des Pakets nimmt den Kopf nur noch heraus, wo er vor Zeilen steht (`tests/common/mod.rs`, `check_no_loss`); M06 macht ihn rot. |
+| B10 bis B20 | Aufgenommene Elemente, Überschriftenpfad, Anker, Notizen, Fußnoten, ungültige Eingabe | PASS | wie erster Durchgang. P05, P06 (28 Fälle × 4 Grenzen, kein Panic), P09 erneut grün. |
+| B21 bis B26 | Token-Grenze, Zählerfehler, Satz-, Wort- und Zeichenteilung, Grenze als Parameter | PASS | wie erster Durchgang. P01 mit 5 Zählern und 12 Grenzen; P02 mit Bytes-, Hash- und Konstant-Zählern; P07 mit 23.103 Fehlerstellen. `src/pass.rs` und `src/sentence.rs` sind unverändert. |
+| B27 bis B30 | Zusammenfassen | PASS | wie erster Durchgang. P01: 2.124 Nachbarpaare geprüft. P16: Eine Tabelle ohne Text unterbricht das Zusammenfassen nicht. |
+| B31 bis B33 | Passende Tabelle ganz, Teilung an Zeilen, so viele wie passen | PASS | wie erster Durchgang. P11 (240 Zeilen ab B3, 5 Zähler), P10 (2.062 geteilte Tabellen gleich dem Mock). P16: Eine passende Tabelle behält ihren Text mit leeren Zeilen. |
+| B34 | Anker der eigenen Zeilen, Kopfzeilen beim ersten Teil außer bei Kopf-Teil | PASS | P15: Excel ab B3, Grenze 22 → erster Teil `r2c1-r3c2`, zweiter `r4c1-r4c2`. Mit Kopf-Teil (Grenze 18) → Kopf-Teil `r2c1-r2c2`, erster Zeilen-Teil `r3c1-r3c2`. P11: PDF-Teil über beide Seiten mit zwei `Page`-Ankern. M09 rot. |
+| B35 | Kein Schnitt durch `row_span > 1` | PASS | P11, P15 (Dreiergruppen), P01. M12 rot. |
+| B36 | Gruppe ohne Kopf, Zellen wie Fließtext, kein Kopf-Teil, wenn eine Gruppe passt | PASS | P15: Erste Zeile zu lang, spätere passen (Grenze 20) → erster Teil ohne Kopf, danach Teile mit Kopf, kein Kopf-Teil. P01: 73.681 Gruppen ohne Kopf und 310.236 Gruppen als Fließtext, jede gegen die Regel geprüft. M07 und M11 rot. |
+| B37, B38 | Tabelle ohne Zellen, Zelltexte unverändert | PASS | wie erster Durchgang. P01: 4.344 Fälle ohne Zellen; P11: `57,234.50` unverändert. |
+| B39, B40 | Testdokumente, `MockIngestor` | PASS | P04: 20 von 20 Mock-Chunks enthalten. Pakettest `b40_…` grün; `tests/pipeline.rs` ist unverändert. |
+| B41 bis B43 | Verzeichnis, Abhängigkeiten, Lizenzen | PASS | wie erster Durchgang. `git diff main --name-only`: `Cargo.lock`, `kb-chunk/Cargo.toml`, `kb-chunk/src/lib.rs`. `cargo tree -p kb-chunk -e normal`: nur `kb-core`. |
+| B44 | fmt, clippy, test, doc | PASS | Prüfbefehle oben; `cargo test -p kb-chunk --offline` → 62 bestanden. |
+| B45 | README vollständig | PASS | README nennt jetzt Kopf-Teil, leere Zeilen, Tabelle ohne Text, die Abweichungen vom Mock und die Grenzen bei `num_cols` und `row_span` (Zeilen 85 bis 97, 125, 126, 138); „62 Tests“ stimmt. |
+| B46 | Englische Bezeichner, keine Werkzeug- oder Pfadhinweise | PASS | Suche über alle Dateien des Pakets: 0 Treffer; LF ohne BOM. `schulung` ist ersetzt. |
+| B47 | Bericht mit Messwerten | PASS | `kb-chunk/BERICHT.md` mit Abschnitt zur Nacharbeit. Messung wiederholt: 182 Chunks und 454 Aufrufe (80 ms); 250 Chunks und 10.500 Aufrufe (60 ms). |
+| B48 | Kopf-Teil, wenn keine Zeilengruppe mit dem Kopf passt | PASS | Einzelnachweise unter „Zu B48“. M06, M08, M10 rot. |
+| B49 | Leere Zeilengruppen fallen weg | PASS | Einzelnachweise unter „Zu B49“. M04, M05 rot. |
+| B50 | Aufwand nach den Zellen, nicht nach `num_rows` | PASS | P17: `num_cols` 3, Zellen in den Zeilen 0 und 999.999, Grenze 400. Bei `num_rows` 1.000.000 und bei `u32::MAX` genau ein Chunk mit beiden Zeilen, je 0,3 ms und 2 Zähleraufrufe, mit und ohne Kopfzeile. Keine Liste je Zeile: `Rows` ist eine `BTreeMap` nach Zeilenindex (`src/table.rs:39, 55-58`). Pakettest `b50_…`: 0,6 und 0,3 ms. |
+| B51 | Vier Lücken durch Tests geschlossen, `schulung` ersetzt | PASS | M01, M02, M03, M04 je rot durch die neuen Tests (siehe Stand-Tabelle). |
+
+### Zu B48
+
+- **Testdokumente:** `budget.xlsx` und `pruefordnung.pdf` bei Grenze 1 und 5: Alle sechs Kopfwörter stehen in Chunks. Bei Grenze 5 beginnt `budget.xlsx` mit „Category | Q1 | Q2“ und dem Bereich der Kopfzeile `r2c1-r2c3`. Die Tabellen allein sind bei 1, 5 und 20 gleich dem Mock.
+- **Excel ab B3, Kopf passt allein:** Kopf 17 Token, mit einer Zeile 22, Grenze 18 → 7 Chunks. Der erste hat nur Kopfzeile und Trennzeile mit Bereich `r2c1-r2c2`; die Zeilen folgen einzeln ab `r3c1-r3c2`.
+- **Kopf über der Grenze (Grenze 6):** „Bezeichnung des Geräts im Bestand |“ und „Datum der letzten Prüfung“, beide mit dem Bereich der Kopfzeile.
+- **Zwei Kopfzeilen:** Der Kopf-Teil hat drei Zeilen und den Bereich `r2c1-r3c2`.
+- **PDF mit Kopfzeilen auf zwei Seiten:** Der Kopf-Teil trägt zwei `Page`-Anker, je Seite die kleinste Box.
+- **Ohne Zellanker:** Anker der Tabelle.
+- **Zeilengruppen mit `row_span`:** Kopf-Teil, danach je Gruppe drei Zeilen ohne Kopf.
+- **Vergleich mit dem Mock:** In allen diesen Fällen sind Text und Anker gleich. P10: 3.402 Vergleiche, davon 527 mit Kopf-Teil und 402 mit geteiltem Kopf, alle gleich.
+
+### Zu B49
+
+- **Probetabelle (P16):** Kopfzeile, leere Zeile, Text, Zeile nur aus Leerraum (mit Zellankern), Text, zwei leere Zeilen am Ende.
+  - Grenze 25 → ein Chunk aus Kopf und den zwei Textzeilen.
+  - Grenze 15 → zwei Teile mit den Bereichen `r0c0-r2c1` und `r4c0-r4c1`.
+  - Grenze 12 → Kopf-Teil und zwei Zeilen.
+  - Grenzen 1 bis 3 → nur die Wörter „Kopf | Zwei a | b c | d“; kein Anker einer leeren Zeile.
+- **Leere Zeile in einer Gruppe mit Text (`row_span` 3):** bleibt als `|  |  |`.
+- **Nur Kopfzeilen übrig:** Sie stehen als Zeilen ohne Trennzeile.
+- **Tabelle ohne jeden Text:** kein Chunk, auch wenn ihr Elementtext passt; die Nachbarn werden zu „Davor.\n\nDanach.“ zusammengefasst (`src/lib.rs:192-199`).
+- **README** nennt die Abweichung vom Mock.
+
+## Befunde
+
+### Blocker
+
+Keine.
+
+### Vorschläge
+
+- **N2, Kopfzeilen ohne Text:** Haben die Kopfzeilen nur Zellen ohne Text, entsteht trotzdem ein Kopf-Teil aus Markdown-Zeichen (`src/table.rs:111-120`).
+  - P18: Kopfzellen `" "` und `""`, zwei Zeilen mit Text. Bei Grenze 12 ist der erste Chunk `"|   |  |\n| --- | --- |"`, bei Grenze 4 und 6 `"  | "`.
+  - Passt eine Zeile mit dem Kopf, wiederholt jeder Teil diesen leeren Kopf.
+  - Die Kriterien regeln den Fall nicht. ADR 0137 begründet das Weglassen einer Tabelle ohne Text damit, dass der Chunk nur aus Markdown-Zeichen bestünde; hier gilt dasselbe. Siehe offene Frage 1.
+
+### Kleinigkeiten
+
+- **N1, Aufwand bei großem `row_span`:** Eine Zelle mit sehr großem `row_span` lässt den Aufwand mit der Spanne wachsen, weil die leeren Zeilen der Gruppe bleiben (B49) und `render_rows` jede Zeile der Spanne rendert (`src/table.rs:189-194`).
+  - P17: `row_span` `u32::MAX` in einer Tabelle mit 30.000, 300.000 und 3.000.000 Zeilen braucht 0,09 s, 0,5 s und 5,5 s (33 MB gezählter Text).
+  - Mit `num_rows` `u32::MAX` nicht ausgeführt.
+  - Das README nennt die Grenze (Zeile 138), ebenso sehr große `num_cols`; B50 nimmt `num_cols` aus.
+- **N3, Testlücke bei den Satzregeln:** Gegenprobe M23 blieb grün: Die Regel „Wort mit innerem Punkt“ (`src/sentence.rs:116-118`, `if word.contains('.')`) kann entfallen, ohne dass ein Test rot wird. Das Verhalten selbst stimmt (P19: „Das gilt z.B. Anhang drei. Neuer Satz.“ → zwei Sätze).
+- **N4, Leerraum in verbundenen Zelltexten:** Passt der mit `" | "` verbundene Text einer Zeilengruppe, geht er ungekürzt hinaus, auch mit Leerraum leerer Zellen am Rand. P18: `"\t  | eins zwei drei vier"`. Kein Wort fehlt.
+- **Hinweis aus dem Bericht des Bearbeiters:** Nach einem Kopf-Teil steht jede Zeilengruppe einzeln ohne Kopf, auch wenn mehrere zusammen passen würden. Das folgt dem Vertrag und gleicht dem Mock (P10, P15); bei langem Kopf entstehen so viele kleine Chunks.
+
+### Nicht verlangt, aber vorhanden
+
+Unverändert gegenüber dem ersten Durchgang: strenge Eingabeprüfung, `Error::Chunk` bei einem Zeichen über der Grenze, Freigabe des Executors (P14: 2.801 Polls für 2.000 Absätze). Neu ist nichts über die Kriterien hinaus.
+
+## Gegenproben
+
+| Änderung | Ergebnis |
+|---|---|
+| M01 Element genau an der Grenze gilt als zu lang | rot: B51 |
+| M02 Kopfzeilen bleiben Kopf, wenn keine Zeile mit Text folgt | rot: B49, B51 |
+| M03 Zellen nicht sortiert | rot: B51 |
+| M04 leere Zeilengruppen bleiben | rot: drei Tests zu B49 |
+| M05 Tabelle ohne Text ergibt einen Chunk | rot: B49 |
+| M06 nie ein Kopf-Teil | rot: B09, drei Tests zu B48 |
+| M07 Kopf-Teil, obwohl eine Gruppe mit dem Kopf passt | rot: 7 Tests (B09, B32/B33, B34, B36, B49) |
+| M08 Kopf-Teil trägt die Anker der Tabelle | rot: drei Tests zu B48 |
+| M09 Kopfzeilen zählen nie zum ersten Teil | rot: 5 Tests (B34, B36, B49) |
+| M10 Kopf über der Grenze wird nicht geteilt | rot: 5 Tests (B21, B26, B48, allgemeine Zusagen) |
+| M11 Gruppe ohne Kopf wird nicht versucht | rot: B36, zwei Tests zu B48 |
+| M12 Zeilenspannen ignoriert | rot: B35, B49 |
+| M13 fehlende Zellanker ignoriert | rot: B34 |
+| M14 keine Suche über die Schätzung hinaus | rot: B25, B32/B33, B48, B51 |
+| M15 Satz über der Grenze wird nicht an Wörtern geteilt | rot: 10 Tests |
+| M16 Wort über der Grenze wird nicht an Zeichen geteilt | rot: 5 Tests |
+| M17 Text genau an der Grenze passt nicht | rot: 33 Tests |
+| M18 Zählerfehler verschluckt | rot: B23 |
+| M19 Abkürzungen beenden einen Satz | rot: zwei Tests zu B24, Einheitstest |
+| M20 `Art.` vor Ziffer beendet einen Satz | rot: B24, Einheitstest |
+| M21 Zahl bis drei Ziffern beendet einen Satz | rot: Einheitstest |
+| M22 einzelner Buchstabe beendet einen Satz | rot: Einheitstest |
+| M23 Wort mit innerem Punkt beendet einen Satz | **grün** (N3) |
+| M24 Halbieren abgeschaltet | rot: 7 Tests (B25, B27, B32 bis B36) |
+| M25 zwei Zellen an einer Stelle angenommen | rot: B20 |
+
+Damit sind die im ersten Durchgang geplanten Gegenproben zu `pass.rs`, `sentence.rs` und `table.rs` gelaufen.
+
+## Sicherheit
+
+- Wie erster Durchgang: keine Daten oder Konten, kein Datei- oder Netzzugriff in `src/`, kein `unsafe`, kein Elementtext in Fehlermeldungen.
+- **Robustheit:** kein Panic in 23.103 Fehlerläufen (P07), in 28 Fehlerfällen (P06) und mit ungewöhnlichen Zählern (P02).
+- **Angaben ohne Deckung durch Zellen:** `num_rows` kostet nichts mehr (B50). Offen bleiben sehr große `num_cols` und `row_span` (N1, README).
+
+## Regressionen
+
+- `cargo test --workspace`: 251 grün, 0 rot. `kb-chunk` 62, `kb-core` 160, App 29.
+- Vorab-Fehler: keine. Alle Crates außer `kb-chunk` sind byte-gleich mit `main`.
+- **Alle Eigenproben des ersten Durchgangs wiederholt:** keine Regression.
+  - P01: 300 Dokumente, 18.000 Läufe.
+  - P12: gleiche Zahlen für 10.000 und 100.000 Zeilen und Absätze; Zeiten höher wegen paralleler Bauläufe auf dem Rechner.
+- Nach den Gegenproben: `cargo test -p kb-chunk --offline` 62 grün, `cargo fmt --all --check` exit 0.
+
+## Nicht geprüft
+
+- `row_span` oder `num_cols` nahe `u32::MAX` zusammen mit großem `num_rows` (N1), um den Rechner nicht zu gefährden.
+- B40 nur über den Test des Pakets, ohne eigene Probe.
+- `cargo deny check` (nicht installiert); an den Abhängigkeiten hat sich nichts geändert.
+- CI unter `windows-latest`.
+- Echte Parser-Ausgaben von Paket A (laut Festlegung beim Zusammenführen) und der echte Zähler von Paket C.
+- Release-Bau und Messung auf dem Referenzgerät.
+- Satzgrenzen an anderen Korpustexten als dem Grundgesetz.
+- Die zehn Gegenproben N01 bis N10 aus dem Bericht des Bearbeiters habe ich nicht nachvollzogen; meine M01 bis M12 decken dieselben Regeln mit eigenen Änderungen ab.
+
+## Offene Fragen
+
+1. **Kopfzeilen ohne Text (N2):** Soll ein Kopf, dessen Zellen alle keinen Text haben, wie eine leere Zeilengruppe wegfallen (kein Kopf-Teil, keine Wiederholung)? Die Kriterien und ADR 0137 sprechen nur von Zeilengruppen und von der Tabelle ganz ohne Text.
+2. **Zeilen nach einem Kopf-Teil** (Frage 1 im Bericht des Bearbeiters): Sollen Zeilengruppen ohne Kopf zusammengefasst werden dürfen? Das bräuchte eine Änderung am Vertrag; heute verhalten sich Paket und Mock gleich.

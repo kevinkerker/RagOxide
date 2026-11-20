@@ -3,7 +3,7 @@ feature: kb-parse
 datum: 2026-11-19
 commit: Branch paket-a-kb-parse, HEAD 991fcf2, Arbeit des Pakets uncommittet
 spec: docs/abnahme-kb-parse.md
-ergebnis: FAIL (zweiter Durchgang 2026-11-20: ein übernommener Punkt der Fassung 4, HTML in UTF-16; A12 und A65 behoben, A66 bis A68 bestanden, Empfehlung ja mit Auflage; erster Durchgang 2026-11-19 FAIL bei A12 und A65)
+ergebnis: PASS (dritter Durchgang 2026-11-20 gegen Fassung 4: alle 68 Kriterien PASS, bei A03 und A61 je ein Teil lokal NICHT TESTBAR; zweiter Durchgang FAIL, erster Durchgang FAIL)
 ---
 
 Hinweis zur Übernahme: Die Berichte sind unverändert übernommen. Weggelassen ist je Durchgang nur der Anhang des Prüfers zur Übergabe (Pfade seines Arbeitsordners), den er selbst als nicht zum Bericht gehörig gekennzeichnet hat.
@@ -452,3 +452,148 @@ FAIL in einem übernommenen Punkt (HTML in UTF-16 mit BOM). Alles andere, was Fa
 - Spracherkennung nur Deutsch und Englisch; Datumsformate in Excel ohne Test.
 - Kandidaten für Änderungsanträge an `kb-core` (F-A5) unverändert offen; dazu käme ein Satz zu A66 am Rustdoc von `Parser::parse`.
 - Messung auf dem Referenzgerät, `cargo deny` und CI stehen aus.
+
+# Prüfbericht Paket A (kb-parse), dritter Durchgang
+
+- Datum: 2026-11-20
+- Commit/Bereich: Branch `paket-a-kb-parse`, HEAD `561e404` (gleich `main`), Arbeit uncommittet im Worktree des Pakets
+- Spezifikation: `docs/abnahme-kb-parse.md`, Fassung 4 (A01 bis A68 und drei übernommene Punkte), ADR 0133 bis 0135
+- Gesamtergebnis: **PASS**. Alle 68 Kriterien und die drei übernommenen Punkte bestehen; bei A03 und A61 bleibt je ein Teil lokal NICHT TESTBAR (`cargo deny`, CI).
+- Empfehlung: Paket abnehmen **ja**. Offen bleiben ein Vorschlag (Testlücke) und Kleinigkeiten, keiner davon verletzt ein Kriterium.
+
+## Befunde des zweiten Durchgangs: Stand
+
+| Befund | Stand | Nachweis |
+|---|---|---|
+| Blocker 1: HTML in UTF-16 mit BOM abgelehnt | behoben | Meine Seiten in UTF-16 LE und BE mit BOM werden gelesen (Titel `Titel Ä`, Umlaute richtig), auch mit `meta charset="utf-8"` in der UTF-16-Datei. Gegenprobe k1 rot. |
+| Vorschlag 1: gültiges HTML abgelehnt | behoben, anders gelöst | HTML wird wie Markdown geprüft (Widerspruch nur bei erkanntem PDF, Bild, DOCX, PPTX, XLSX) und muss nach der Dekodierung Text sein (`mod.rs:253-270`). Gelesen werden jetzt: Fragment `<p>…`, Fragment `<div>…`, Text vor dem ersten Tag, 5000 Zeichen Kommentar vor `<html>`, leere Datei, reiner Text. Die Fälle aus A66 bleiben `Parse`. |
+| Vorschlag 2: U+FEFF über `orig` | behoben | Rückgriff nur noch für die Marke `formula` (`tree.rs:122-127`). Wikipedia: kein Element mit U+FEFF. Die 7 Formelstellen in arXiv und Plenarprotokoll 21/1 sind weiter Elemente. Gegenprobe k4 rot. |
+| Vorschlag 3: Leerzeichen zerreißt Wörter | behoben, anders gelöst | Die Verbindungsregel ist entfernt, Stücke werden wieder unverändert aneinandergehängt. Meine Seite: „Bundestagswahl“, „H2O“, „Wortlinkrest“, „Text[1]“. Stattdessen setzt das Paket vor docling.rs ein Leerzeichen an Blockgrenzen (`html.rs`, `space_blocks`). Die zwei Stellen der Wikipedia-Seite kleben wieder („← 2021Wahl zum 21. Bundestag 2025nächste →“); das README führt sie jetzt als bekannte Grenze. |
+| Vorschlag 4: Test zum Aufräumen | behoben | Der Test legt Dateien vor und nach der gehaltenen Markierungsdatei in den Ordner des laufenden Aufrufs und verlangt alle drei. Gegenprobe k9 (`if ours`) jetzt rot. |
+| Kleinigkeit: Namensprüfung beim Aufräumen | behoben | `is_call_name` verlangt `kb-parse-<Ziffern>-<Ziffern>` (`parser.rs:455-461`). Mein Ordner `kb-parse-notizen` mit Markierungsdatei bleibt jetzt. Gegenprobe k9b rot. |
+| Kleinigkeit: SVG-`<title>` als Titel und Überschrift | behoben | Titel nur aus `head > title`, `svg title` wird entfernt. Meine Seite: Titel aus dem Kopf bzw. aus `<h1>`, kein Element „Symbolname“. Gegenprobe k11 rot. |
+| Kleinigkeit: Titel ohne `<title>` ist das erste `<h1>` | unverändert | Das README beschreibt es („sonst das erste Element mit der Marke `title`“). |
+| Kleinigkeit: Kodierungsangabe nur am Dateianfang, widersprüchliche Angabe wird befolgt | unverändert | Das README nennt die Grenze. |
+| Kleinigkeit: BMP, GIF, WebP unter `.png` oder `.jpg` | unverändert | nicht neu geprüft |
+| Kleinigkeit: ohne Modelle `Model` statt `Parse` bei falsch benannter `.png` | unverändert | Das README beschreibt die Reihenfolge. |
+| Kleinigkeit: BERICHT nennt geänderte Ausgabe unvollständig | behoben | BERICHT nennt die 80 Elemente der Wikipedia-Seite und was sich an ihnen ändert; deckt sich mit meinem Vergleich. |
+| Kleinigkeit: README zu HTML-Erkennung | behoben | Das README beschreibt, was gelesen und was abgelehnt wird, samt der Textregel. |
+| Kleinigkeit: Kopf der Spezifikation nennt „Fassung 3“ | unverändert | außerhalb des Pakets; der BERICHT zitiert entsprechend „Fassung 3“ |
+
+## Geprüfter Stand
+
+- **Diff gegen das Ende des zweiten Durchgangs:** 10 von 44 Dateien geändert, zusammen +412/−105 Zeilen. Betroffen sind `src/convert/mod.rs`, `html.rs`, `tree.rs`, `src/parser.rs`, `src/bin/kb-parse-dump.rs`, `tests/common/mod.rs`, `tests/office.rs`, `tests/process.rs`, README, BERICHT. Dateiliste, `Cargo.lock`, `Cargo.toml` und alle Testdaten unverändert, keine neue Abhängigkeit, keine neue öffentliche Schnittstelle.
+- **Prüfsummen:** Liste der 44 Dateien zu Beginn und am Ende gleich (SHA-256 der Liste `57a91abe…42c256`), auch nach den Gegenproben. Lokaler Modellordner unverändert (27 Dateien). Außerhalb von `kb-parse/` und `Cargo.lock` nichts geändert.
+- **Prüfbefehle, Ausgabe angesehen** (`CARGO_PROFILE_DEV_DEBUG=0`, `CARGO_BUILD_JOBS=4`, kein Release-Bau):
+
+| Befehl | Ergebnis |
+|---|---|
+| `cargo fmt --all --check` | Exit 0, zweimal |
+| `cargo clippy --workspace --all-targets --all-features -- -D warnings` | Exit 0, keine Warnung; der zweite Lauf hat `kb-parse` neu geprüft |
+| `cargo test --workspace` ohne Modelle | 272 bestanden, 0 fehlgeschlagen, 0 ignoriert; 22 „übersprungen“-Zeilen |
+| `cargo test --workspace` mit Modellen | 272 bestanden, 0 fehlgeschlagen, 0 ignoriert; kein „übersprungen“; `tests/paged.rs` 1937 s |
+| `cargo doc --workspace --no-deps` | Exit 0, keine Warnung |
+
+- **Tests in `kb-parse`:** 89 (20 Einheitentests, 34 `office`, 19 `paged`, 13 `process`, 3 `rules`). Nach den Gegenproben lief `cargo test -p kb-parse` noch einmal: 89 bestanden.
+- **Eigene Prüfungen:** alle 19 Korpusdateien neu ausgegeben und elementweise mit dem zweiten und ersten Durchgang verglichen; meine Eingaben des zweiten Durchgangs wiederholt, dazu rund 20 neue; 10 Gegenproben; das eigene Prüfprogramm für A67 und das Aufräumen noch einmal gebaut und ausgeführt.
+
+## Kriterien
+
+| ID | Kriterium | Ergebnis | Nachweis |
+|---|---|---|---|
+| A01 bis A04 | Verzeichnis, Abhängigkeiten, Lizenzen, Modellnamen | PASS (A03: Teil NICHT TESTBAR) | `git status`: nur `kb-parse/` und `Cargo.lock`; `Cargo.lock` byte-gleich mit dem zweiten Durchgang. Suche nach Modellnamen in `kb-parse/src`: kein Treffer. `cargo deny` weiter NICHT TESTBAR. |
+| A05 | Modellordner für Tests | PASS | Neu: Pfad in jeder Schreibweise, siehe „Pfad des Modellordners“. Ohne Variable 22 „übersprungen“-Zeilen, mit Variable keine. |
+| A12 | NFC | PASS | Meine Titel-Fälle weiter NFC. |
+| A15, A46 bis A48, A53, A54, A68 | HTML | PASS | Wikipedia: Titel `Bundestagswahl 2025`, kein Titelelement, 613 Elemente, Texte und Arten aller Elemente gleich dem ersten Durchgang (ohne dessen Titelelement). Eigene Seiten aus dem zweiten Durchgang unverändert richtig. |
+| A16 | Prüfprogramm | PASS | Für alle Prüfungen benutzt; neuer Test `a16_the_dump_program_takes_the_model_release_in_any_spelling` grün, Gegenprobe k10 rot. |
+| A65 | Hygiene | PASS | Alle 43 Dateien samt Archivmitgliedern und PDF-Strömen (187 Teile) durchsucht: kein Name eines KI-Assistenten oder Arbeitswerkzeugs, kein Benutzer- oder Sitzungspfad. Textdateien LF ohne BOM. |
+| A66 | Inhalt passt nicht zur Endung | PASS | Verlangte Fälle weiter `Parse` mit Endung und Inhalt: PDF als `.png` („content is Pdf“), Excel als `.docx` („Xlsx“), Word als `.xlsx` („Docx“), Zufallsbytes als `.html` und `.htm` („not text“). Dazu Word, PDF, ZIP und verschlüsseltes Office als `.html`, Word als `.md`, ZIP als `.docx`, leere `.docx`. Kein Widerspruch: Markdown als `.html`, HTML als `.md`. Gegenprobe k2 rot. |
+| A67 | Ein PDF- oder Bild-Aufruf zugleich | PASS | Code unverändert. Mit echten Arbeitsprozessen wiederholt: zwei PDF, ein Bild, ein DOCX zugleich → Reihenfolge des Eintreffens, nie mehr als ein Arbeitsprozess (33 Proben), DOCX nach 0,6 s fertig. Abbruch beim Warten 0 ms, Abbruch des laufenden Aufrufs 47 ms, der Wartende läuft durch. |
+| Übernommen | HTML nach BOM und angegebener Kodierung | PASS | im zweiten Durchgang FAIL. UTF-16 LE und BE mit BOM, UTF-8 mit BOM (auch als Fragment), ISO-8859-1 und windows-1252 mit und ohne Angabe lesen richtig. |
+| Übernommen | Texte nur in `orig` | PASS | arXiv 220 und Plenarprotokoll 21/1 1081 Elemente, gleich dem zweiten Durchgang. |
+| Übernommen | Arbeitsordner bleibt nicht liegen | PASS | Arbeitsordner nach beiden Läufen des Prüfprogramms leer. Liegengebliebener Ordner wird entfernt; gehaltene, fremde und anders benannte bleiben. |
+| A61 | Prüfbefehle | PASS (Teil NICHT TESTBAR) | Siehe „Geprüfter Stand“; CI nicht beobachtet. |
+| A62 bis A64 | Tests, README, Bericht | PASS | Zu jedem Befund des zweiten Durchgangs gibt es einen Test. README und BERICHT stimmen mit Code und meinen Messungen überein; zwei Ungenauigkeiten siehe Kleinigkeiten. |
+
+Wie zweiter Durchgang, bestätigt durch die grünen Tests und den Korpusvergleich: A06 bis A11, A13, A14, A17 bis A45, A49 bis A52, A55 bis A60.
+
+### Pfad des Modellordners in jeder Schreibweise
+
+- **Prüfprogramm**, `heading.pdf` mit echten Modellen, jeweils 2 Überschriften: Rückstriche; Schrägstriche; abschließender Rückstrich; abschließender Schrägstrich; ein Ordner mit Leerzeichen im Namen in denselben vier Schreibweisen; gemischte und doppelte Trenner. Ein Ordner, den es nicht gibt, ergibt `Model` mit Rolle und Datei.
+- **Testhilfe**, `cargo test -p kb-parse --test paged a32` mit der Variable in fünf Schreibweisen (Schrägstriche, Schrägstriche mit abschließendem Trenner, abschließender Rückstrich, Leerzeichen mit Schrägstrichen und Trenner, Leerzeichen mit Rückstrichen): je 1 bestanden. `--test office a16` mit Schrägstrichen und Trenner: 2 bestanden.
+
+## Befunde
+
+### Blocker
+
+Keine.
+
+### Vorschläge
+
+1. **Dass die Leerzeichen an Blockgrenzen angewendet werden, belegt kein Test.** Gegenprobe k5: `html.rs`, `.map(|r| space_blocks(&r.inner_html()))` zu `.map(|r| r.inner_html())` → alle 20 Einheitentests und alle 34 Tests in `office` bleiben grün. Geprüft ist nur die Funktion `space_blocks` für sich. Die Wirkung ist echt: Eine Tabellenzelle `<td><div>Zelle oben</div><div>Zelle unten</div></td>` ergibt mit ihr „Zelle oben Zelle unten“, ohne sie „Zelle obenZelle unten“. Auf der Wikipedia-Seite ändert sie nichts.
+
+### Kleinigkeiten
+
+- **Prüfprogramm lässt einen leeren Ordner liegen, wenn das Verknüpfen scheitert.** `kb-parse-dump.rs:75` kehrt mit `?` zurück, bevor aufgeräumt wird:
+  ```rust
+  link_release(&manifest, Path::new(&release), &linked)?;
+  ```
+  Reproduziert mit einem Pfad, den `mklink` ablehnt: Exit 1, danach ein leerer Ordner `kb-parse-dump-models-<pid>` im temporären Ordner des Systems.
+- **Textregel für HTML:** Ein einzelnes NUL-Zeichen in einer sonst gültigen Seite ergibt `Parse` („not text“). UTF-32 mit BOM und UTF-16 ohne BOM werden nicht gelesen. Die Regel steht im README.
+- **Meldung bei HTML:** ZIP und verschlüsseltes Office mit Endung `.html` heißen „not text“ statt beim Namen des Inhalts.
+- **SVG im Fließtext:** Der Text von `<desc>` und `<text>` einer SVG-Grafik hängt ohne Leerzeichen im Absatz („Beschreibung des SymbolsIm Bild“).
+- **BERICHT, Zeile zum Lauf mit Modellen:** beschreibt einen Lauf vor der letzten Korrektur mit 33 Tests in `office`. Auf dem Endstand sind es 34; mein Lauf mit Modellen: 272 bestanden.
+- **BERICHT, erste Zeile:** nennt „Fassung 3“ wie der Kopf der Spezifikation.
+
+### Gut gemacht
+
+- Die Inhaltsprüfung für HTML arbeitet am dekodierten Text mit einer einfachen, im README genannten Regel und einem Einheitentest an der Grenze (ein Zeichen von zwanzig).
+- Jeder Befund des zweiten Durchgangs hat einen Test. Die Gegenproben im BERICHT, die ich nachgestellt habe (k4, k9, k9b, k11), sind bei mir ebenfalls rot.
+- Das README führt die verbleibenden Grenzen offen auf, auch die zwei wieder zusammenklebenden Stellen der Wikipedia-Seite.
+
+## Gegenproben
+
+10 Läufe, jede Datei danach zurückgesetzt und per Prüfsumme belegt; am Ende ist der Worktree byte-gleich mit dem Anfang.
+
+| Nr. | Änderung | Tests | Ergebnis |
+|---|---|---|---|
+| k1 | HTML verlustbehaftet als UTF-8 statt `html::decode` | `office` html_is_read_as_text…, html_in_other_encodings… | rot |
+| k2 | Textprüfung ohne Wirkung | `office` a66 | rot |
+| k4 | `orig` für jede Marke | `office` html_pieces_are_joined… | rot |
+| k5 | Leerzeichen an Blockgrenzen nicht anwenden | `office` (34 Tests) | **grün** |
+| k5b | dasselbe | Einheitentests (20) | **grün** |
+| k5c | dasselbe, nur gebaut | Ausgabe meiner Blockseite mit und ohne verglichen | Unterschied in der Tabellenzelle |
+| k9 | Aufräumen ohne Prüfung der Markierungsdatei | `process` folders_left… | rot |
+| k9b | Aufräumen nach Präfix statt Namensmuster | `process` folders_left… | rot |
+| k10 | Prüfprogramm gibt den Pfad unverändert an die Shell | `office` a16…any_spelling | rot |
+| k11 | `svg title` nicht entfernen | `office` a_title_inside_an_svg… | rot |
+
+## Regressionen
+
+- `cargo test --workspace`: 272 grün, 0 rot, 0 ignoriert, ohne und mit Modellen. Vorab rote Tests gibt es nicht.
+- Korpus, 19 Dateien:
+  - 12 PDF und Bilder: Titel, Sprache, Seiten, Elemente, Anker und Tabellenzellen gleich dem zweiten Durchgang.
+  - 6 Office-Dateien: byte-gleich mit dem zweiten Durchgang.
+  - Wikipedia: 80 von 613 Elementen im Text anders als im zweiten Durchgang und damit wieder gleich dem ersten (17 ohne U+FEFF, 126 Fußnotenmarken ohne Leerzeichen, 2 Stellen kleben wieder); Arten, Anker, Tabellen und Titel gleich.
+- Die Testdateien des Pakets für Office, HTML und Markdown: Ausgabe byte-gleich mit dem zweiten Durchgang.
+- Übrige Crates unverändert, `clippy` und `doc` über den Workspace ohne Warnung.
+
+## Nicht geprüft
+
+- `cargo deny check`, Sicherheitsmeldungen, CI auf `windows-latest`.
+- Messprotokoll nach A60: nicht neu gemessen (Stand 2026-11-18).
+- `testdata/make_testdata.py` neu ausführen: Bibliotheken fehlen lokal; die Testdaten sind seit dem zweiten Durchgang unverändert.
+- Verhalten, wenn der aufrufende Prozess hart beendet wird, während ein Arbeitsprozess läuft.
+- Modellordner auf einem anderen Laufwerk; Aufräumen auf anderen Systemen als Windows.
+- BMP, GIF und WebP unter fremder Endung und die eigenen Testdateien für PDF und Bilder habe ich in diesem Durchgang nicht neu ausgegeben; die Tests dazu sind grün.
+
+## Offene Fragen
+
+1. Bleiben die zwei per Stylesheet getrennten Stellen der Wikipedia-Seite („2021Wahl“, „2025nächste“) als bekannte Grenze stehen, wie das README es jetzt sagt?
+2. Soll ein einzelnes NUL-Zeichen eine HTML-Seite weiter zum Fehler machen, oder nur ein Anteil wie bei den Steuerzeichen?
+
+## Nachtrag des Projektmanagers zum dritten Durchgang (2026-11-20, nicht Teil des Berichts des Prüfers)
+
+Nach dem Durchgang wurde nur ein Test ergänzt, um den Vorschlag 1 des Prüfers aufzunehmen: `text_at_block_boundaries_stays_apart_on_the_whole_html_path` in `kb-parse/tests/office.rs` schickt eine kleine Seite durch den Parser und prüft Tabellenzellen mit Blöcken. Mit der Gegenprobe k5 des Prüfers wird er rot (Meldung des Bearbeiters; danach zurückgesetzt, Prüfsumme von `html.rs` unverändert). Bibliothek und Prüfprogramm sind gegenüber dem geprüften Stand nicht geändert; im Bericht des Pakets stehen die neue Testzahl und ein Absatz zum Test.
+
+Vom Projektmanager danach selbst gesehen: `cargo fmt --all --check` ohne Befund, `cargo test -p kb-parse` ohne Modelle für Lib (20), `office` (35) und `rules` (3) grün. Der Branch `paket-a-kb-parse` ist als `827ce63` committet und gepusht. Die Kleinigkeiten des dritten Durchgangs und seine zwei offenen Fragen stehen in `docs/todo.md`.
