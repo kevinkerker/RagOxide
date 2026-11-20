@@ -117,16 +117,25 @@ pub trait Chunker: Send + Sync {
     ///   a Markdown table that repeats the header rows (see
     ///   [`TableCell`](crate::TableCell)) followed by as many further rows as fit. Its
     ///   anchors are those of its own rows (the header rows count as rows of the first
-    ///   part): per page the smallest box around their cells
-    ///   ([`Anchor::Page`](crate::Anchor)), or the smallest range around their cells
-    ///   ([`Anchor::Sheet`](crate::Anchor)); without cell anchors the table's anchors.
+    ///   part unless they form a part of their own, see below): per page the smallest
+    ///   box around their cells ([`Anchor::Page`](crate::Anchor)), or the smallest
+    ///   range around their cells ([`Anchor::Sheet`](crate::Anchor)); without cell
+    ///   anchors the table's anchors.
     /// - A split never cuts through a cell with `row_span > 1`: rows joined by such
     ///   cells form one row group, and "row" in these rules means row group.
     /// - If header rows plus one row exceed the limit, that row is emitted without
     ///   header. If the row alone exceeds the limit, its cell texts are joined with
     ///   `" | "` in row and column order and split like running text; every piece keeps
-    ///   the row's anchors. A table in which no row fits together with the header rows
-    ///   therefore has no chunk containing the header text; this is accepted.
+    ///   the row's anchors.
+    /// - If no row fits together with the header rows (ADR 0136), the header rows are
+    ///   emitted once as a part of their own before the parts of the rows: the Markdown
+    ///   table of only the header rows and the separator line. If that text exceeds the
+    ///   limit, the cell texts of the header rows are joined with `" | "` in row and
+    ///   column order and split like running text, as for a row over the limit. The
+    ///   header part and each of its pieces carry the anchors of the header rows, which
+    ///   then do not count as rows of the first part of the rows. If at least one row
+    ///   fits together with the header rows, there is no header part of its own. No
+    ///   text of a table is lost.
     async fn chunk(&self, document: &Document) -> Result<Vec<Chunk>>;
 }
 

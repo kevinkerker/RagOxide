@@ -1,6 +1,7 @@
 //! Every mock implements its trait, works as a trait object and keeps the documented
 //! contract.
 
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -187,13 +188,263 @@ fn row_over_the_limit_is_split_like_text_and_keeps_its_anchor() {
         let documents = fixtures::documents();
         let chunker = MockChunker::new(Arc::new(MockTokenCounter), 4);
         let chunks = chunker.chunk(&documents["budget.xlsx"]).await.unwrap();
+        // No row fits with the header, so the header is a part of its own (ADR 0136) and
+        // the Travel row is anchored to its own row only (B4:D4).
         let travel: Vec<&Chunk> = chunks
             .iter()
-            .filter(|c| c.provenance.anchors == sheet_range(2, 3))
+            .filter(|c| c.provenance.anchors == sheet_range(3, 3))
             .collect();
         assert_eq!(travel.len(), 2);
         assert_eq!(travel[0].text, "Travel | 12,000 |");
         assert_eq!(travel[1].text, "9,500");
+    });
+}
+
+/// The fixture `file` with its table as the only element.
+fn table_only(file: &str) -> Document {
+    let mut document = fixtures::documents().remove(file).unwrap();
+    document
+        .elements
+        .retain(|e| matches!(e.kind, ElementKind::Table(_)));
+    assert_eq!(document.elements.len(), 1);
+    document
+}
+
+/// Lowercase alphanumeric words, ignoring Markdown pipes and separator lines.
+fn words(text: &str) -> Vec<String> {
+    text.split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .map(str::to_lowercase)
+        .collect()
+}
+
+async fn assert_within(chunks: &[Chunk], limit: usize) {
+    for chunk in chunks {
+        let tokens = MockTokenCounter.count_tokens(&chunk.text).await.unwrap();
+        assert!(tokens <= limit, "limit {limit}: {:?}", chunk.text);
+    }
+}
+
+fn page_box(top: f32, bottom: f32) -> Vec<Anchor> {
+    vec![Anchor::Page {
+        page: 2,
+        bbox: BoundingBox {
+            left: 72.0,
+            top,
+            right: 523.0,
+            bottom,
+        },
+    }]
+}
+
+#[test]
+fn header_that_fits_with_no_row_is_a_part_of_its_own_before_the_rows() {
+    block_on(async {
+        // Header 14 tokens, header plus one row 21: no row fits with the header.
+        let chunker = MockChunker::new(Arc::new(MockTokenCounter), 20);
+        let chunks = chunker.chunk(&table_only("budget.xlsx")).await.unwrap();
+        assert_within(&chunks, 20).await;
+        let parts: Vec<(&str, &[Anchor])> = chunks
+            .iter()
+            .map(|c| (c.text.as_str(), c.provenance.anchors.as_slice()))
+            .collect();
+        assert_eq!(
+            parts,
+            [
+                (
+                    "| Category | Q1 | Q2 |\n| --- | --- | --- |",
+                    sheet_range(2, 2).as_slice()
+                ),
+                ("| Travel | 12,000 | 9,500 |", sheet_range(3, 3).as_slice()),
+                (
+                    "| Training | 8,000 | 11,000 |",
+                    sheet_range(4, 4).as_slice()
+                ),
+            ]
+        );
+
+        // PDF: header 14 tokens, header plus one row 22; one box per part around its cells.
+        let chunker = MockChunker::new(Arc::new(MockTokenCounter), 21);
+        let chunks = chunker
+            .chunk(&table_only("pruefordnung.pdf"))
+            .await
+            .unwrap();
+        assert_within(&chunks, 21).await;
+        let parts: Vec<(&str, &[Anchor])> = chunks
+            .iter()
+            .map(|c| (c.text.as_str(), c.provenance.anchors.as_slice()))
+            .collect();
+        assert_eq!(
+            parts,
+            [
+                (
+                    "| Gerät | Prüfdatum | Ergebnis |\n| --- | --- | --- |",
+                    page_box(160.0, 186.0).as_slice()
+                ),
+                (
+                    "| Kühlschrank Süd | 04.11.2026 | bestanden |",
+                    page_box(186.0, 213.0).as_slice()
+                ),
+                (
+                    "| Wärmepumpe Ost | 05.11.2026 | Mängel |",
+                    page_box(213.0, 240.0).as_slice()
+                ),
+            ]
+        );
+    });
+}
+
+#[test]
+fn header_over_the_limit_is_split_like_text_and_every_piece_keeps_its_anchors() {
+    block_on(async {
+        let chunker = MockChunker::new(Arc::new(MockTokenCounter), 4);
+        let chunks = chunker.chunk(&table_only("budget.xlsx")).await.unwrap();
+        assert_within(&chunks, 4).await;
+        let parts: Vec<(&str, &[Anchor])> = chunks
+            .iter()
+            .map(|c| (c.text.as_str(), c.provenance.anchors.as_slice()))
+            .collect();
+        assert_eq!(
+            parts,
+            [
+                ("Category | Q1 |", sheet_range(2, 2).as_slice()),
+                ("Q2", sheet_range(2, 2).as_slice()),
+                ("Travel | 12,000 |", sheet_range(3, 3).as_slice()),
+                ("9,500", sheet_range(3, 3).as_slice()),
+                ("Training | 8,000 |", sheet_range(4, 4).as_slice()),
+                ("11,000", sheet_range(4, 4).as_slice()),
+            ]
+        );
+    });
+}
+
+#[test]
+fn no_word_of_a_table_is_lost_when_no_row_fits_with_the_header() {
+    block_on(async {
+        // Below these limits no row group fits together with the header rows.
+        let tables = [
+            (table_only("budget.xlsx"), 20),
+            (table_only("pruefordnung.pdf"), 21),
+            (spanned_table(), 14),
+        ];
+        for (document, below) in tables {
+            let ElementKind::Table(table) = &document.elements[0].kind else {
+                panic!("table expected");
+            };
+            let mut cells: Vec<&TableCell> = table.cells.iter().collect();
+            cells.sort_by_key(|c| (c.row, c.col));
+            let expected: Vec<String> = cells.iter().flat_map(|c| words(&c.text)).collect();
+            for limit in 1..=below {
+                let chunker = MockChunker::new(Arc::new(MockTokenCounter), limit);
+                let chunks = chunker.chunk(&document).await.unwrap();
+                assert_within(&chunks, limit).await;
+                let found: Vec<String> = chunks.iter().flat_map(|c| words(&c.text)).collect();
+                assert_eq!(found, expected, "{} limit {limit}", document.source.name);
+            }
+        }
+    });
+}
+
+#[test]
+fn header_that_fits_with_one_row_but_not_another_has_no_part_of_its_own() {
+    block_on(async {
+        let mut document = table_only("budget.xlsx");
+        let ElementKind::Table(table) = &mut document.elements[0].kind else {
+            panic!("table expected");
+        };
+        // The Training row becomes 14 tokens: header plus Travel 21, header plus Training 28.
+        let note = table.cells.iter_mut().find(|c| c.text == "11,000").unwrap();
+        note.text = "11,000 subject to the approval of the board".into();
+        document.elements[0].text = "cell ".repeat(40);
+        let chunker = MockChunker::new(Arc::new(MockTokenCounter), 21);
+        let chunks = chunker.chunk(&document).await.unwrap();
+        assert_within(&chunks, 21).await;
+        let parts: Vec<(&str, &[Anchor])> = chunks
+            .iter()
+            .map(|c| (c.text.as_str(), c.provenance.anchors.as_slice()))
+            .collect();
+        // As before: the header goes with Travel, Training stands without header.
+        assert_eq!(
+            parts,
+            [
+                (
+                    "| Category | Q1 | Q2 |\n| --- | --- | --- |\n| Travel | 12,000 | 9,500 |",
+                    sheet_range(2, 3).as_slice()
+                ),
+                (
+                    "| Training | 8,000 | 11,000 subject to the approval of the board |",
+                    sheet_range(4, 4).as_slice()
+                ),
+            ]
+        );
+    });
+}
+
+#[test]
+fn header_that_fits_only_with_a_later_row_has_no_part_of_its_own() {
+    block_on(async {
+        let mut document = table_only("budget.xlsx");
+        let ElementKind::Table(table) = &mut document.elements[0].kind else {
+            panic!("table expected");
+        };
+        // The Travel row becomes 14 tokens: header plus Travel 28, header plus Training 21.
+        let note = table.cells.iter_mut().find(|c| c.text == "9,500").unwrap();
+        note.text = "9,500 subject to the approval of the board".into();
+        let mut cells: Vec<&TableCell> = table.cells.iter().collect();
+        cells.sort_by_key(|c| (c.row, c.col));
+        let expected: HashSet<String> = cells.iter().flat_map(|c| words(&c.text)).collect();
+        document.elements[0].text = "cell ".repeat(40);
+        let chunker = MockChunker::new(Arc::new(MockTokenCounter), 21);
+        let chunks = chunker.chunk(&document).await.unwrap();
+        assert_within(&chunks, 21).await;
+        // The first row stands without header, the header goes with Training; the
+        // anchors of the first part are left open here.
+        let texts: Vec<&str> = chunks.iter().map(|c| c.text.as_str()).collect();
+        assert_eq!(
+            texts,
+            [
+                "| Travel | 12,000 | 9,500 subject to the approval of the board |",
+                "| Category | Q1 | Q2 |\n| --- | --- | --- |\n| Training | 8,000 | 11,000 |",
+            ]
+        );
+        assert_eq!(chunks[1].provenance.anchors, sheet_range(4, 4));
+        let found: HashSet<String> = chunks.iter().flat_map(|c| words(&c.text)).collect();
+        assert_eq!(found, expected);
+    });
+}
+
+#[test]
+fn header_part_without_cell_anchors_carries_the_anchors_of_the_table() {
+    block_on(async {
+        let mut document = table_only("budget.xlsx");
+        let ElementKind::Table(table) = &mut document.elements[0].kind else {
+            panic!("table expected");
+        };
+        table.cells.iter_mut().for_each(|c| c.anchor = None);
+        let table_anchors = document.elements[0].anchors.clone();
+        assert_eq!(table_anchors, sheet_range(2, 4));
+        // Header 14 tokens, header plus one row 21: no row fits with the header.
+        let chunker = MockChunker::new(Arc::new(MockTokenCounter), 20);
+        let chunks = chunker.chunk(&document).await.unwrap();
+        assert_within(&chunks, 20).await;
+        let texts: Vec<&str> = chunks.iter().map(|c| c.text.as_str()).collect();
+        assert_eq!(
+            texts,
+            [
+                "| Category | Q1 | Q2 |\n| --- | --- | --- |",
+                "| Travel | 12,000 | 9,500 |",
+                "| Training | 8,000 | 11,000 |",
+            ]
+        );
+        assert!(chunks.iter().all(|c| c.provenance.anchors == table_anchors));
+
+        // A header over the limit: every piece carries the anchors of the table.
+        let chunker = MockChunker::new(Arc::new(MockTokenCounter), 4);
+        let chunks = chunker.chunk(&document).await.unwrap();
+        assert_within(&chunks, 4).await;
+        assert_eq!(chunks[0].text, "Category | Q1 |");
+        assert_eq!(chunks[1].text, "Q2");
+        assert!(chunks.iter().all(|c| c.provenance.anchors == table_anchors));
     });
 }
 

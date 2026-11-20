@@ -186,7 +186,16 @@ impl MockChunker {
             }
             merge_anchors(cells.iter().filter_map(|c| c.anchor.clone()))
         };
-        // Rows a part is anchored to: its body rows, plus the header rows for the first part.
+        // Cell texts of rows joined with " | " in row and column order, for splitting like text.
+        let joined = |row_indices: &[usize]| {
+            row_indices
+                .iter()
+                .flat_map(|&r| rows[r].iter().map(|c| c.text.as_str()))
+                .collect::<Vec<&str>>()
+                .join(" | ")
+        };
+        // Rows a part is anchored to: its body rows, plus the header rows for the first
+        // part (unless the header rows already form a part of their own).
         let own_rows = |body: &[usize], first: bool| {
             let mut own: Vec<usize> = if first {
                 (0..header).collect()
@@ -215,6 +224,28 @@ impl MockChunker {
         }
 
         let mut parts = Vec::new();
+        // ADR 0136: if no row group fits together with the header rows, the header rows
+        // come once as a part of their own, before the parts of the rows.
+        if header > 0 {
+            let mut fits_with_header = false;
+            for group in &groups {
+                if self.fits(&render(group, true)).await? {
+                    fits_with_header = true;
+                    break;
+                }
+            }
+            if !fits_with_header {
+                let header_rows: Vec<usize> = (0..header).collect();
+                let header_anchors = anchors(&header_rows);
+                if self.fits(&header_text).await? {
+                    parts.push((header_text.clone(), header_anchors));
+                } else {
+                    for piece in self.split_text(&joined(&header_rows)).await? {
+                        parts.push((piece, header_anchors.clone()));
+                    }
+                }
+            }
+        }
         let mut current: Vec<usize> = Vec::new();
         for group in groups {
             let mut candidate = current.clone();
@@ -237,11 +268,7 @@ impl MockChunker {
             if self.fits(&render(&group, false)).await? {
                 parts.push((render(&group, false), group_anchors));
             } else {
-                let joined: Vec<&str> = group
-                    .iter()
-                    .flat_map(|&r| rows[r].iter().map(|c| c.text.as_str()))
-                    .collect();
-                for piece in self.split_text(&joined.join(" | ")).await? {
+                for piece in self.split_text(&joined(&group)).await? {
                     parts.push((piece, group_anchors.clone()));
                 }
             }
