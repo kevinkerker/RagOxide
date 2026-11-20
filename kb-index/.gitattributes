@@ -1,0 +1,3 @@
+# Binary data: raw little-endian f32 vectors and the zstd-compressed word list.
+*.f32 binary
+*.zst binary
