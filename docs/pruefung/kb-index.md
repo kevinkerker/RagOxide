@@ -3,7 +3,7 @@ feature: kb-index
 datum: 2026-11-19
 commit: Branch paket-e-kb-index, HEAD 991fcf2, Arbeit des Pakets uncommittet
 spec: docs/abnahme-kb-index.md
-ergebnis: PASS (dritter Durchgang 2026-11-20: ja mit Auflage, CI mit protoc und cargo deny beim Zusammenführen; zweiter Durchgang FAIL nur E16; erster Durchgang 2026-11-19 FAIL nur E61)
+ergebnis: PASS (dritter Durchgang 2026-11-20: ja mit Auflage; die Auflage, CI mit protoc und cargo deny, ist seit dem Folge-Commit 65f9860 erfüllt, siehe Nachtrag; zweiter Durchgang FAIL nur E16; erster Durchgang 2026-11-19 FAIL nur E61)
 ---
 
 Hinweis zur Übernahme: Die Berichte sind unverändert übernommen. Weggelassen ist je Durchgang nur der Anhang des Prüfers zur Übergabe (Pfade seines Arbeitsordners), den er selbst als nicht zum Bericht gehörig gekennzeichnet hat.
@@ -682,3 +682,14 @@ Keine Blocker, keine Vorschläge. Drei Kleinigkeiten:
 17. **Chunks nahe 400 Token:** nicht geprüft. Die Testpassagen haben im Mittel 185.
 18. **Absturz mitten in `add`:** nicht geprüft. Ein Abbruch während des Aufräumens ist geprüft und unschädlich.
 19. **Ohne eigenen Test:** `bypass_vector_index()` und das Distanzmaß. Bei normierten Vektoren ohne Wirkung auf das Ergebnis.
+
+## Nachtrag des Projektmanagers (2026-11-20)
+
+Dieser Abschnitt stammt nicht vom Prüfer. Die Auflage des dritten Durchgangs (CI mit `protoc` und `cargo deny check` grün) ist erfüllt:
+
+- Der geprüfte Stand ist als Commit `ab09e70` auf dem Branch `paket-e-kb-index` gepusht; alle 31 Dateien waren vorher per Prüfsumme gleich dem Stand am Ende des dritten Durchgangs.
+- Der erste CI-Lauf dazu war in `fmt`, `clippy` und allen Tests grün (Bau mit `protoc`, ohne Debug-Informationen) und scheiterte nur in `cargo deny` an einer zurückgezogenen Version: `libsais-rs` 0.2.2, eine indirekte Abhängigkeit von LanceDB. Lizenzen, Quellen und Sperren waren in Ordnung, eine Sicherheitsmeldung gab es nicht.
+- Folge-Commit `65f9860`: `libsais-rs` auf 0.2.4 angehoben, zwei Zeilen in `Cargo.lock`, sonst nichts. Danach lokal `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --all-features -- -D warnings`, `cargo test --workspace` (250 bestanden, 1 übersprungen) und `cargo doc --workspace --no-deps` ohne Fehler und Warnungen.
+- Der CI-Lauf für `65f9860` ist in beiden Jobs grün, einschließlich `cargo deny`.
+
+Unabhängig nachgeprüft ist die Änderung an `Cargo.lock` nicht; sie berührt keinen Quelltext des Pakets.

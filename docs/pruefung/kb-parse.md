@@ -3,7 +3,7 @@ feature: kb-parse
 datum: 2026-11-19
 commit: Branch paket-a-kb-parse, HEAD 991fcf2, Arbeit des Pakets uncommittet
 spec: docs/abnahme-kb-parse.md
-ergebnis: FAIL (erster Durchgang 2026-11-19: A12 und A65; 63 von 65 Kriterien bestanden, Empfehlung ja mit Auflage)
+ergebnis: FAIL (zweiter Durchgang 2026-11-20: ein übernommener Punkt der Fassung 4, HTML in UTF-16; A12 und A65 behoben, A66 bis A68 bestanden, Empfehlung ja mit Auflage; erster Durchgang 2026-11-19 FAIL bei A12 und A65)
 ---
 
 Hinweis zur Übernahme: Die Berichte sind unverändert übernommen. Weggelassen ist je Durchgang nur der Anhang des Prüfers zur Übergabe (Pfade seines Arbeitsordners), den er selbst als nicht zum Bericht gehörig gekennzeichnet hat.
@@ -227,3 +227,228 @@ Hinweis zur Übernahme: Die Berichte sind unverändert übernommen. Weggelassen 
 4. Wer begrenzt gleichzeitige PDF-Aufrufe, der Parser oder Paket H (Vorschlag 7)?
 5. Sind die Folgen der Titelregel im Blatt „Inhaltsübersicht“ und in einspaltigen Blättern so gewollt (ADR 0116, ADR 0127)?
 6. Bleibt `<title>` bei HTML ein eigenes Überschriftenelement an Stelle 0, auch wenn die Seite ein gleichlautendes `<h1>` hat?
+
+## Zweiter Durchgang (2026-11-20)
+
+- Commit/Bereich: Branch `paket-a-kb-parse`, HEAD `561e404` (gleich `main`), Arbeit uncommittet im Worktree des Pakets
+- Spezifikation: `docs/abnahme-kb-parse.md` mit dem Abschnitt „Ergänzung der Fassung 4“ (A66 bis A68, drei übernommene Punkte), ADR 0133 bis 0135, dazu die mitgeteilten Festlegungen zu den Fragen 1, 2 und 5
+- Gesamtergebnis: **FAIL** in einem übernommenen Punkt der Fassung 4: HTML in UTF-16 mit Byte Order Mark wird nicht gelesen, sondern als falsch benannt abgelehnt. A12 und A65 sind behoben, A66 bis A68 bestehen an den verlangten Fällen.
+- Empfehlung: Paket abnehmen **ja mit Auflage**. Zu beheben ist die Inhaltsprüfung bei HTML (Blocker 1); der neue Vorschlag 1 sitzt an derselben Stelle. Nachzuprüfen wären nur diese Punkte. Ohne Behebung: nein.
+
+### Geprüfter Stand
+
+- **Diff gegen das Ende des ersten Durchgangs:** 21 von 44 Dateien geändert, Dateiliste gleich.
+  - `Cargo.lock`: eine Zeile mehr.
+  - `kb-parse/Cargo.toml`, fünf Quelldateien (`html.rs`, `mod.rs`, `tree.rs`, `xlsx.rs`, `parser.rs`, zusammen +553/−141 Zeilen), vier Testdateien (+631 Zeilen).
+  - `make_testdata.py`, `measure.ps1`, README, BERICHT.
+  - Sechs neu erzeugte Testdateien: `tables.xlsx` mit drei neuen Blättern, `structure.docx` und `structure-de.docx` mit Kopf- und Fußzeile, `formats.xlsx`, `slides.pptx`, `encrypted.docx`.
+- **Prüfsummen:** neue Liste der 44 Dateien zu Beginn und am Ende gleich (SHA-256 der Liste `ac7a1064…7189d3`). Stand byte-gleich mit der Sicherung vom 2026-11-20. Lokaler Modellordner unverändert (27 Dateien). Außerhalb von `kb-parse/` und `Cargo.lock` nichts geändert.
+- **Prüfbefehle, Ausgabe angesehen** (`CARGO_PROFILE_DEV_DEBUG=0`, `CARGO_BUILD_JOBS=6`, kein Release-Bau):
+
+| Befehl | Ergebnis |
+|---|---|
+| `cargo fmt --all --check` | Exit 0, zweimal |
+| `cargo clippy --workspace --all-targets --all-features -- -D warnings` | Exit 0, keine Warnung, `kb-parse` neu geprüft |
+| `cargo test --workspace` ohne Modelle | 266 bestanden, 0 fehlgeschlagen, 0 ignoriert; 22 „übersprungen“-Zeilen |
+| `cargo test --workspace` mit Modellen | 266 bestanden, 0 fehlgeschlagen, 0 ignoriert; kein „übersprungen“; `tests/paged.rs` 1907 s |
+| `cargo doc --workspace --no-deps` | Exit 0, keine Warnung |
+
+- **Tests in `kb-parse`:** 83 (18 Einheitentests, 30 `office`, 19 `paged`, 13 `process`, 3 `rules`). Nach den Gegenproben lief `cargo test -p kb-parse` noch einmal: 83 bestanden.
+- **Eigene Prüfungen:** alle 19 Korpusdateien und die Testdateien des Pakets neu ausgegeben und elementweise mit dem ersten Durchgang verglichen; rund 110 eigene Eingaben; 16 Gegenproben. Für A67 ein kleines eigenes Prüfprogramm im Prüfordner, das die Bibliothek mit echten Arbeitsprozessen aufruft (in den vorhandenen Bau-Ordner gebaut, nur `kb-core`, `kb-parse` und das Programm selbst wurden übersetzt).
+
+### Der Diff als Ganzes
+
+Jede Änderung lässt sich zuordnen:
+
+| Änderung | Zuordnung |
+|---|---|
+| Titel aus `<title>` durch NFC und Leerraum-Zusammenfassung (`mod.rs:167`) | Blocker A12 |
+| Suchmuster ohne Namen, neuer Test über alle Dateien (`tests/rules.rs`) | Blocker A65 |
+| `html::decode` | Vorschlag 1, Festlegung zu Frage 1 |
+| `orig`-Rückgriff (`tree.rs:125-130`) | Vorschlag 2, Festlegung zu Frage 2 |
+| `content_matches` (`mod.rs:190-240`) | Vorschlag 3, A66 |
+| `CallDir` mit Markierungsdatei, Aufräumen beim Fallenlassen und beim ersten Aufruf (`parser.rs`) | Vorschlag 4 |
+| Neue und geschärfte Tests | Vorschlag 5 |
+| Verbundene Zellen aus dem Blatt-XML, Bereich der Tabelle als kleinster Bereich um die sichtbaren Zellen (`xlsx.rs`) | Vorschlag 6, Kleinigkeit „ausgeblendete Kopfzeile“ |
+| Prozessweite Schranke mit einem Platz (`parser.rs:34-36`, `199-208`) | Vorschlag 7, A67 |
+| `<title>` nicht mehr an docling.rs, feste Ebenen bei HTML | A68 |
+| Leerzeichen zwischen HTML-Stücken (`join_pieces`) | Kleinigkeit 1 |
+| Zellanker nach Stelle der Tabelle (`cell_anchor`) | Kleinigkeit zu Tabellen über mehrere Seiten |
+| „Rückkehr“ in `measure.ps1`, README-Absatz zu den Folgen der Titelregel | Kleinigkeiten, Festlegung zu Frage 5 |
+
+Darüber hinaus dazugekommen:
+- **Abhängigkeit:** `encoding_rs` 0.8.44 als direkte Abhängigkeit (schon im Baum, Baum weiter 332 Pakete, Lizenz `(Apache-2.0 OR MIT) AND BSD-3-Clause` zugelassen) und das Feature `sync` von `tokio`. Beides steht in README und BERICHT.
+- **Öffentliche Schnittstelle:** keine neue (`lib.rs` unverändert).
+- **Neues Verhalten ohne eigenen Auftrag:** Das Aufräumen von Ordnern früherer Läufe geht über Vorschlag 4 hinaus und ist im README beschrieben. Der `orig`-Rückgriff gilt für jede Marke, nicht nur `formula` (Vorschlag 2 unten).
+
+### Kriterien, neu geprüft oder geändert
+
+| ID | Kriterium | Ergebnis | Nachweis |
+|---|---|---|---|
+| A01 bis A04 | Verzeichnis, Abhängigkeiten, Lizenzen, Modellnamen | PASS | `git status`: nur `kb-parse/` und `Cargo.lock`. `cargo metadata --locked`: 332 Pakete, keine Lizenz außerhalb der Liste. Suche nach Modellnamen in `kb-parse/src`: kein Treffer. `cargo deny` weiter NICHT TESTBAR. |
+| A07 | 2 Worker × 2 Threads | PASS | Neuer Test `a07_…` mit Ersatzprogramm liest „2 2“. Gegenproben m21 und m21b (je eine der beiden Variablen nicht gesetzt) rot. |
+| A12 | Jeder Text NFC, auch `Document::title` | PASS | Meine Reproduktion aus dem ersten Durchgang: `title` jetzt `Größe und Mängel` ohne U+0308. Weitere Titel mit Zeilenumbruch, geschütztem Leerzeichen, Ångström- und Ohm-Zeichen, Hangul, Markdown-Titel: alle NFC. Gegenprobe (Titel ohne Normalisierung) rot. |
+| A65 | Keine Werkzeughinweise, LF ohne BOM | PASS | Alle 43 Dateien unter `kb-parse/` durchsucht, dazu jedes Archivmitglied der Office-Dateien und jeder Strom und jedes Objekt der PDFs (249 Teile), ohne Groß-/Kleinschreibung: kein Name eines KI-Assistenten oder Arbeitswerkzeugs, kein Benutzer- oder Sitzungspfad. Textdateien LF ohne BOM, Binärdateien von Git als binär erkannt. Die Adresse des Forks und die Testkennwörter der Testdaten stehen wie bisher darin. |
+| A66 | Inhalt passt nicht zur Endung → `Parse` | PASS | Verlangte Fälle: PDF als `.png` („the extension .png names Image, but the content is Pdf“), Excel als `.docx` („… content is Xlsx“), Word als `.xlsx` („… content is Docx“), Zufallsbytes als `.html` („… not recognised“). Eigen, je `Parse` mit Endung und Inhalt: PDF als `.jpg`, `.tif`, `.docx`, `.html`, `.md`; PNG als `.pdf`, `.docx`, `.md`; alle sechs Vertauschungen DOCX/XLSX/PPTX; ZIP ohne Office-Inhalt mit sieben Endungen; leere Dateien als `.pdf`, `.png`, `.docx`, `.xlsx`, `.pptx`; CSV als `.xlsx`. Kein Widerspruch: PNG als `.jpg` und `.tiff`, JPEG als `.png`, TIFF als `.jpeg`, `.htm`, `.markdown`, Markdown mit HTML-Anfang, HTML als `.md`, PDF mit Bytes vor dem Kopf. Verschlüsselte Office-Datei als `.xlsx` und `.pptx` bleibt „document is encrypted“. Zwei Gegenproben rot. Nebenwirkung bei HTML: Blocker 1, Vorschlag 1. |
+| A67 | Höchstens ein PDF- oder Bild-Aufruf zugleich | PASS | Siehe Abschnitt „A67 mit echten Arbeitsprozessen“. Die zwei Tests des Pakets (Ersatzprogramm) grün; Gegenproben „keine Grenze“ und „Warten ohne Abbruch“ rot. |
+| A68 | HTML-`title` nur `Document::title` | PASS | Wikipedia: `title` `Bundestagswahl 2025`, kein Element mit diesem Text, 613 statt 614 Elemente, Ebenen 2, 3, 4 wie im HTML, Anker gleich Index. Eigene Seiten: `title` ungleich `h1`, gleich `h1` (Text nur einmal als Element), ohne `title` mit `h1`, ohne beides, `title` ohne `h1` (`h2` bleibt 2, `h4` bleibt 4), zwei `h1`. Gegenprobe rot. |
+| Übernommen | Texte nur in `orig` fallen nicht weg | PASS | arXiv 4 und Plenarprotokoll 21/1 3 neue `Text`-Elemente an der richtigen Stelle, mit Ankern gleich `prov`. Nebenwirkung: Vorschlag 2. |
+| Übernommen | HTML nach BOM und angegebener Kodierung | **FAIL** | Schritte: HTML-Seite als UTF-16 LE oder BE mit BOM speichern, durch das Prüfprogramm. Erwartet: Dokument mit Umlauten. Tatsächlich: `Parse` „the extension .html names Html, but the content is Audio“ (LE) bzw. „… not recognised“ (BE). Der Rest besteht: ISO-8859-1 und windows-1252 mit `meta charset`, mit `http-equiv`, mit XML-Deklaration, ohne Angabe, mit falscher Angabe „utf-8“, windows-1251, ISO-8859-15, UTF-8 mit BOM lesen richtig; meine Reproduktionen aus dem ersten Durchgang jetzt mit Umlauten. |
+| Übernommen | Arbeitsordner bleibt nicht liegen | PASS | Eigenes Programm: Future während der Arbeit und während des Wartens fallen gelassen, Arbeitsordner nach 3 s leer, kein Arbeitsprozess übrig. Gegenprobe rot. |
+| A15, A46 bis A48, A53, A54 | HTML mit der Maßgabe von A68 | PASS | Eigene Auswertung an der neuen Wikipedia-Ausgabe: 13 von 13 Fundstellen unter ihrem Überschriftenpfad, Einleitungssatz in Element 88, kein Text der 13 Navigationsblöcke im Inhalt. |
+| A37, A40 bis A42 | Excel | PASS | Destatis-Ausgabe byte-gleich mit dem ersten Durchgang. `tables.xlsx` (12 sichtbare Blätter) und meine drei Zusatzmappen gegen den unabhängigen Leser: keine Zelle fehlt, keine überzählig. Neue Fälle siehe Stand von Vorschlag 6. |
+| A49 | Word-Kopf- und Fußzeilen | PASS | `structure.docx` hat jetzt Kopf- und Fußzeile, beide `Furniture`; Gegenprobe m03 rot. |
+| A56 | Defekte und verschlüsselte Dateien | PASS | Alle Fälle weiter `Parse`; die Meldung kommt bei nicht erkanntem Inhalt jetzt aus der Inhaltsprüfung. |
+| A59 | Gleichzeitige Aufrufe | PASS | Mit der Maßgabe von A67, siehe dort. |
+| A61 | Prüfbefehle | PASS (Teil NICHT TESTBAR) | Siehe „Geprüfter Stand“; CI nicht beobachtet. |
+| A62 bis A64 | Tests, README, Bericht | PASS | Alle vier Testlücken geschlossen. README und BERICHT enthalten die Nacharbeit; drei Ungenauigkeiten siehe Kleinigkeiten. |
+
+Für die übrigen Kriterien (A05, A06, A08 bis A11, A13, A14, A16 bis A36, A38, A39, A43 bis A45, A50 bis A52, A55, A57, A58, A60) gilt der Nachweis des ersten Durchgangs weiter: Der Diff berührt ihre Wege nur an den genannten Stellen, die Tests sind grün, und der Korpusvergleich zeigt keine andere Abweichung.
+
+### Korpusvergleich mit dem ersten Durchgang
+
+| Dateien | Ergebnis |
+|---|---|
+| 6 Office-Dateien (beide Musterverträge, Word- und PowerPoint-Beispiel, Destatis, Grundgesetz) | byte-gleich |
+| 10 PDF und Bilder (BGBl, Drucksache 1/1, Plenarprotokoll 1/1, Amtsblatt, Official Journal, ESDE, NASDAQ, NYSE, beide GVBl) | Titel, Sprache, Seiten, alle Elemente, Anker und Tabellenzellen gleich |
+| arXiv | 4 Elemente mehr (Formeln aus `orig`), sonst gleich |
+| Plenarprotokoll 21/1 | 3 Elemente mehr (Zwischenrufe aus `orig`), sonst gleich |
+| Wikipedia | Titelelement entfällt (A68), Anker um eins verschoben; 80 Elemente mit geändertem Text |
+
+Die 80 Textänderungen der Wikipedia-Seite:
+- 2 gewollte Leerzeichen („← 2021 Wahl zum 21. Bundestag 2025 nächste →“).
+- 126 Leerzeichen vor Fußnotenmarken („einzureichen. [33] Am“).
+- 1 Leerzeichen nach „doi:“.
+- 17 Elemente mit neuem U+FEFF und Leerzeichen am Anfang (Vorschlag 2).
+
+Alle Abweichungen lassen sich einem Punkt zuordnen. Die 17 U+FEFF sind eine ungewollte Folge des `orig`-Rückgriffs.
+
+### A67 mit echten Arbeitsprozessen
+
+- **Testlauf mit Modellen beobachtet:** Prozessliste alle 0,3 bis 0,6 s abgefragt, 3389 Proben. In den 32 Minuten von `tests/paged.rs` (bis zu drei gleichzeitige PDF- und Bild-Aufrufe desselben Prozesses) lief nie mehr als ein Arbeitsprozess. Alle 18 Proben mit mehreren Arbeitsprozessen liegen in den letzten 16 Sekunden, in `tests/process.rs`, wo Office-Aufrufe neben einem PDF-Aufruf laufen.
+- **Reihenfolge:** fünf PDF- und zwei Bild-Aufrufe im Abstand von 0,2 s auf einer Laufzeit mit einem Thread. Fertig in der Reihenfolge des Eintreffens (3,4 s, 7,6 s, 17,9 s, 21,2 s, 31,7 s, 35,1 s, 38,6 s), höchstens ein Arbeitsprozess in 74 Proben.
+- **Executor:** Der Zähler lief in allen Läufen weiter, im Lauf zur Reihenfolge 2244 Schritte in 38,6 s.
+- **Office daneben:** Hinter einem laufenden PDF (61 s) wurden DOCX nach 1,0 s, PPTX nach 1,4 s, Markdown nach 2,2 s, HTML nach 5,8 s und die Destatis-Mappe nach 23,8 s fertig. Die zwei wartenden PDFs folgten danach in ihrer Reihenfolge.
+- **Abbruch beim Warten:** `Cancelled` 0 ms nach dem Abbruch, der laufende Aufruf arbeitet weiter.
+- **Abbruch des laufenden Aufrufs:** `Cancelled` nach 56 ms, der wartende Aufruf läuft danach durch.
+- **Absturz:** Arbeitsprozess des laufenden Aufrufs beendet → `Parse`, der wartende Aufruf läuft durch.
+- **Fallen gelassen:** während der Arbeit und während des Wartens; der jeweils nächste Aufruf läuft durch, Arbeitsordner am Ende leer.
+- **Zwei Prozesse:** Die Grenze gilt je Prozess, wie ADR 0134 sagt. Mit zwei Prozessen liefen zwei Arbeitsprozesse zugleich.
+
+### Gesamtergebnis
+
+FAIL in einem übernommenen Punkt (HTML in UTF-16 mit BOM). Alles andere, was Fassung 4 verlangt, besteht, und die beiden FAIL des ersten Durchgangs sind behoben. Empfehlung: **ja mit Auflage**, die Inhaltsprüfung bei HTML zu berichtigen (Blocker 1 und, an derselben Stelle, Vorschlag 1) und nur das nachzuprüfen.
+
+### Stand der Befunde des ersten Durchgangs
+
+| Befund | Stand | Nachweis |
+|---|---|---|
+| Blocker A12 | behoben | siehe Tabelle |
+| Blocker A65 | behoben | siehe Tabelle |
+| Vorschlag 1, HTML-Kodierung | behoben für 8-Bit-Kodierungen und UTF-8 mit BOM; UTF-16 offen | Blocker 1 |
+| Vorschlag 2, Formeln | behoben | 7 von 7 Stellen im Korpus; Nebenwirkung Vorschlag 2 neu |
+| Vorschlag 3, falsch benannte Dateien | behoben durch A66 | siehe Tabelle |
+| Vorschlag 4, liegengebliebener Arbeitsordner | behoben | siehe „Aufräumen“ unten |
+| Vorschlag 5, vier Testlücken | behoben | m02 rot (`a37`, `a40`), m03 rot (`a49`), m08 rot (`a54`), m21 rot (`a07`) |
+| Vorschlag 6, verbundener Titel | behoben | Titel A1:E1 über drei Spalten: Tabelle A2:C3 mit Kopfzeile; Titel A1:B1: Anker A1:B1; neue Blätter `TitelBreit`, `TitelSchmal` |
+| Vorschlag 7, keine Grenze | behoben durch A67 | siehe oben |
+| Kleinigkeit, zusammengeklebte HTML-Stücke | geändert, mit neuem Preis | Vorschlag 3 neu |
+| Kleinigkeit, ausgeblendete Kopfzeile | behoben | Bereich ist der kleinste um die sichtbaren Zellen, Kopfzellen in Zeile 0 (Blatt `KopfAusgeblendet`, meine Fälle) |
+| Kleinigkeit, Folgen der Titelregel | im README beschrieben | Festlegung zu Frage 5 |
+| Kleinigkeit, „Rueckkehr“ | behoben | Skript nachgesehen |
+| Kleinigkeit, Zellanker bei mehreren Stellen | geändert, nur Einheitentest | Eine eigene Tabelle über zwei Seiten liefert docling.rs als zwei Tabellen; der neue Weg ist an echter Ausgabe nicht erreichbar |
+| Kleinigkeit, Spracherkennung nur Deutsch und Englisch | unverändert | bleibt Grenze |
+
+**Aufräumen liegengebliebener Ordner, eigens geprüft:**
+- Ein liegengebliebener Ordner mit Markierungsdatei wird entfernt. Eine Verzeichnisverknüpfung darin wird gelöst, ihr Ziel bleibt.
+- Es bleiben: ein Ordner, dessen Markierungsdatei ein anderer Prozess exklusiv offen hält; einer, dessen Markierung geteilt offen ist; einer ohne Markierung; einer mit anderem Namen.
+- Zwei Prozesse auf demselben Arbeitsordner: Der zweite räumt beim ersten Aufruf auf, während der erste ein PDF umwandelt. Der Ordner des ersten bleibt, sein Aufruf endet nach 51 s mit 220 Elementen.
+
+### Neue Befunde
+
+#### Blocker
+
+1. **HTML in UTF-16 mit BOM wird abgelehnt.** `mod.rs:86` prüft den Inhalt an den rohen Bytes, bevor `html::decode` (`mod.rs:94`) sie dekodiert:
+   ```rust
+   content_matches(path, format, &bytes)?;
+   ```
+   Die Erkennung von docling.rs liest UTF-16 nicht als HTML. Der Zweig für das BOM in `html::decode` ist für UTF-16 damit nicht erreichbar. Das README („Ein Byte Order Mark gilt zuerst“) stimmt für UTF-16 nicht. Ein Test für UTF-16 fehlt.
+
+#### Vorschläge
+
+1. **Die Inhaltsprüfung lehnt gültiges HTML ab.** Die Erkennung von docling.rs ist für Dateien ohne Endung gedacht („A correctly named file never pays for this“) und für HTML zu eng. Mit Endung `.html` enden mit `Parse`:
+   - ein Fragment ohne `html`, `head`, `body` und Doctype, etwa `<p>…</p>` oder `<div>…</div>` („the content is Xml“);
+   - Text vor dem ersten Tag;
+   - ein Kommentar von 5000 Zeichen vor `<html>`;
+   - eine leere Datei (im ersten Durchgang ein leeres Dokument; leeres Markdown bleibt ein leeres Dokument).
+
+   Gelesen werden Seiten mit und ohne Doctype, mit Leerraum oder kurzem Kommentar davor, in Großbuchstaben, XHTML mit XML-Deklaration, mit `<body>` oder `<head>` am Anfang. Im ersten Durchgang gab es diese Prüfung nicht. Derselbe Ort wie Blocker 1.
+2. **Der `orig`-Rückgriff holt unsichtbare Zeichen zurück.** `tree.rs:125-130` gilt für jede Marke:
+   ```rust
+   _ => field(item, "orig"),
+   ```
+   docling.rs leert bei HTML Stücke, die nur aus U+FEFF bestehen; über `orig` kommen sie wieder, und die Leerzeichen-Regel hängt ein Leerzeichen an. Auf der Wikipedia-Seite beginnen 17 Listenpunkte jetzt mit U+FEFF und Leerzeichen (`'\ufeff Linke: 64'` statt `'Linke: 64'`). Kein Test bemerkt es.
+3. **Das Leerzeichen zwischen HTML-Stücken zerreißt Wörter.** `join_pieces` (`tree.rs:285-300`) setzt ein Leerzeichen, wo zwei Stücke ohne Leerraum zusammenstoßen. Eigene Seite:
+   - `Bundes<b>tags</b>wahl` → „Bundes tags wahl“
+   - `H<sub>2</sub>O` → „H 2 O“
+   - `10<sup>3</sup>` → „10 3“, `m<sup>2</sup>` → „m 2“
+   - `Wort<a>link</a>rest` → „Wort link rest“
+   - `Text<sup>[1]</sup>` → „Text [1]“
+
+   Richtig bleiben „(Klammer)“, Anführungszeichen, „E-Mail“, „50%“, „z.B.“. Im Korpus betrifft es nur die 126 Fußnotenmarken. Das README nennt die Folge. Vorher klebten zwei Stellen der Wikipedia-Seite zusammen; jetzt sind Formeln, Einheiten und Wörter mit Teilverweis für die Volltextsuche zerlegt. Eine Entscheidung des Inhabers dazu gibt es nicht.
+4. **Der Test zum Aufräumen bemerkt nicht, wenn der Ordner eines laufenden Aufrufs geleert würde.** Gegenprobe: `if ours && open_exclusive(…).is_ok()` (`parser.rs:466`) zu `if ours` → `folders_left_by_earlier_runs_are_removed_if_they_are_ours` bleibt grün. Der Test prüft nur, dass die offen gehaltene Markierungsdatei noch da ist, und die lässt sich ohnehin nicht löschen. Das Verhalten selbst stimmt (siehe „Aufräumen“).
+
+#### Kleinigkeiten
+
+- **Namensprüfung beim Aufräumen:** `parser.rs:464` prüft nur den Anfang `kb-parse-`. Ein Ordner `kb-parse-notizen` mit einer Datei `kb-parse.lock` wurde samt Inhalt entfernt. Das Muster `kb-parse-<Zahl>-<Zahl>` wäre enger.
+- **Titel ohne `<title>`:** `Document::title` ist dann der Text des ersten `<h1>`, das Element bleibt. Ein `<title>` in einem SVG im Seitenkörper wird Dokumenttitel und bleibt als Überschrift der Ebene 1 und als Text im Dokument.
+- **Angabe der Kodierung:** Eine Angabe hinter den ersten 2048 Bytes wird nicht gesehen (ISO-8859-2 dann als windows-1252). Eine widersprüchliche Angabe (ISO-8859-1 angegeben, tatsächlich UTF-8) wird befolgt wie im Browser.
+- **Bildformate außerhalb des Vertrags:** BMP, GIF und WebP mit Endung `.png` oder `.jpg` werden als Bild gelesen.
+- **Reihenfolge der Prüfungen:** Ohne Modelle ergibt eine falsch benannte `.png` `Model` statt `Parse`; die Inhaltsprüfung läuft im Arbeitsprozess nach der Modellprüfung.
+- **BERICHT, „Geänderte Ausgabe durch A68“:** nennt für die Wikipedia-Seite nur das entfallene Titelelement, nicht die 80 Elemente mit geändertem Text.
+- **README:** sagt, HTML müsse „als sein Format erkannt werden“, nennt aber nicht, dass Fragmente und UTF-16 daran scheitern.
+- **Kopf der Spezifikation:** `docs/abnahme-kb-parse.md` nennt in Zeile 3 weiter „Fassung 3“ (außerhalb des Pakets).
+
+#### Gegenproben des zweiten Durchgangs
+
+16 Läufe, jede Datei danach zurückgesetzt und per Prüfsumme belegt.
+
+| Änderung | Tests | Ergebnis |
+|---|---|---|
+| m02 Bereichsende eine Zeile zu groß | `office` a37, a40 | rot |
+| m03 Word-Kopf- und Fußzeilen nicht `Furniture` | `office` a49 | rot |
+| m08 `role="navigation"` nicht entfernen | `office` a54 | rot |
+| m21 Worker-Zahl nicht setzen | `process` a07 | rot |
+| m21b Thread-Zahl nicht setzen | `process` a07 | rot |
+| Titel aus `<title>` ohne NFC | `office` a12 | rot |
+| Inhaltsprüfung ohne Wirkung | `office` a66 | rot |
+| Keine Grenze für PDF-Aufrufe | `process` a67 (2 Tests) | rot |
+| Warten ohne Abbruch | `process` a67 | rot |
+| Ebenen bei HTML nach Titelelement | `office` a68 | rot |
+| Aufräumen ohne Prüfung der Markierungsdatei | `process` folders_left… | **grün** |
+| Bereich verbundener Titel nicht aus dem Blatt | `office` a40 | rot |
+| Zellanker immer erste Stelle | Einheitentest | rot |
+| BOM bei HTML nicht beachten | Einheitentest | rot |
+| Ordner beim Fallenlassen nicht löschen | `process` a_dropped… | rot |
+
+### Nicht geprüft
+
+- `cargo deny check`, Sicherheitsmeldungen, CI auf `windows-latest`: wie im ersten Durchgang.
+- Messprotokoll nach A60: nicht neu gemessen; es stammt weiter vom 2026-11-18. Ein einzelner Aufruf ist von A67 nicht berührt.
+- `testdata/make_testdata.py` neu ausführen: Bibliotheken fehlen lokal; geprüft sind die neu erzeugten Dateien.
+- Zellanker einer Tabelle an mehreren Stellen an echter Ausgabe: kein Dokument liefert eine solche Tabelle.
+- Verhalten, wenn der aufrufende Prozess hart beendet wird, während ein Arbeitsprozess läuft.
+- Modellordner auf einem anderen Laufwerk; Aufräumen auf anderen Systemen als Windows (dort laut Code abgeschaltet).
+- Eine echte alte Word-Datei (OLE) mit Endung `.docx`; geprüft mit einer nachgebildeten Datei („docx: bad zip“).
+
+### Bekannte Grenzen und offene Punkte für Phase 2
+
+- Die Grenze von A67 gilt je Prozess; mehrere Prozesse (App und Kommandozeile) haben je einen Arbeitsprozess. Ob größere Rechner mehr bekommen, ist nach ADR 0134 in Phase 2 zu entscheiden.
+- Viele PDFs werden nacheinander eingelesen; der Testlauf mit Modellen dauert deshalb länger (1907 s statt 1476 s).
+- Wörter mit Formatwechsel mitten im Wort werden bei HTML getrennt, Fußnotenmarken stehen mit Leerzeichen (Vorschlag 3), solange nicht anders entschieden.
+- HTML: Angabe der Kodierung nur am Dateianfang; Fragmente, UTF-16 und leere Dateien bis zur Behebung als Fehler.
+- Folgen der Titelregel in Listenblättern und einspaltigen Blättern (ADR 0116, ADR 0127), im README beschrieben.
+- Ausgeblendete Zeilen und Spalten innerhalb einer Excel-Tabelle zählen in `num_rows` und `num_cols` mit; die Zeilennummern der Zellen haben dort eine Lücke.
+- Spracherkennung nur Deutsch und Englisch; Datumsformate in Excel ohne Test.
+- Kandidaten für Änderungsanträge an `kb-core` (F-A5) unverändert offen; dazu käme ein Satz zu A66 am Rustdoc von `Parser::parse`.
+- Messung auf dem Referenzgerät, `cargo deny` und CI stehen aus.
