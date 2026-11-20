@@ -3,7 +3,7 @@ feature: kb-core
 datum: 2026-11-15
 commit: kein Commit, nicht versionierter Arbeitsstand gegen das leere Repo
 spec: docs/abnahme-kb-core.md
-ergebnis: PASS (zehnter Durchgang 2026-11-16 gegen Fassung 7 der Kriterien, K05 mit dem ganzen Workspace, Urteil zur Sperre: ja; K07, K14, K25 und K33 nach Fassung 8 und 9 sind im vierten Durchgang von docs/pruefung/tor-1.md unabhängig geprüft; neunter PASS gegen Fassung 5, achter PASS, siebter PASS, sechster PASS, fünfter FAIL, vierter PASS, dritter FAIL, zweiter PASS, erster FAIL)
+ergebnis: PASS (Änderung K36 nach ADR 0136, Durchgang vom 2026-11-20 gegen Fassung 10: PASS, alle sechs Unterpunkte, zwei Vorschläge zu Tests; zehnter Durchgang 2026-11-16 gegen Fassung 7 der Kriterien, K05 mit dem ganzen Workspace, Urteil zur Sperre: ja; K07, K14, K25 und K33 nach Fassung 8 und 9 sind im vierten Durchgang von docs/pruefung/tor-1.md unabhängig geprüft; neunter PASS gegen Fassung 5, achter PASS, siebter PASS, sechster PASS, fünfter FAIL, vierter PASS, dritter FAIL, zweiter PASS, erster FAIL)
 ---
 
 # Prüfbericht Workspace und kb-core
@@ -1507,3 +1507,174 @@ Dieser Abschnitt stammt nicht vom Prüfer. Nach dem vierten Durchgang von `docs/
 - Weil die Typen für die Oberfläche die Doc-Kommentare mitführen, wurden sie danach neu erzeugt (`ui/api/bindings.ts`).
 
 Nachgelaufen: siehe den fünften Durchgang in `docs/pruefung/tor-1.md`.
+
+# Prüfbericht kb-core, Änderung K36 (Tabellenkopf als eigener Teil)
+
+- Datum: 2026-11-20
+- Gesamtergebnis: **PASS**. Alle sechs Unterpunkte sind erfüllt. Es gibt keinen Blocker, aber zwei Vorschläge.
+
+## Geprüfter Stand
+
+- Branch `kb-core-header-part`. HEAD ist `6dcf3de` und gleich `main`. Die Änderung liegt uncommittet vor.
+- `git status --short` zeigt nur drei geänderte Dateien:
+  - `kb-core/src/mock/components.rs` (+39/−)
+  - `kb-core/src/traits.rs` (+19/−)
+  - `kb-core/tests/mocks.rs` (+184/−)
+  - Zusammen: 230 Zeilen hinzu, 12 entfernt.
+- Unverändert sind: `kb-core/testdata/` (also die JSON-Fixtures), `kb-core/README.md`, andere Crates und `docs/`.
+- Spezifikation: `docs/abnahme-kb-core.md`, Fassung 10, Abschnitt K36. Sie stammt aus der Arbeitskopie des Haupt-Repos und ist dort noch uncommittet. Der Worktree selbst enthält noch die committete Fassung.
+- Hintergrund: ADR 0136 und ADR 0014.
+- Prüfsummen (SHA-256), am Anfang und am Ende gleich:
+  - `components.rs`: `8d608c14…751e96`
+  - `traits.rs`: `e18e2717…fcc63d0`
+  - `mocks.rs`: `a66842bf…24cc`
+- `git diff --stat` war am Ende identisch mit dem Anfang. Es liegen keine unversionierten Dateien im Worktree; die Probedatei ist entfernt.
+
+## Unterpunkte
+
+| ID | Kriterium | Ergebnis | Nachweis |
+|---|---|---|---|
+| K36.1 | Passt keine Zeilengruppe mit dem Kopf, kommt der Kopf einmal als eigener Teil vor den Zeilen. „this is accepted“ ist entfernt, der Vertrag sagt „kein Text geht verloren“. | PASS | **Code:** `components.rs:227-248`. Der Kopf-Teil wird nur gebaut, wenn `header > 0` und keine Gruppe mit `render(group, true)` passt. Er wird vor der Zeilenschleife in `parts` geschrieben. **Vertrag:** `traits.rs:126-138` enthält „this is accepted“ nicht mehr (Diff Z. 128-129 entfernt). Neu ist „No text of a table is lost.“ (`traits.rs:137-138`). `grep "this is accepted"` findet außerhalb von `docs/` nichts. **Test:** `mocks.rs:239-294` (`header_that_fits_with_no_row_is_a_part_of_its_own_before_the_rows`) ist grün. |
+| K36.2 | Kopf-Teil = Markdown aus Kopfzeilen und Trennzeile. Liegt er über der Grenze, werden die Zelltexte mit `" \| "` verbunden und wie Fließtext geteilt. | PASS | **Code:** `components.rs:240-246`. Passt `header_text`, wird er übernommen. Sonst läuft `split_text(&joined(&header_rows))`; `joined` steht in `components.rs:189-196` und geht in Zeilen- und Spaltenfolge vor. **Test:** `mocks.rs:296-318` erwartet bei Grenze 4 `"Category \| Q1 \|"`, `"Q2"`. **Eigene Probe, zwei Kopfzeilen** (Kopf 21 Token): Grenze 21 ergibt `"\| Region \| North \| South \|\n\| Qa \| Qb \| Qc \|\n\| --- \| --- \| --- \|"`, Grenze 20 ergibt `"Region \| North \| South \| Qa \| Qb \| Qc"`. Damit ist auch die exakte Grenze belegt. |
+| K36.3 | Kopf-Teil und alle Stücke tragen die Anker der Kopfzeilen (je Seite kleinste Box, je Blatt kleinster Bereich, ohne Zellanker die Tabellenanker). Die Kopfzeilen zählen nicht zum ersten Zeilen-Teil. | PASS | **Code:** `components.rs:238-245` nutzt `anchors(&header_rows)`. Danach ist `parts` nicht leer, deshalb ergibt `own_rows(…, first=false)` in `components.rs:258/266/277` keine Kopfzeilen mehr. **Test (a):** XLSX `sheet_range(2,2)`, danach `(3,3)` und `(4,4)`. PDF-Box 160–186, danach 186–213 und 213–240. **Probe PDF über zwei Seiten:** Kopfzeile 0 auf Seite 1, Kopfzeile 1 auf Seite 2. Der Kopf-Teil trägt zwei Boxen, `Page 1 (0,0,200,10)` und `Page 2 (0,10,200,20)`; der erste Zeilen-Teil trägt nur `Page 2 top 20 bottom 30`. **Probe ohne Zellanker:** Alle Teile tragen die Tabellenanker. **Probe mit einer Kopfzelle ohne Anker:** Der Kopf-Teil trägt die Tabellenanker, die Zeilen-Teile behalten ihre eigenen Bereiche. |
+| K36.4 | Passt mindestens eine Zeilengruppe mit dem Kopf, ändert sich nichts. | PASS | **Code:** Ist `fits_with_header` wahr, wird der neue Block übersprungen. Der übrige Pfad ist bis auf die gleichwertige Auslagerung von `joined` (Diff `components.rs:237-244` alt nach `271`) unverändert. **Test (d):** `mocks.rs:347-380` ist grün und war auch mit dem HEAD-Stand des Mocks grün (Gegenprobe M0). Das belegt „wie zuvor“. **Probe, erste Zeile zu lang, zweite passt mit Kopf:** Grenzen 21, 22, 26 und 30 ergeben keinen eigenen Kopf-Teil. Der Kopf steht beim passenden Teil, die erste Zeile steht ohne Kopf. |
+| K36.5 | Tests (a) bis (d) mit `MockTokenCounter`, kein Chunk über der Grenze. | PASS | (a) `mocks.rs:239-294`, (b) `296-318`, (c) `320-345`, (d) `347-380`. Jeder Test ruft `assert_within`. (c) prüft die Wortfolge für budget, pruefordnung und `spanned_table` über alle Grenzen von 1 bis zur jeweils größten, bei der keine Zeile mit dem Kopf passt. Die Tokenzahlen in den Testkommentaren (14/21, 14/22, 21/28) habe ich nachgerechnet; sie stimmen. Lauf: `cargo test -p kb-core --test mocks -- header row_over table_over split_never no_chunk` ergibt `8 passed; 0 failed`. Lücke dazu: Vorschlag 1. |
+| K36.6 | Nur Vertrag, Mock und Tests geändert, README und Kommentare angeglichen, bisherige Tests grün ohne Abschwächung, JSON unverändert. | PASS | `git status` zeigt nur die drei erlaubten Dateien. `git diff HEAD -- kb-core/testdata` ist leer. `kb-core/README.md:59` nennt die alte Regel nicht, eine Anpassung ist nicht nötig. Kommentar `components.rs:197-198` ist angeglichen. Jede geänderte oder entfernte Zeile in bestehenden Tests ist unten einzeln bewertet. `cargo test --workspace` ist grün. |
+
+## Geänderte und entfernte Zeilen in bestehenden Tests und bestehendem Code
+
+- **`mocks.rs:194` in `row_over_the_limit_is_split_like_text_and_keeps_its_anchor`:** Der Filter steht jetzt auf `sheet_range(3, 3)` statt `sheet_range(2, 3)`, dazu kommt ein zweizeiliger Kommentar. Das ist die direkte Folge von K36.3: Die Kopfzeilen zählen nicht mehr zum ersten Zeilen-Teil. Die Zusicherungen bleiben gleich streng: Es sind genau 2 Stücke mit exakten Texten `"Travel | 12,000 |"` und `"9,500"`. Der alte Test hatte implizit zugesichert, dass die Travel-Stücke die Kopfanker tragen. Diese Regel ist gewollt geändert, und die neuen Kopfanker deckt Test (b) ab. **Keine Abschwächung.**
+- **`components.rs`, entfernte Zeilen 237-244 (alt):** Die Inline-Bildung von `joined` ist durch die Closure `joined(&group)` ersetzt. Das ist gleichwertig: dieselbe `flat_map` in Zeilen- und Spaltenfolge, `join(" | ")`.
+- **`components.rs`, entfernte Zeile 189 (alt), Kommentar:** um „unless the header rows already form a part of their own“ ergänzt. Das ist korrekt.
+- **`traits.rs`, entfernte Zeilen:** „…; this is accepted“ ist entfernt, wie K36.1 es verlangt. Der Satz zu den Ankern ist ergänzt; die übrigen Wörter sind nur neu umbrochen, inhaltlich unverändert.
+
+## Befunde
+
+### Blocker
+- Keine.
+
+### Vorschläge
+1. **Test (d) deckt nur eine Reihenfolge ab.** In Test (d) passt die erste Zeile mit dem Kopf und die zweite nicht. Prüft der Mock nur die erste Gruppe (Gegenprobe M8: `for group in groups.iter().take(1)`), bleiben alle 46 Tests in `mocks.rs` grün. Der umgekehrte Fall fehlt: Die erste Zeile passt nicht mit dem Kopf, eine spätere schon. Die Probe hat diesen Fehler gefunden. K36.5 (d) ist wörtlich erfüllt, ein Test für die umgekehrte Reihenfolge würde die Regel „mindestens eine Zeilengruppe“ aber vollständig absichern.
+2. **Kein mitgelieferter Test für den Kopf-Teil ohne Zellanker.** K36.3 verlangt für diesen Fall die Tabellenanker. Der Mock erfüllt das über die gemeinsame `anchors`-Closure (Probe grün), ein Test im Crate fehlt aber.
+
+### Kleinigkeiten
+- `traits.rs:116-118`: Der Satz „Each part is a Markdown table that repeats the header rows“ gilt durch die neue Regel noch seltener, und er hatte schon vorher Ausnahmen („that row is emitted without header“). Ein Widerspruch ist das nicht, weil die folgenden Aufzählungspunkte ihn ausdrücklich einschränken.
+- `traits.rs:135-136`: „the anchors of the header rows“ verweist auf die Ankerdefinition im ersten Aufzählungspunkt (Box je Seite, Bereich je Blatt, sonst Tabellenanker). Das ist eindeutig, aber nur über diesen Verweis.
+- `mocks.rs:355`: Die Variable `note` hält eine Zelle. Rein kosmetisch.
+
+### Gut gemacht
+- Die neue Regel ist auf einen klar abgegrenzten Block vor der Zeilenschleife beschränkt. Der bisherige Pfad bleibt im Fall K36.4 Byte für Byte gleich.
+- Test (c) prüft über einen Bereich von Grenzen statt über Einzelwerte und schließt `row_span` ein.
+- Vertragstext und Mock stimmen in allen Probefällen überein, auch bei zwei Kopfzeilen über zwei PDF-Seiten.
+
+## Prüfung des Vertragstexts (`traits.rs:110-138`)
+
+- Er passt zu K36.1 bis K36.4: Bedingung, Form, Teilung, Anker, Ausschluss aus dem ersten Zeilen-Teil und der Fall ohne eigenen Kopf-Teil sind beschrieben.
+- „row“ meint nach dem vorigen Aufzählungspunkt die Zeilengruppe. Das passt zu „Zeilengruppe“ in K36.
+- „No text of a table is lost“ widerspricht der Token-Grenze nicht und wird vom Mock in allen Proben eingehalten.
+- Der englische Text ist in sich ohne Widerspruch zu den Nachbarsätzen.
+
+## Eigene Proben
+
+Die Proben lagen als Wegwerf-Testprogramm in `kb-core/tests/` und sind wieder entfernt.
+
+Allgemeine Prüfung je Grenze:
+- Kein Chunk über der Grenze, kein leerer Text, mindestens ein Anker.
+- Die Kopfwörter kommen in mindestens einem Teil vor.
+- Die Zeilenwörter kommen genau einmal in Reihenfolge vor.
+- Kopfwörter wiederholen sich nur als vollständiger Kopf-Präfix eines Markdown-Teils.
+- Im Fall des eigenen Kopf-Teils ist die Wortfolge aller Teile gleich der Wortfolge aller Zellen.
+
+Ergebnis: alle 6 Probetests grün (`6 passed; 0 failed`).
+
+- **Zwei Kopfzeilen** (Grenzen 1 bis 40, eigener Kopf-Teil bei 28 davon):
+  - Grenze 21: Markdown-Kopf mit Anker Zeilen 0–1, danach die Zeilen mit nur ihren eigenen Ankern.
+  - Grenze 20: Kopf verbunden in einem Stück.
+  - Grenze 3: `"Region | North"`, `"| South |"`, `"Qa | Qb"`, `"| Qc"`, alle mit dem Kopfanker.
+  - Grenze 29: kein eigener Kopf-Teil, der Kopf steht in jedem Teil.
+- **Ohne Zellanker / gemischt** (Grenzen 1 bis 40): Kopf-Teil mit Tabellenankern. Bei gemischten Ankern behalten die Zeilen ihre eigenen.
+- **PDF über zwei Seiten** (Grenzen 1 bis 30): eine Box je Seite im Kopf-Teil, die Zeilen nur mit ihrer Seite. Bei Grenze 4 tragen beide Kopf-Stücke beide Seitenboxen.
+- **`row_span` im Rumpf** (Grenzen 1 bis 30): Grenzen 9, 10 und 14 ergeben einen eigenen Kopf-Teil, die verbundene Gruppe `"| Beta | Review |\n|  | Report |"` bleibt ungeteilt. Grenze 15 ergibt keinen eigenen Kopf-Teil, weil Gamma mit dem Kopf passt.
+- **Tabelle nur aus Kopfzeilen** (Grenzen 1 bis 20): Der Mock behandelt sie als Tabelle ohne Kopf (`header = 0`, bestehendes Verhalten). Es gibt keinen Kopf-Teil, kein Wort geht verloren, kein Chunk liegt über der Grenze.
+- **Erste Zeile passt nicht mit dem Kopf, zweite schon** (Grenzen 1 bis 45): Bei 21, 22, 26 und 30 kein eigener Kopf-Teil, bei 20 ein eigener Kopf-Teil, weil keine Zeile passt.
+- **Fixture-Tabellen budget.xlsx und pruefordnung.pdf** (Grenzen 1 bis 40): alle Prüfungen grün.
+
+## Gegenproben
+
+Vorgehen: Die Mock-Datei wurde gesichert, mit einem Skript je eine Mutation eingespielt, dann liefen `cargo test -p kb-core --test mocks` und die Probe. Nach jeder Mutation wurde die Datei zurückkopiert; die Prüfsumme `8d608c14…751e96` war nach jedem Schritt wieder gleich.
+
+| Mutation | Rote Tests in `mocks.rs` | Probe |
+|---|---|---|
+| M0: Mock auf HEAD-Stand | (a), (b), (c), `row_over…` (4 rot); (d) bleibt grün, wie erwartet | 6/6 rot |
+| M1: immer eigener Kopf-Teil | (d), `split_never_cuts_through_a_row_span`, `table_over_the_limit…` | 1 rot |
+| M2: Kopfanker = Tabellenanker | (a), (b) | 2 rot |
+| M3: Markdown-Kopf auch über der Grenze | (b), (c), `no_chunk_exceeds_the_limit` | 6 rot |
+| M4: Markdown statt verbundener Zelltexte teilen | (b) | 1 rot |
+| M5: passender Kopf-Teil entfällt | (a), (c) | 6 rot |
+| M6: Kopfzeilen zählen zum ersten Zeilen-Teil | (a), (b), `row_over…` | 3 rot |
+| M7: nur die letzte Gruppe prüfen | (d) | 0 rot |
+| **M8: nur die erste Gruppe prüfen** | **keiner** (46 grün) | 1 rot (siehe Vorschlag 1) |
+| M9: Kopf-Teil hinter den Zeilen | (a), (b), (c), `row_over…` | 6 rot |
+
+## Hygiene
+
+- Bezeichner und Kommentare im Diff sind englisch. Nicht-ASCII kommt nur in drei Testerwartungen mit deutschen Fixture-Zelltexten vor („Gerät“, „Kühlschrank Süd“, „Mängel“); das sind Testdaten, keine Bezeichner.
+- Alle drei Dateien: 0 CR-Bytes, kein BOM, `git ls-files --eol` zeigt `i/lf w/lf`.
+- Die Suche nach Werkzeug- und Assistentennamen, Benutzer- und Temp-Pfaden in den hinzugefügten Zeilen ergab keinen Treffer.
+
+## Sicherheit
+
+- Keine Auffälligkeit. Die Änderung betrifft nur die Chunk-Bildung im Mock und den Vertragstext, keine Konten, Geheimnisse oder Ausgaben nach außen.
+
+## Regressionen
+
+Alle Läufe mit `CARGO_PROFILE_DEV_DEBUG=0` und `CARGO_BUILD_JOBS=4`. Freier Platz vorher 90 GB, später 88 GB.
+
+| Befehl | Ergebnis |
+|---|---|
+| `cargo test -p kb-core` | grün, Zahlen siehe unten |
+| `cargo fmt --all --check` | Exit 0 |
+| `cargo clippy --workspace --all-targets --all-features -- -D warnings` | Exit 0, keine Warnung |
+| `cargo test --workspace` | Exit 0, alle `test result: ok` |
+| `cargo doc --workspace --no-deps` | Exit 0, keine Warnung |
+
+Testzahlen in `kb-core`:
+
+| Testprogramm | grün | rot |
+|---|---|---|
+| unittests `lib.rs` | 0 | 0 |
+| `fixtures` | 12 | 0 |
+| `knowledge_base` | 62 | 0 |
+| `manifest` | 20 | 0 |
+| `mocks` | 46 (HEAD: 42 Tests, also 4 neu) | 0 |
+| `serde_roundtrip` | 8 | 0 |
+| `settings` | 8 | 0 |
+| `typescript` | 2 | 0 |
+| Doc-Tests | 0 | 0 |
+
+Übrige Pakete im Workspace-Lauf: `app/tests/backend` 25, `bindings` 2, `capabilities` 2. Alle anderen Crates (`kb-chunk`, `kb-parse`, `kb-index`, `kb-cli`, `kb-eval`, `kb-hub`, `kb-ingest`, `kb-llm`, `kb-mcp`, `kb-models`, `kb-rag`, `kb-store`) haben auf diesem Stand 0 Tests.
+
+Vorher rote Tests: keine bekannt. Durch den Diff rot geworden: keine.
+
+## Nicht geprüft
+
+- **Paket B (`kb-chunk`):** Auf `main` ist das Crate ohne Tests und ohne die Implementierung aus der Paketprüfung. Ob die echte Chunker-Implementierung und ihr Test zu B09 zur neuen Regel passen, ist hier nicht prüfbar. Laut ADR 0136 gehört das zur Nacharbeit von Paket B.
+- **Fehlerhafte Tabellen** (Zelle mit `col >= num_cols`, mehrere Zellen in derselben Spalte, `col_span > 1` mit Überlappung): nicht untersucht. In diesen Fällen lässt die bestehende Markdown-Darstellung des Mocks Zelltext fallen, unabhängig von K36. Ob der Satz „No text of a table is lost“ auch für ungültige Eingaben gelten soll, ist offen.
+- **CI-Lauf auf GitHub:** nicht ausgelöst, die Änderung ist nicht committet.
+
+## Offene Fragen
+
+1. **Kopfanker an einem ersten Teil ohne Kopftext.** Passt mindestens eine Gruppe mit dem Kopf, aber die erste nicht, trägt der erste Teil die Anker der Kopfzeilen, obwohl er den Kopftext nicht enthält.
+   - Beispiel aus der Probe: `"| Beta | Review |\n|  | Report |"` mit Bereich Zeilen 0–2, der Kopf steht erst im nächsten Teil.
+   - Das entspricht dem Vertrag („header rows count as rows of the first part“) und war schon vor dem Diff so; K36.4 schreibt „ändert sich nichts“ vor. Daher kein Befund gegen K36.
+   - Zu klären: Sollen die Kopfzeilen nach dem Gedanken von ADR 0136 eher zum ersten Teil zählen, der den Kopf enthält? Das wäre eine eigene Entscheidung mit neuer Freigabe für `kb-core`.
+2. **Tabelle nur aus Kopfzeilen.** Der Mock wertet sie als Tabelle ohne Kopf (`header = 0`), der Vertrag regelt den Fall nicht ausdrücklich. K36 berührt das nicht. Sinnvoll wäre aber, den Fall im Vertrag zu nennen, damit Paket B ihn gleich behandelt.
+
+## Nachtrag des Projektmanagers zur Änderung K36 (2026-11-20, nicht Teil des Berichts des Prüfers)
+
+Nach dem Durchgang wurden nur Tests ergänzt, um die beiden Vorschläge des Prüfers aufzunehmen; `kb-core/src/mock/components.rs` und `kb-core/src/traits.rs` sind unverändert (SHA-256 wie im Bericht, `8d608c14…751e96` und `e18e2717…fcc63d0`).
+
+- `header_that_fits_only_with_a_later_row_has_no_part_of_its_own` (Vorschlag 1): Die erste Zeile passt nicht mit dem Kopf, die zweite schon; kein eigener Kopf-Teil. Die Gegenprobe M8 des Prüfers wird damit rot (Meldung des Bearbeiters: 47 grün, 1 rot; danach zurückgesetzt). Die Anker des ersten Teils legt der Test bewusst nicht fest (offene Frage 1).
+- `header_part_without_cell_anchors_carries_the_anchors_of_the_table` (Vorschlag 2).
+
+Vom Projektmanager nach der Ergänzung selbst gesehen: `cargo fmt --all --check` ohne Befund, `cargo test -p kb-core` grün (fixtures 12, knowledge_base 62, manifest 20, mocks 48, serde_roundtrip 8, settings 8, typescript 2), `cargo clippy --workspace --all-targets --all-features -- -D warnings` ohne Befund. Nicht unabhängig geprüft sind die beiden neuen Tests selbst. Die beiden offenen Fragen des Prüfers stehen in `docs/todo.md` bei den Kandidaten für Änderungsanträge an `kb-core`.
