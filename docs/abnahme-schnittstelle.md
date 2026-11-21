@@ -25,6 +25,7 @@ Geprüft werden `app/`, `ui/` und die dazugehörigen Teile der CI. Nicht im Umfa
 - **S11** Die Oberfläche ist deutsch und englisch über Übersetzungsdateien, umschaltbar. Die deutschen Texte duzen. Bezeichner, Dateinamen und Code-Kommentare sind englisch. (Plan, Annahmen; ADR 0027)
 - **S12** Die vier Bereiche liegen als eigene Verzeichnisse `ui/chat`, `ui/library`, `ui/viewer` und `ui/settings` vor und importieren einander nicht, was eine Prüfung erzwingt. `ui/README.md` legt fest, welcher Bereich welchen Platz im Rahmen füllt und wie die Bereiche über die Hülle sprechen, so eindeutig, dass drei Entwickler parallel danach bauen können. Bewerte das je Bereich. (Plan, Phase 1 und Regeln für die Agenten-Arbeit; ADR 0034, 0042)
 - **S13** Bedienelemente der Hülle sind mindestens 44 px groß, Text hat mindestens 4,5:1 Kontrast, Linien und Bedienelemente mindestens 3:1. (ADR 0026, 0034)
+- **S16** (ergänzt am 2026-11-21, ADR 0138) `workspace` meldet jeden Klick auf „Neuer Chat“ so, dass ein Bereich ihn von „kein Chat gewählt“ unterscheiden kann, auch wenn `workspace.chatId` vorher schon leer war. `ui/README.md` beschreibt das Signal bei der Schnittstelle der Hülle. Das bisherige Verhalten bleibt: `chatId` ist danach leer, Belege und Titel sind geleert. Ein Test der Hülle belegt das Signal; alle bisherigen Tests bleiben grün, ohne dass eine Zusicherung abgeschwächt wird. Sonst ist an `ui/shell/`, `ui/api/` und `app/` nichts geändert. (ADR 0138; `docs/pruefung/ui-chat.md`, offene Frage 4)
 
 ## Prüfungen und Lizenzen
 
