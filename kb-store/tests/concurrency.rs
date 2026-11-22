@@ -363,8 +363,11 @@ fn a_long_call_does_not_block_a_single_threaded_executor() {
         done.store(true, Ordering::SeqCst);
         ticker.await.unwrap();
         assert_eq!(back.as_ref(), Some(&big));
-        // The ticker ran while the calls lasted: at least one tick per 20 ms.
-        let minimum = u64::try_from(elapsed.as_millis() / 20).unwrap();
+        // The ticker ran while the calls lasted. A blocked executor thread gives 0 ticks;
+        // one tick per 100 ms (at least 5) leaves room for a coarse timer (about 15.6 ms
+        // per sleep under Windows) and a busy machine.
+        eprintln!("{during} ticks in {elapsed:?}");
+        let minimum = u64::try_from(elapsed.as_millis() / 100).unwrap();
         assert!(
             during >= minimum.max(5),
             "{during} ticks in {elapsed:?} on one executor thread"

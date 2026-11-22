@@ -212,7 +212,9 @@ fn crash_folder(i: usize) -> PathBuf {
 }
 
 /// The child's endless loop of writes. It continues from the state it finds, redoing
-/// the last round, so that every round of the parent's kills makes progress.
+/// the last round. Once its first new round is written (the chat has one turn more
+/// than at the start), it reports `WROTE`; the parent kills it only after that, so that
+/// every round of the parent's kills makes progress, however fast the disk is.
 fn crash_loop(db: &Path) {
     block_on(async {
         let store = SqliteStore::open(db).await.expect("open");
@@ -238,6 +240,9 @@ fn crash_loop(db: &Path) {
                     .expect("delete");
             }
             store.save_chat(&crash_chat(i + 1)).await.expect("chat");
+            if i == done {
+                println!("{PREFIX}WROTE");
+            }
             store
                 .update_settings(Box::new(move |s| {
                     if !s.watched_folders.contains(&crash_folder(i)) {
@@ -317,7 +322,10 @@ fn every_write_survives_a_hard_abort_whole_or_not_at_all() {
     for round in 0..24 {
         let (mut child, lines) = spawn("crash", &db);
         assert_eq!(next_line(&lines), "READY", "round {round}");
-        // A different moment in every round (xorshift), 10 to 400 ms after opening.
+        // The kill comes only after the child wrote a new round (its chat is
+        // committed), so the progress below does not depend on the speed of the disk.
+        assert_eq!(next_line(&lines), "WROTE", "round {round}");
+        // A different moment in every round (xorshift), 10 to 400 ms after that.
         seed ^= seed << 13;
         seed ^= seed >> 7;
         seed ^= seed << 17;
@@ -338,6 +346,10 @@ fn every_write_survives_a_hard_abort_whole_or_not_at_all() {
             .unwrap();
         assert_eq!(integrity, "ok", "round {round}");
         drop(conn);
+        assert!(
+            turns > last_turns,
+            "round {round}: the child made progress ({last_turns} -> {turns} turns)"
+        );
         last_turns = turns;
     }
     eprintln!(
