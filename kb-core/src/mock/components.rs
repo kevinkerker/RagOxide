@@ -94,7 +94,9 @@ impl Parser for MockParser {
 ///
 /// Headings form the heading path and are not chunks themselves. Text over the limit is
 /// split at word boundaries (the mock skips sentence detection), tables follow the
-/// splitting rules of the trait. Never merges elements.
+/// splitting rules of the trait. Never merges elements. A single word over the limit
+/// stays whole here instead of being split at character boundaries; with the
+/// [`MockTokenCounter`] (one token per word) this cannot happen.
 pub struct MockChunker {
     tokens: Arc<dyn TokenCounter>,
     max_tokens: usize,
@@ -489,7 +491,8 @@ impl Reranker for MockReranker {
 ///
 /// Vector score is the dot product (cosine for normalised vectors), full-text score the
 /// share of query words in the chunk (no stemming), hybrid is reciprocal rank fusion
-/// with k = 60 and `vector_weight` for the vector list.
+/// with k = 60 and `vector_weight` for the vector list. Like the trait demands, it
+/// refuses boxes that are not finite.
 pub struct MockIndex {
     space: EmbeddingSpace,
     vector_weight: f32,
@@ -545,6 +548,12 @@ impl Index for MockIndex {
                 entry.embedding.len(),
                 &format!("embedding of {}", entry.chunk.id),
             )?;
+        }
+        if let Some(bad) = entries
+            .iter()
+            .find(|e| !finite_anchors(&e.chunk.provenance.anchors))
+        {
+            return Err(not_finite(&format!("chunk {}", bad.chunk.id)));
         }
         let mut stored = lock(&self.entries);
         for entry in entries {
@@ -793,6 +802,9 @@ struct StoreState {
 }
 
 /// In-memory [`Store`].
+///
+/// Keeps the rules of the trait that do not depend on a database: one record per
+/// [`path_key`], and no box or page size that is not finite.
 #[derive(Default)]
 pub struct MockStore {
     state: Mutex<StoreState>,
@@ -809,12 +821,61 @@ fn key(path: &Path) -> String {
     path_key(path).unwrap_or_else(|_| path.to_string_lossy().to_lowercase())
 }
 
+/// `true` if every box among `anchors` has finite values only.
+fn finite_anchors(anchors: &[Anchor]) -> bool {
+    anchors.iter().all(|anchor| match anchor {
+        Anchor::Page { bbox, .. } => [bbox.left, bbox.top, bbox.right, bbox.bottom]
+            .iter()
+            .all(|v| v.is_finite()),
+        Anchor::Slide { .. } | Anchor::Sheet { .. } | Anchor::Paragraph { .. } => true,
+    })
+}
+
+/// `true` if every page size and every box of `document` (elements and table cells) is
+/// finite.
+fn finite_document(document: &Document) -> bool {
+    let pages = document
+        .pages
+        .iter()
+        .all(|p| p.width.is_finite() && p.height.is_finite());
+    pages
+        && document.elements.iter().all(|element| {
+            finite_anchors(&element.anchors)
+                && match &element.kind {
+                    ElementKind::Table(table) => table
+                        .cells
+                        .iter()
+                        .all(|cell| finite_anchors(cell.anchor.as_slice())),
+                    _ => true,
+                }
+        })
+}
+
+/// The error for a value with a number that is not finite.
+fn not_finite(what: &str) -> Error {
+    Error::InvalidInput(format!(
+        "{what} has a box or page size that is not finite (NaN or infinite), which cannot be stored"
+    ))
+}
+
 #[async_trait]
 impl Store for MockStore {
     async fn upsert_document(&self, record: &DocumentRecord) -> Result<()> {
-        lock(&self.state)
+        let mut state = lock(&self.state);
+        let wanted = key(&record.path);
+        if let Some(holder) = state
             .documents
-            .insert(record.id.clone(), record.clone());
+            .values()
+            .find(|r| r.id != record.id && key(&r.path) == wanted)
+        {
+            return Err(Error::InvalidInput(format!(
+                "record {} has the path {}, which record {} already has (one record per file)",
+                record.id,
+                record.path.display(),
+                holder.id
+            )));
+        }
+        state.documents.insert(record.id.clone(), record.clone());
         Ok(())
     }
 
@@ -846,6 +907,12 @@ impl Store for MockStore {
     }
 
     async fn save_content(&self, document: &Document) -> Result<()> {
+        if !finite_document(document) {
+            return Err(not_finite(&format!(
+                "document {}",
+                document.source.document_id
+            )));
+        }
         lock(&self.state)
             .contents
             .insert(document.source.document_id.clone(), document.clone());
@@ -857,6 +924,15 @@ impl Store for MockStore {
     }
 
     async fn save_chat(&self, chat: &Chat) -> Result<()> {
+        let finite = chat.turns.iter().all(|turn| {
+            turn.answer
+                .citations
+                .iter()
+                .all(|c| finite_anchors(&c.chunk.provenance.anchors))
+        });
+        if !finite {
+            return Err(not_finite(&format!("chat {}", chat.id)));
+        }
         let mut state = lock(&self.state);
         state.chats.retain(|c| c.id != chat.id);
         state.chats.insert(0, chat.clone());

@@ -83,7 +83,8 @@ elements: Array<Element>, };
  *
  * PDF: the CropBox after applying `/Rotate`, in PDF points (1/72 inch). Image: the
  * frame after applying the EXIF orientation, in pixels. All [`BoundingBox`]es on the
- * page use this frame.
+ * page use this frame. `width` and `height` are finite numbers (no NaN, not infinite);
+ * every producer (parser, mocks) guarantees this.
  */
 export type Page = { 
 /**
@@ -104,8 +105,7 @@ height: number,
  * the parser recognises again, for PDF pages that combine a text layer with
  * recognised regions, and for the text layer of a scan that is taken over
  * (ADR 0091): text that lies invisibly over or hidden under a page image, as the
- * parser reports its origin (the fork of docling.rs supplies it from the patch of
- * ADR 0094 on; the revision pinned in `Cargo.toml` does not contain it yet; no
+ * parser reports its origin (the fork of docling.rs supplies it, ADR 0094; no
  * heuristic of the package is required). `false` if all text comes from a text
  * layer that is not such a layer.
  * The user interface warns that table cells from such pages may be wrong.
@@ -188,13 +188,16 @@ row_span: number,
  */
 col_span: number, 
 /**
- * Cell text. For XLSX the value formatted with the cell's number format (thousands
- * separators, decimals, currency, date, percentage) in US notation: `.` as decimal
- * separator and `,` for thousands, whatever the operating system and the language
- * of the app (ADR 0041, ADR 0092), for example `12,000` or `1,234.50` instead of
- * the stored raw value. For all number formats only from the fork patch of ADR 0093
- * on; the revision pinned in `Cargo.toml` does not contain it yet. The same text goes into the table's Markdown and thus into
- * chunks, search and the prompt.
+ * Cell text. For XLSX the value formatted with the cell's number format, whatever
+ * the number format (thousands separators, decimals, currency, date, percentage;
+ * ADR 0093), in US notation: `.` as decimal separator and `,` for thousands,
+ * whatever the operating system and the language of the app (ADR 0041, ADR 0092),
+ * for example `12,000` or `1,234.50` instead of the stored raw value. Exception
+ * (ADR 0105): with the built-in number formats 37 to 40 a negative number is
+ * written with a minus sign and thousands separators in US notation, for example
+ * `-1,235`; if the workbook gives a format with parentheses explicitly as format
+ * code, the parentheses stay. The same text goes into the table's Markdown and thus
+ * into chunks, search and the prompt.
  */
 text: string, 
 /**
@@ -277,7 +280,8 @@ element: number, };
  * Origin is the top-left corner of the displayed page, x grows to the right, y grows
  * downwards, so `left <= right` and `top <= bottom`. Unit is the unit of [`Page`]
  * (PDF points or pixels). Parsers convert any other origin (docling's BOTTOMLEFT) or
- * rotation to this frame.
+ * rotation to this frame. All four values are finite numbers (no NaN, not infinite);
+ * every producer (parser, chunker, mocks) guarantees this.
  */
 export type BoundingBox = { 
 /**

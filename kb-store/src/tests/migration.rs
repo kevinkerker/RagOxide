@@ -1,7 +1,7 @@
 //! Schema versions, migration, backup and its removal (G05, G20, G21, G28 to G30, G52).
 
 use super::*;
-use crate::open::sibling;
+use crate::open::{FULL_BACKUP_OF, sibling};
 
 pub(super) fn backup(db: &Path, version: u32) -> PathBuf {
     sibling(db, &format!(".v{version}.bak"))
@@ -304,4 +304,89 @@ fn deleted_text_is_in_no_file_after_a_migration() {
         Vec::<PathBuf>::new()
     );
     assert_eq!(names(&folder), ["library.sqlite", "library.sqlite-journal"]);
+}
+
+/// Migration 1 -> 2 that needs more pages than the disk has left.
+fn fill_the_disk(tx: &Transaction<'_>) -> rusqlite::Result<()> {
+    migrate_1_to_2(tx)?;
+    let pages: i64 = tx.pragma_query_value(None, "page_count", |r| r.get(0))?;
+    tx.pragma_update(None, "max_page_count", pages)?;
+    tx.execute(
+        "INSERT INTO chat_tags (chat_id, tag) VALUES ('voll', ?1)",
+        ["x".repeat(1_000_000)],
+    )?;
+    Ok(())
+}
+
+/// Schema 2 whose migration runs into a full disk.
+static SCHEMA_V2_FULL: Schema = Schema {
+    version: 2,
+    create: create_v2,
+    migrations: &[Migration {
+        from: 1,
+        apply: fill_the_disk,
+    }],
+    tables: TABLES_V2,
+};
+
+#[test]
+fn a_migration_on_a_full_disk_is_storage_full_and_changes_nothing() {
+    // K45: SQLITE_FULL during the migration; G05 still holds.
+    let scratch = Scratch::new();
+    let db = scratch.db();
+    let before = filled_v1(&db);
+    let bytes = std::fs::read(&db).unwrap();
+    let error = run(async {
+        SqliteStore::open_with(&db, &SCHEMA_V2_FULL)
+            .await
+            .unwrap_err()
+    });
+    assert!(matches!(error, Error::StorageFull(_)), "{error:?}");
+    assert!(error.to_string().contains("migration"), "{error}");
+    assert!(
+        error.to_string().contains("database or disk is full"),
+        "{error}"
+    );
+    assert_eq!(std::fs::read(&db).unwrap(), bytes, "rolled back completely");
+    assert_eq!(user_version(&db), 1);
+    // The backup written before the failed migration stays.
+    assert!(backup(&db, 1).is_file());
+    assert_eq!(user_version(&backup(&db, 1)), 1);
+    // With space again, the migration succeeds.
+    let after =
+        run(async { snapshot(&SqliteStore::open_with(&db, &SCHEMA_V2).await.unwrap()).await });
+    assert_eq!(after, before);
+    assert_eq!(user_version(&db), 2);
+}
+
+#[test]
+fn a_backup_on_a_full_disk_is_storage_full_and_changes_nothing() {
+    // K45: SQLITE_FULL while the backup before the migration is written; no
+    // migration, the file stays as it is and the older backup stays.
+    let scratch = Scratch::new();
+    let db = scratch.db();
+    let before = filled_v1(&db);
+    run(async { drop(SqliteStore::open_with(&db, &SCHEMA_V2).await.unwrap()) });
+    assert!(backup(&db, 1).is_file());
+    let bytes = std::fs::read(&db).unwrap();
+    *FULL_BACKUP_OF.lock().unwrap() = Some(db.clone());
+    let error = run(async { SqliteStore::open_with(&db, &SCHEMA_V3).await.unwrap_err() });
+    *FULL_BACKUP_OF.lock().unwrap() = None;
+    assert!(matches!(error, Error::StorageFull(_)), "{error:?}");
+    assert!(error.to_string().contains("backup"), "{error}");
+    assert!(
+        error.to_string().contains("database or disk is full"),
+        "{error}"
+    );
+    assert_eq!(std::fs::read(&db).unwrap(), bytes);
+    assert_eq!(user_version(&db), 2);
+    assert!(backup(&db, 1).is_file());
+    assert!(!backup(&db, 2).exists());
+    assert!(!sibling(&db, ".v2.bak.partial").exists());
+    // With space again, backup and migration succeed.
+    let after =
+        run(async { snapshot(&SqliteStore::open_with(&db, &SCHEMA_V3).await.unwrap()).await });
+    assert_eq!(after, before);
+    assert_eq!(user_version(&db), 3);
+    assert!(backup(&db, 2).is_file());
 }

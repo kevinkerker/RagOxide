@@ -3,7 +3,9 @@
 mod common;
 
 use common::*;
-use kb_core::{DocumentId, Error, Index, IndexEntry, SearchMode, SearchRequest};
+use kb_core::{
+    Anchor, BoundingBox, DocumentId, Error, Index, IndexEntry, SearchMode, SearchRequest,
+};
 
 const DIM: u32 = 64;
 const MODES: [SearchMode; 3] = [SearchMode::Hybrid, SearchMode::Vector, SearchMode::FullText];
@@ -405,6 +407,54 @@ async fn unusable_embeddings_are_rejected_and_add_nothing() {
         .await
         .unwrap();
     assert!(hits.is_empty());
+    drop(index);
+    remove(dir);
+}
+
+#[tokio::test]
+async fn a_box_that_is_not_finite_is_rejected_and_adds_nothing() {
+    // E64
+    let (index, dir) = open("e64", DIM).await;
+    for (n, value) in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY]
+        .into_iter()
+        .enumerate()
+    {
+        let mut bad = chunk("bad", n as u32, "ungültig Fischotter", Some("de"));
+        bad.provenance.anchors = vec![Anchor::Page {
+            page: 1,
+            bbox: BoundingBox {
+                left: 10.0,
+                top: value,
+                right: 20.0,
+                bottom: 30.0,
+            },
+        }];
+        let r = index
+            .add(&[
+                entry(
+                    chunk("ok", n as u32, "gültig Fischotter", Some("de")),
+                    DIM,
+                    1,
+                ),
+                entry(bad, DIM, 2),
+                entry(
+                    chunk("ok", 10 + n as u32, "gültig Fischotter", Some("de")),
+                    DIM,
+                    3,
+                ),
+            ])
+            .await;
+        assert!(matches!(r, Err(Error::InvalidInput(_))), "{value}: {r:?}");
+    }
+    // Neither the bad entry nor the valid ones around it are there, in any mode.
+    let q = seeded(DIM, 2);
+    for mode in MODES {
+        let hits = index
+            .search(&request("Fischotter", 10, mode), &q)
+            .await
+            .unwrap();
+        assert!(hits.is_empty(), "{mode:?}: {:?}", ids(&hits));
+    }
     drop(index);
     remove(dir);
 }

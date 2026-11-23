@@ -69,16 +69,14 @@ pub trait Parser: Send + Sync {
     /// has at least one anchor of the variant that belongs to the format (ADR 0010).
     /// Boxes are in the frame of the displayed page (see [`Page`](crate::Page)); a
     /// multi-page TIFF yields one page per frame, each with its own page number
-    /// (ADR 0097; the fork of docling.rs does so from the patch of ADR 0097 on, the
-    /// revision pinned in `Cargo.toml` does not contain it yet). Text that continues in another place
-    /// carries one anchor per place, in reading order: a paragraph continued on the next
+    /// (ADR 0097). Text that continues in another place carries one anchor per place,
+    /// in reading order: a paragraph continued on the next
     /// page one per page, a paragraph continued in the next column of the same page one
     /// per column. Each page says whether its text comes from a text recognition
     /// ([`Page::from_ocr`](crate::Page)). A text layer that a PDF already has is taken
     /// over; a damaged one is replaced by recognising the page again (ADR 0091). XLSX
-    /// cells carry their displayed value in US notation
-    /// ([`TableCell::text`](crate::TableCell), ADR 0092; for all number formats only
-    /// from the patch of ADR 0093 on, which the pinned revision does not contain yet).
+    /// cells carry their displayed value in US notation, whatever the number format
+    /// ([`TableCell::text`](crate::TableCell), ADR 0092, ADR 0093).
     ///
     /// What is read (ADR 0095, ADR 0096): the content the author wrote, including
     /// footnotes and the notes of a slide (with the anchor of their slide). Hidden
@@ -88,7 +86,10 @@ pub trait Parser: Send + Sync {
     ///
     /// Errors: [`Error::UnsupportedFormat`](crate::Error::UnsupportedFormat) for
     /// unknown extensions, [`Error::Parse`](crate::Error::Parse) for corrupt or
-    /// encrypted files and crashed worker processes, `Cancelled`.
+    /// encrypted files and crashed worker processes, `Cancelled`. A file that does not
+    /// exist or cannot be read is [`Error::Io`](crate::Error::Io); a missing file of a
+    /// parser model is [`Error::Model`](crate::Error::Model) with the role or the file in
+    /// its message. Neither is ever `NotFound`.
     async fn parse(&self, source: &SourceFile, cancel: CancellationToken) -> Result<Document>;
 }
 
@@ -111,7 +112,10 @@ pub trait Chunker: Send + Sync {
     /// exception.
     ///
     /// - Running text longer than the limit is split at sentence boundaries, failing
-    ///   that at word boundaries, failing that at token boundaries.
+    ///   that at word boundaries, failing that at character boundaries: the longest
+    ///   leading piece that does not exceed the limit, never inside a character
+    ///   (`char`). If a single character has more tokens than the limit, the call fails
+    ///   with [`Error::Chunk`](crate::Error::Chunk).
     /// - A table whose text fits stays in one chunk.
     /// - A larger table is split at row boundaries into consecutive parts. Each part is
     ///   a Markdown table that repeats the header rows (see
@@ -201,7 +205,13 @@ pub trait Reranker: Send + Sync {
 /// An index is bound to one [`EmbeddingSpace`], given when it is built and persisted
 /// with it. Opening an index that was built for another space fails with
 /// [`Error::EmbeddingMismatch`](crate::Error::EmbeddingMismatch); the app then rebuilds
-/// it by ingesting all documents again.
+/// it by ingesting all documents again. Opening also fails with `EmbeddingMismatch` if
+/// the stored index carries a format version this program does not read (older or
+/// newer, ADR 0158): the data stay unchanged, and the consequence is the same as for
+/// another model, the app rebuilds the index. Unlike the [`Store`], whose newer
+/// database is [`Error::Store`](crate::Error::Store) and is not overwritten (ADR 0119)
+/// because it holds chats and settings, the index holds only data that can be produced
+/// again from the files.
 #[async_trait]
 pub trait Index: Send + Sync {
     /// The embedding space the index is bound to.
@@ -209,7 +219,10 @@ pub trait Index: Send + Sync {
 
     /// Adds entries. An entry whose chunk id already exists replaces the old one.
     /// An embedding whose length differs from the space's dimension is
-    /// `EmbeddingMismatch`, and nothing is added.
+    /// `EmbeddingMismatch`, and nothing is added. An entry whose chunk carries a box
+    /// with a value that is not finite (NaN or infinite, in an anchor of an element or
+    /// of a table cell) is `InvalidInput`, and nothing is added, not even another entry
+    /// of the same call: such a number cannot be stored and read back (JSON has none).
     async fn add(&self, entries: &[IndexEntry]) -> Result<()>;
 
     /// Removes all chunks of a document. Succeeds if there are none.
@@ -307,9 +320,20 @@ pub trait Generator: Send + Sync {
 /// Persists documents, chats and settings (package G, `kb-store`).
 ///
 /// Delete methods succeed if the object does not exist.
+///
+/// If the database reports that it or its disk is full, the call ends with
+/// [`Error::StorageFull`](crate::Error::StorageFull) with the original text; nothing is
+/// written then, and the store stays usable. Every other failure of the database is
+/// [`Error::Store`](crate::Error::Store).
 #[async_trait]
 pub trait Store: Send + Sync {
     /// Inserts or replaces the record with `record.id`.
+    ///
+    /// Every supported file has exactly one record ([`DocumentRecord`]): a new id for a
+    /// path whose [`path_key`](crate::path_key) another record already has (also in
+    /// another spelling or normal form), and a replacement that changes a record's path
+    /// to that of another record, are `InvalidInput`, and the store stays unchanged.
+    /// Replacing with the same id and the same or a free path succeeds.
     async fn upsert_document(&self, record: &DocumentRecord) -> Result<()>;
 
     /// Returns the record with `id`, if any.
@@ -327,6 +351,10 @@ pub trait Store: Send + Sync {
 
     /// Stores the parsed document (for the text view and `get_document`), replacing
     /// earlier content of the same document.
+    ///
+    /// A document with a page size or a box (on an element or a table cell) that is not
+    /// finite (NaN or infinite) is `InvalidInput`, and nothing is stored: JSON has no
+    /// such numbers, they could not be read back.
     async fn save_content(&self, document: &Document) -> Result<()>;
 
     /// Returns the parsed document with `id`, if stored.
@@ -334,6 +362,10 @@ pub trait Store: Send + Sync {
 
     /// Inserts or replaces a chat, with its timestamps as given (the
     /// [`KnowledgeBase`](crate::KnowledgeBase) sets them).
+    ///
+    /// A chat with a box that is not finite (NaN or infinite) in a citation is
+    /// `InvalidInput`, and nothing is stored: JSON has no such numbers, they could not be
+    /// read back.
     async fn save_chat(&self, chat: &Chat) -> Result<()>;
 
     /// Returns the chat with `id`, if any.

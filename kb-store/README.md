@@ -33,7 +33,7 @@ Eine Datei, Schema 1, alle Tabellen `STRICT`. Kennungen, Pfade und Titel stehen 
 - **Sortierung:** `documents()` sortiert nach `path_key` mit `COLLATE BINARY`, also byteweise nach UTF-8, wie `str` in Rust und wie `MockStore`; keine Kollation von SQLite, keine Groß- und Kleinschreibung von SQLite. `chats()` sortiert nach `updated_at` absteigend, bei Gleichstand nach `id` byteweise aufsteigend.
 - **Zeitpunkte:** `Timestamp` ist ein `u64`, SQLite kennt nur vorzeichenbehaftete 64 Bit. `created_at` und `updated_at` werden mit gekipptem Vorzeichenbit gespeichert (0 wird `i64::MIN`, `u64::MAX` wird `i64::MAX`); so passt jeder Wert, und die Reihenfolge der Zahlen ist die der Zeitpunkte. In den JSON-Spalten schreibt serde `u64` als Zahl ohne Verlust.
 - **`f32`:** Boxen und Seitengrößen schreibt serde_json in der kürzesten Form, die genau denselben `f32` ergibt; ein Test vergleicht die Bits.
-- **Eindeutigkeit:** `path_key` ist eindeutig. Ein zweiter Datensatz für dieselbe Datei wird abgelehnt (siehe Abweichungen).
+- **Eindeutigkeit:** `path_key` ist eindeutig. Ein zweiter Datensatz für dieselbe Datei wird mit `InvalidInput` abgelehnt, wie es der Vertrag an `Store::upsert_document` verlangt (siehe „Verhalten bei Fehlern“).
 - **SQL:** Jeder Wert des Nutzers geht als gebundener Parameter (`?1`, `?2`, …) in SQL ein. Zusammengesetzt werden nur Pragmas mit festen Werten des Pakets und Tabellennamen aus dem Schema des Pakets.
 
 ## Einstellungen und neue Felder
@@ -91,7 +91,7 @@ Die Datenbank ist nicht verschlüsselt. Sie enthält Fragen, Antworten, zitierte
 
 ## Verhalten bei Fehlern
 
-- Fehler von SQLite kommen als `Error::Store` mit dem Originaltext von SQLite, nie als Panic: etwa „attempt to write a readonly database“, wenn SQLite einen Schreibzugriff ablehnt, oder „database or disk is full“ bei voller Platte oder voller Datenbank. Das Öffnen einer schreibgeschützten Datei endet vorher mit einem eigenen Text (siehe „Ein Prozess“). Eine eigene Kategorie für die volle Platte (`StorageFull`) gibt der Vertrag für den Speicher nicht her; sie steht als Änderungsantrag im Bericht.
+- Meldet SQLite eine volle Datenbank oder Platte (`SQLITE_FULL`, „database or disk is full“), endet der Aufruf mit `Error::StorageFull` mit dem Originaltext von SQLite; geschrieben ist dann nichts, und der Speicher bleibt benutzbar. Das gilt in jeder Methode und beim Öffnen, auch bei der Migration und bei der Sicherung davor; die Zusagen für ein gescheitertes Öffnen gelten unverändert (Datei bytegleich, eine ältere Sicherung bleibt). Alle übrigen Fehler von SQLite kommen als `Error::Store` mit dem Originaltext, nie als Panic: etwa „attempt to write a readonly database“, wenn SQLite einen Schreibzugriff ablehnt. Das Öffnen einer schreibgeschützten Datei endet vorher mit einem eigenen Text (siehe „Ein Prozess“).
 - `InvalidInput`: relativer Pfad bei `document_by_path` und beim Öffnen; ein zweiter Datensatz für einen vorhandenen Pfad; Werte, die sich nicht als JSON schreiben lassen (ein Pfad, der kein gültiges Unicode ist; eine Zahl `NaN` oder unendlich in Boxen und Seitengrößen).
 - Ein gespeicherter Wert, der sich nicht mehr lesen lässt, ist `Error::Store` („stored … cannot be read“).
 - Das Löschen eines unbekannten Objekts ist kein Fehler; das Lesen einer unbekannten Kennung ergibt `Ok(None)`.
@@ -102,10 +102,8 @@ Die Datenbank ist nicht verschlüsselt. Sie enthält Fragen, Antworten, zitierte
 
 `SqliteStore` verhält sich an jeder Methode wie `MockStore`, nur dauerhaft, mit diesen Ausnahmen:
 
-1. **Ein Datensatz je Pfad (G07):** `upsert_document` lehnt einen Datensatz mit `InvalidInput` ab, wenn ein anderer Datensatz schon denselben `path_key` trägt, auch beim Ändern des Pfads eines vorhandenen Datensatzes. `MockStore` nimmt beides an. Ein Ingestor, der eine Datei erst unter neuer Kennung anlegt und dann die alte löscht, scheitert daran; der Mock-Ingestor tut das nicht.
-2. **Keine `NaN` und keine Unendlichkeit:** `save_content` und `save_chat` lehnen Boxen und Seitengrößen mit `NaN` oder unendlich mit `InvalidInput` ab. JSON kennt diese Zahlen nicht; serde_json würde `null` schreiben, und der Inhalt ließe sich nie wieder lesen. `MockStore` speichert sie (und liefert sie zurück).
-3. **Pfade, die kein gültiges Unicode sind** (unter Windows ein einzelner Teil eines UTF-16-Surrogatpaars): `upsert_document`, `save_settings` und `update_settings` lehnen sie mit `InvalidInput` ab, weil JSON nur gültiges Unicode kennt. `MockStore` speichert sie und findet einen solchen Datensatz mit `document_by_path`; der Speicher liefert dort `Ok(None)`, weil es keinen solchen Datensatz geben kann.
-4. **Panic in der Funktion von `update_settings`:** Der Speicher rollt zurück und gibt `Error::Store` („the database thread failed while handling the call“) zurück; der Datenbank-Thread läuft weiter. Bei `MockStore` geht der Panic an den Aufrufer.
+1. **Pfade, die kein gültiges Unicode sind** (unter Windows ein einzelner Teil eines UTF-16-Surrogatpaars): `upsert_document`, `save_settings` und `update_settings` lehnen sie mit `InvalidInput` ab, weil JSON nur gültiges Unicode kennt. `MockStore` speichert sie und findet einen solchen Datensatz mit `document_by_path`; der Speicher liefert dort `Ok(None)`, weil es keinen solchen Datensatz geben kann.
+2. **Panic in der Funktion von `update_settings`:** Der Speicher rollt zurück und gibt `Error::Store` („the database thread failed while handling the call“) zurück; der Datenbank-Thread läuft weiter. Bei `MockStore` geht der Panic an den Aufrufer.
 
 Gleich wie bei `MockStore`: Für einen Datensatz mit relativem Pfad (den der Vertrag nicht vorsieht) nimmt der Speicher den kleingeschriebenen Pfad als Schlüssel.
 

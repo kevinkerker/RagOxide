@@ -1,10 +1,10 @@
-//! A write that SQLite refuses and a full database are `Error::Store` with the text of
-//! SQLite, never a panic (G40).
+//! A full database is `Error::StorageFull`, a write that SQLite refuses otherwise is
+//! `Error::Store`, both with the text of SQLite and never a panic (G40, K45).
 
 use super::*;
 
 #[test]
-fn a_full_database_is_a_store_error_with_the_text_of_sqlite() {
+fn a_full_database_is_storage_full_with_the_text_of_sqlite() {
     let scratch = Scratch::new();
     run(async {
         let store = SqliteStore::open(scratch.db()).await.unwrap();
@@ -23,15 +23,13 @@ fn a_full_database_is_a_store_error_with_the_text_of_sqlite() {
             .unwrap();
         let big = big_document("doc-big", 5_000);
         let error = store.save_content(&big).await.unwrap_err();
-        assert!(matches!(error, Error::Store(_)), "{error:?}");
-        assert_eq!(error.to_string(), "store error: database or disk is full");
+        assert!(matches!(error, Error::StorageFull(_)), "{error:?}");
+        assert_eq!(error.to_string(), "storage full: database or disk is full");
         let mut chat = chat("voll", &"x".repeat(100_000), AnswerOutcome::Complete);
         chat.turns.push(chat.turns[0].clone());
         let error = store.save_chat(&chat).await.unwrap_err();
-        assert!(
-            error.to_string().contains("database or disk is full"),
-            "{error}"
-        );
+        assert!(matches!(error, Error::StorageFull(_)), "{error:?}");
+        assert_eq!(error.to_string(), "storage full: database or disk is full");
         // Nothing half written, and the store keeps working.
         assert!(
             store
