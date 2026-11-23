@@ -9,6 +9,23 @@ license.workspace = true
 
 [dependencies]
 kb-core = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+unicode-normalization = { workspace = true }
+# Vectors and full text in one store (ADR 0129). No default features: no cloud
+# storage, no remote services, no embedding providers.
+lancedb = { version = "=0.41.0", default-features = false }
+# Moves the own text analysis off the async executor.
+tokio = { version = "1.54", default-features = false, features = ["rt", "sync"] }
+# Decompresses the embedded word list (ADR 0130); the same crate LanceDB uses.
+zstd = { version = "0.14", default-features = false }
+
+[dev-dependencies]
+kb-core = { workspace = true, features = ["mock"] }
+tokio = { version = "1.54", features = ["rt", "rt-multi-thread", "macros", "time"] }
+toml = { workspace = true }
 
 [lints]
 workspace = true
