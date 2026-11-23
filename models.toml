@@ -226,19 +226,35 @@ sha256 = "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15"
 size_bytes = 17098273
 
 [[models]]
-id = "qwen3-reranker-0.6b"
-name = "Qwen3-Reranker-0.6B (GGUF for llama-server --reranking)"
+id = "gte-multilingual-reranker-base"
+name = "gte-multilingual-reranker-base (ONNX, dynamic INT8 by onnx-community)"
 role = "reranker"
 tiers = ["supported"]
 preference = 2
 license = "Apache-2.0"
-source = "https://huggingface.co/Qwen/Qwen3-Reranker-0.6B"
+source = "https://huggingface.co/Alibaba-NLP/gte-multilingual-reranker-base"
+# Fallback reranker in ONNX (ADR 0161). Measurement and choice: ADR 0183 (owner, 2026-11-23).
+# It replaces the GGUF entry Qwen3-Reranker-0.6B, which package C cannot load.
+# Licence: Apache-2.0 per the model card of Alibaba-NLP (no LICENSE file); the ONNX repo of
+# onnx-community states no licence. Unchanged file as published by onnx-community, exported
+# in 2024 from the remote-code version; the original moved to the native transformers
+# architecture on 2026-11-21 with unchanged weights according to its card.
+# Score one candidate per call (batch 1): dynamic INT8, the score otherwise depends on the
+# batch. Inputs include token_type_ids (zeros); pad id 1; truncate only the passage, to 512
+# tokens (tokenizer.json says LongestFirst). Scores are not comparable with the main
+# reranker: min_relevance needs its own value per model.
 
 [[models.files]]
-path = "qwen3-reranker-0.6b.gguf"
-# repo, revision: OPEN - no GGUF source chosen
-# sha256: UNVERIFIED
-# size_bytes: OPEN
+path = "onnx/model_int8.onnx"
+source = { kind = "hugging_face", repo = "onnx-community/gte-multilingual-reranker-base", revision = "ee64367e35a2db0da46bb6497e13a18f8bd585cb" }
+sha256 = "ccf51dba7f8aa9205753761cfaa68c55f741792501463a3bf25d7e5bcdac7c35"
+size_bytes = 340858200
+
+[[models.files]]
+path = "tokenizer.json"
+source = { kind = "hugging_face", repo = "onnx-community/gte-multilingual-reranker-base", revision = "ee64367e35a2db0da46bb6497e13a18f8bd585cb" }
+sha256 = "3ffb37461c391f096759f4a9bbbc329da0f36952f88bab061fcf84940c022e98"
+size_bytes = 17082999
 
 # ---------------------------------------------------------------- answer models (ADR 0055)
 # One model per level; `mtp_draft` switches multi-token prediction on when the server

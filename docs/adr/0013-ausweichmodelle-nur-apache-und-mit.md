@@ -1,7 +1,7 @@
 # 0013: Ausweichmodelle nur unter Apache 2.0 oder MIT
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen; die Zeilen zum Antwortmodell sind ersetzt durch [0055](0055-antwortmodelle-in-drei-stufen.md), die Stufe für 8 GB durch [0056](0056-mindestanforderung-16-gb.md); ergänzt durch [0086](0086-kein-ausweichmodell-fuer-hoehere-stufen.md)
+- **Status:** angenommen; die Zeilen zum Antwortmodell sind ersetzt durch [0055](0055-antwortmodelle-in-drei-stufen.md), die Stufe für 8 GB durch [0056](0056-mindestanforderung-16-gb.md); ergänzt durch [0086](0086-kein-ausweichmodell-fuer-hoehere-stufen.md); die Zeile zum Reranker (Ausweichmodell Qwen3-Reranker-0.6B) ist teilweise ersetzt durch [0161](0161-ausweich-reranker-als-onnx.md); Ausweich-Reranker: [0183](0183-ausweich-reranker-gte-multilingual.md)
 
 ## Kontext
 

@@ -1,7 +1,7 @@
 # 0056: Mindestanforderung 16 GB RAM
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen, ersetzt [0002](0002-zielhardware-und-betriebssysteme.md), außerdem die 8-GB-Stufe aus [0013](0013-ausweichmodelle-nur-apache-und-mit.md) und die Untergrenze von 8 GB aus [0050](0050-unter-mindestanforderung-warnen-und-erlauben.md); ergänzt durch [0084](0084-mtp-unter-der-mindestanforderung-aus.md)
+- **Status:** angenommen, ersetzt [0002](0002-zielhardware-und-betriebssysteme.md), außerdem die 8-GB-Stufe aus [0013](0013-ausweichmodelle-nur-apache-und-mit.md) und die Untergrenze von 8 GB aus [0050](0050-unter-mindestanforderung-warnen-und-erlauben.md); ergänzt durch [0084](0084-mtp-unter-der-mindestanforderung-aus.md); der Satz zur GPU ist für Phase 1 teilweise ersetzt durch [0160](0160-antwortmodell-in-phase-1-nur-auf-der-cpu.md)
 
 ## Kontext
 

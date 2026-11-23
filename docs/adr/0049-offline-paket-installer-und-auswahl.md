@@ -1,7 +1,7 @@
 # 0049: Offline-Paket per Installer und per Auswahl in der Einrichtung
 
 - **Datum:** 2026-11-15
-- **Status:** angenommen, ergänzt [0003](0003-modelle-nachladen-und-offline-paket.md)
+- **Status:** angenommen, ergänzt [0003](0003-modelle-nachladen-und-offline-paket.md); die Warnung bei zu wenig Platz ist teilweise ersetzt durch [0179](0179-grundausstattung-nur-bei-genug-platz.md) (Sperre, wenn alle Größen bekannt sind)
 
 ## Kontext
 

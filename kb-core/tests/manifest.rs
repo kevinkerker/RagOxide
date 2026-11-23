@@ -151,7 +151,7 @@ fn lists_fallbacks_runtimes_and_embedding_dimensions() {
         [
             "qwen3-embedding-0.6b",
             "bge-m3",
-            "qwen3-reranker-0.6b",
+            "gte-multilingual-reranker-base",
             "qwen3.5-4b"
         ]
     );

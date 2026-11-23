@@ -37,7 +37,7 @@ Die App ist ein Cargo-Workspace mit einem Crate je Baustein. Alle Fach-Crates h�
 | `kb-models` | Embedding und Reranking auf der CPU | ONNX Runtime (`ort` oder `fastembed-rs`) |
 | `kb-hub` | Modelle laden, prüfen, Hardware erkennen, Stufe wählen | `reqwest`, SHA-256 |
 | `kb-index` | Vektor- und Volltextsuche, Fusion der Trefferlisten | LanceDB |
-| `kb-llm` | Antwortmodell lokal oder über OpenAI-kompatible Schnittstelle | llama.cpp (`llama-server` mitgeliefert) |
+| `kb-llm` | Antwortmodell lokal (kein externer Endpunkt, ADR 0015 und 0159) | llama.cpp (`llama-server` mitgeliefert) |
 | `kb-store` | Dokumentliste, Aufträge, Chatverläufe, Einstellungen | SQLite (`rusqlite`) |
 | `kb-ingest` | Einlesen als Hintergrundauftrag, Ordnerüberwachung, nur Geändertes neu | `tokio`, `notify` |
 | `kb-rag` | Frage zu Antwort: Suche, Reranking, Prompt, Streaming, Zitatprüfung | Eigene Logik |
@@ -95,7 +95,7 @@ Alle 15 Pakete können direkt nach Tor 1 gleichzeitig starten. Jedes Paket gehö
 | C | Embedding und Reranker | `kb-models` | `Embedder` und `Reranker` über ONNX, quantisiert, Stapelverarbeitung | Deutsche Testpaare richtig gereiht, Task-Präfixe getestet, kein float16, Durchsatz dokumentiert |
 | D | Modellverwaltung | `kb-hub` | Download mit Fortsetzen und Prüfsumme, Hardware-Erkennung, Wahl der Modellstufe | Abgebrochener Download setzt fort, falsche Prüfsumme wird abgelehnt |
 | E | Index und Suche | `kb-index` | `Index` über LanceDB: Vektor, Volltext, Fusion (RRF), Filter, Löschen je Dokument | Hybrid schlägt Einzelsuchen auf den Testdaten, deutsche Wortformen werden gefunden |
-| F | Antwortmodell | `kb-llm` | `Generator`: `llama-server` starten und überwachen, Streaming, Abbruch, externer OpenAI-kompatibler Endpunkt | Streaming und Abbruch funktionieren, Absturz des Servers wird abgefangen |
+| F | Antwortmodell | `kb-llm` | `Generator`: `llama-server` starten und überwachen, Streaming, Abbruch (kein externer Endpunkt, ADR 0015 und 0159) | Streaming und Abbruch funktionieren, Absturz des Servers wird abgefangen |
 | G | Speicher | `kb-store` | `Store` über SQLite: Dokumente, Aufträge, Chats, Einstellungen, Migrationen | Migration von leer und von Vorversion läuft durch |
 | H | Einlesen | `kb-ingest` | Auftragswarteschlange, Ordnerüberwachung, Hash-Vergleich, Fortschritt, Abbruch, Fehler je Datei | Geänderte Datei wird neu indexiert, unveränderte übersprungen, defekte Datei stoppt nichts |
 | I | RAG und Zitate | `kb-rag` | Frage umformulieren, suchen, reranken, Prompt mit nummerierten Quellen und Obergrenze von etwa 8.000 Token, Zitatprüfung | Jede Zitatnummer verweist auf einen gelieferten Chunk, ohne Treffer keine erfundene Antwort |
