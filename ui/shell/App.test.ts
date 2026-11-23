@@ -443,30 +443,31 @@ test("the chosen level is read from the settings and written back (ADR 0060)", a
   ]);
 });
 
-test("chat placeholder: level, phase waiting and a missing model with its download", async () => {
+test("chat: a level without its model offers the download, and an answer can wait", async () => {
   mock = createMockBackend({ tickMs: 5 });
   useBackend(mock);
   render(App);
   await screen.findByText(/Bibliothek aktuell ·/);
-  const level = await screen.findByLabelText("Stufe");
-  await fireEvent.change(level, { target: { value: "balanced" } });
-  await waitFor(() => expect(answerLevel.current).toBe("balanced"));
-  await fireEvent.input(screen.getByLabelText("Frage an deine Dokumente"), {
-    target: { value: "Wie oft wird ein Gerät geprüft?" },
-  });
-  await fireEvent.click(screen.getByRole("button", { name: "Senden" }));
-  const alert = await screen.findByRole("alert");
-  expect(alert.textContent).toContain("„Ausgewogen“ fehlt noch das Modell");
-  await fireEvent.click(within(alert).getByRole("button", { name: "Modell laden" }));
+  // The stepper's menu offers the download of a level without its model (ADR 0058, 0064).
+  await fireEvent.click(await screen.findByRole("button", { name: "Stufe: Schnell" }));
+  await fireEvent.click(screen.getByRole("menuitemradio", { name: /Ausgewogen/ }));
+  const dialog = await screen.findByRole("dialog", { name: "„Ausgewogen“ zuerst laden?" });
+  await fireEvent.click(within(dialog).getByRole("button", { name: "Laden" }));
   await waitFor(() => expect(setup.level("balanced")?.ready).toBe(true), { timeout: 10_000 });
-  expect(await screen.findByText(/Das Modell ist bereit/)).toBeTruthy();
-  // Phase "wartet": a second question while another answer runs.
+  // Ready: the level switches.
+  await waitFor(() => expect(answerLevel.current).toBe("balanced"));
+  expect(await screen.findByRole("button", { name: "Stufe: Ausgewogen" })).toBeTruthy();
+  // Phase "wartet": as if another answer ran.
   await fireEvent.input(screen.getByLabelText("Frage an deine Dokumente"), {
     target: { value: "Wie oft wird ein Gerät geprüft? mock:slow-wait" },
   });
   await fireEvent.click(screen.getByRole("button", { name: "Senden" }));
-  expect(await screen.findByText("Wartet auf eine laufende Antwort …")).toBeTruthy();
+  expect(
+    await screen.findByText("Wartet auf eine andere Antwort", { selector: "article p" }),
+  ).toBeTruthy();
   await fireEvent.click(screen.getByRole("button", { name: "Abbrechen" }));
+  // The answer ends with `done` (cancelled) and stays in the chat (ADR 0045).
+  expect(await screen.findByText("Abgebrochen.", { selector: "article strong" })).toBeTruthy();
 }, 20_000);
 
 test("exclusions dropped before the shell listened arrive in the library", async () => {

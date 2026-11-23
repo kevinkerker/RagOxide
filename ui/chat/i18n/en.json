@@ -1,34 +1,218 @@
 {
   "newTitle": "New chat",
-  "question": "Your question",
+  "questionNumber": "Question {number}",
   "inputLabel": "Question to your documents",
   "placeholder": "Ask a question …",
+  "placeholderNext": "Next question …",
+  "keys": "Enter sends, Shift+Enter starts a new line.",
   "send": "Send",
-  "marker": "Source {number}",
-  "empty": "Ask a question about your documents.",
-  "sources": "Sources ({count})",
-  "selected": "selected",
-  "noSources": "No sources yet.",
-  "historyEmpty": "No chats yet.",
-  "phase": {
-    "waiting": "Waiting for a running answer …",
-    "searching": "Searching the library …",
-    "starting_model": "Starting the answer model …",
-    "reading_sources": "Reading the sources …",
-    "writing": "Writing the answer …"
-  },
   "cancel": "Cancel",
-  "cancelled": "Cancelled",
-  "failed": "Failed",
-  "levelLabel": "Level",
+  "marker": "Source {number}",
+  "selected": "selected",
+  "percent": "{percent} %",
+  "empty": {
+    "title": "Ask your documents",
+    "text": "RagOxide answers questions from the documents in your folders. Every statement carries a number; a click on it shows the passage in the document.",
+    "note": "If RagOxide finds no matching passage, it says so instead of making something up."
+  },
+  "phase": {
+    "pending": "Asking the question",
+    "waiting": "Waiting for another answer",
+    "searching": "Searching",
+    "starting_model": "Answer model “{level}” is starting",
+    "reading_sources": "Reading the passages found",
+    "writing": "Writing the answer"
+  },
+  "phaseText": {
+    "pending": "Your question goes to the library.",
+    "waiting": "Another question is being answered right now, in another chat or by a connected program. Yours comes next.",
+    "searching": {
+      "first": "Looking for matching passages in your documents.",
+      "followUp": "Rephrases your follow-up question and looks for matching passages in your documents."
+    },
+    "starting_model": {
+      "first": "The passages found are already in the evidence and can be read.",
+      "followUp": "For a follow-up question the search itself needs the answer model. The sources come afterwards."
+    },
+    "reading_sources": "“{level}” reads the passages before it writes.",
+    "writing": "The text appears as it is written. The numbers are checked against the sources at the end."
+  },
+  "running": "{level} · running for {time}",
+  "streaming": "{level} · running for {time} · The numbers are checked against the sources at the end.",
+  "fast": {
+    "offer": "Taking too long? The fast level usually starts within half a minute.",
+    "action": "Cancel and ask fast"
+  },
+  "announce": {
+    "done": {
+      "one": "Answer ready, 1 source.",
+      "other": "Answer ready, {count} sources."
+    }
+  },
+  "cancelled": "Cancelled.",
+  "cancelledKept": "The text up to here stays saved, with its verified sources.",
+  "cancelledEmpty": "The answer had not started yet.",
+  "failed": "The answer failed.",
+  "refused": "The question was not asked.",
+  "details": "Technical details",
+  "footer": {
+    "one": "{level} · 1 source",
+    "other": "{level} · {count} sources"
+  },
+  "showSources": {
+    "one": "Show 1 source",
+    "other": "Show {count} sources"
+  },
+  "again": {
+    "button": "Ask again",
+    "menu": "Ask again in level",
+    "note": "Have the same question answered anew, as a new answer at the bottom of the chat:",
+    "thorougher": "Answer more thoroughly",
+    "in": "In “{level}”"
+  },
+  "none": {
+    "why": "Nothing in your documents answers this question. RagOxide answers only with evidence, so there is no answer here.",
+    "ingesting": "The library is still reading {left} of {total} files. If the answer is in them, ask again afterwards.",
+    "todo": "Phrase the question differently, or check in the library whether the document is included.",
+    "similar": "Search similar passages",
+    "similarNone": "There are no similar passages either.",
+    "similarShown": {
+      "one": "1 similar passage is in the evidence, unverified.",
+      "other": "{count} similar passages are in the evidence, unverified."
+    }
+  },
   "level": {
     "fast": "Fast",
     "balanced": "Balanced",
     "thorough": "Thorough"
   },
-  "modelMissing": "The model for “{level}” is not there yet ({size} GB). Your question has not been asked.",
-  "modelReady": "The model is ready. Ask the question again.",
-  "download": "Download model",
+  "levelButton": "Level: {level}",
+  "levelMenu": "Choose level",
+  "levelMenuFoot": "Applies to all further questions until you change it.",
+  "wait": {
+    "fast": "usually starts within half a minute",
+    "balanced": "usually starts after about a minute",
+    "thorough": "starts only after several minutes and is written more slowly than you read"
+  },
+  "levelState": {
+    "ready": "Ready",
+    "missing": "Not downloaded yet, about {size} GB. Offered when you choose it.",
+    "missingAtLeast": "Not downloaded yet, at least {size} GB. Offered when you choose it.",
+    "loading": "Downloading: {percent} %",
+    "paused": "Paused at {percent} %",
+    "failed": "Download failed. Choose it to try again.",
+    "notOffered": "Not available: needs at least 16 GB of memory, this computer has {ram} GB."
+  },
   "cancelDownload": "Pause download",
-  "downloadFailed": "The download was interrupted. You can resume it."
+  "resumeDownload": "Resume",
+  "help": {
+    "running": "The answer is running. Cancel takes effect at once, also while the model starts.",
+    "loading": "“{level}” is downloading: {percent} %. Until then “{current}” answers.",
+    "loadingNoAnswer": "“{level}” is downloading: {percent} %.",
+    "paused": "Download of “{level}” paused at {percent} %. Resume it in the level menu.",
+    "failed": "Download of “{level}” failed: {cause}. The parts downloaded stay, a new attempt continues from there. Without internet, the offline package in the settings helps. Until then “{current}” answers.",
+    "failedStored": "Download of “{level}” failed: {cause}. The parts downloaded stay, a new attempt continues from there. Without internet, the offline package in the settings helps.",
+    "weak": "This computer offers only “Fast”: the other levels need at least 16 GB of memory.",
+    "price": {
+      "fast": "Fast: the answer usually starts within half a minute.",
+      "balanced": "Balanced: the answer usually starts after about a minute.",
+      "thorough": "Thorough: every question takes several minutes until you change the level."
+    }
+  },
+  "downloadCause": {
+    "network": "no connection",
+    "storage_full": "not enough disk space",
+    "checksum_mismatch": "a file arrived damaged",
+    "other": "an error while downloading"
+  },
+  "download": {
+    "title": "Download “{level}” first?",
+    "size": "The answer model for “{level}” is still missing, about {size} GB from the internet.",
+    "sizeAtLeast": "The answer model for “{level}” is still missing, at least {size} GB from the internet.",
+    "free": "The model folder has {free} GB free, enough for it.",
+    "tooLittle": "The model folder has only {free} GB free, too little for {size} GB. Free up space before downloading.",
+    "background": "The download runs in the background and can be paused and resumed in the level menu. Until it is done, “{level}” answers.",
+    "backgroundNoAnswer": "The download runs in the background and can be paused and resumed in the level menu.",
+    "questionStays": "Your question stays in the input.",
+    "againAfter": "Afterwards you can ask the question again.",
+    "load": "Download",
+    "stay": "Stay with “{level}”",
+    "blocked": "The model folder has only {free} GB free. {lacking} GB are missing. Free up space, then you can download."
+  },
+  "sources": {
+    "none": "Sources",
+    "noneNote": "The sources of your answer appear here, with number and location.",
+    "pending": "Sources of question {question}",
+    "pendingNote": "The sources appear here as soon as the search has found them.",
+    "followUpNote": "Sources follow after the model has started.",
+    "found": "Found ({count}) for question {question}",
+    "foundNote": "Which passages the answer cites is settled only when it is done.",
+    "cited": "Sources ({count}) of question {question}",
+    "citedNone": "This answer cites no source.",
+    "noSourcesNote": "There is no passage for this question in your documents.",
+    "similar": "Similar passages ({count}) for question {question}",
+    "similarNote": "Unverified: the search found these passages; there is no answer to them.",
+    "similarNone": "The search found no similar passages either.",
+    "unverified": "unverified"
+  },
+  "place": {
+    "path": "{path}",
+    "page": "Page {pages}",
+    "image": "Page {pages} (image)",
+    "slide": "Slide {slides}",
+    "slideNotes": "Slide {slides} · Notes",
+    "sheets": "Sheets “{first}” to “{last}”",
+    "cell": "Sheet “{sheet}” · Cell {cell}",
+    "cells": "Sheet “{sheet}” · Cells {range}"
+  },
+  "stale": {
+    "changed": "File changed",
+    "removed": "File removed"
+  },
+  "markdown": {
+    "image": "[Image: {alt}]",
+    "table": "Table"
+  },
+  "rename": {
+    "button": "Change title",
+    "label": "Title of the chat",
+    "save": "Save",
+    "cancel": "Cancel",
+    "empty": "An empty title cannot be saved. The previous one stays."
+  },
+  "history": {
+    "empty": "No chats yet. Your questions appear here, ordered by date.",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "lastWeek": "Last week",
+    "older": "Older",
+    "actions": "Actions for the open chat",
+    "rename": "Rename",
+    "delete": "Delete"
+  },
+  "delete": {
+    "title": "Delete “{title}”?",
+    "text": "The chat with all its questions and answers is removed for good. This cannot be undone. Your documents stay untouched.",
+    "confirm": "Delete chat",
+    "cancel": "Cancel"
+  },
+  "errorKind": {
+    "cancelled": "The operation was cancelled.",
+    "not_found": "Something it needs no longer exists.",
+    "unsupported_format": "A document has a format RagOxide cannot read.",
+    "invalid_input": "The request could not be made like this.",
+    "parse": "A document could not be read.",
+    "chunk": "A document could not be split into sections.",
+    "model": "A model could not be used.",
+    "embedding_mismatch": "The search no longer matches the documents read. Read the library again.",
+    "index": "The search in your documents failed.",
+    "network": "There was no connection.",
+    "storage_full": "The drive is full.",
+    "checksum_mismatch": "A model file arrived damaged.",
+    "model_missing": "The answer model of this level is missing.",
+    "generator": "The answer model stopped unexpectedly and starts anew with the next question.",
+    "store": "The chat could not be saved.",
+    "config": "The settings could not be read.",
+    "io": "A file or folder could not be read or written."
+  }
 }

@@ -254,15 +254,14 @@ test("an answer shows its phase, can be cancelled and stays in the chat", async 
   await page.getByLabel(chatDe.inputLabel).fill("Wie oft wird ein Gerät geprüft? mock:slow-search");
   await page.getByRole("button", { name: chatDe.send }).click();
   await expect(page.getByRole("status").filter({ hasText: chatDe.phase.searching })).toBeVisible();
-  await page.getByRole("button", { name: chatDe.cancel }).click();
-  await expect(page.getByText(chatDe.cancelled)).toBeVisible();
+  await page.getByRole("button", { name: chatDe.cancel, exact: true }).click();
+  await expect(page.locator("article").getByText(chatDe.cancelled)).toBeVisible();
   // ... then, for a first question, the model starts. The chat holds only a cancelled
   // turn, so this is no follow-up.
   await page.getByLabel(chatDe.inputLabel).fill("Wie oft wird ein Gerät geprüft? mock:slow-start");
   await page.getByRole("button", { name: chatDe.send }).click();
-  await expect(
-    page.getByRole("status").filter({ hasText: chatDe.phase.starting_model }),
-  ).toBeVisible();
+  const starting = chatDe.phase.starting_model.replace("{level}", chatDe.level.fast);
+  await expect(page.getByRole("status").filter({ hasText: starting })).toBeVisible();
   // The sources are already in the evidence column while the model starts (ADR 0043, 0054).
   await expect(
     page
@@ -271,8 +270,9 @@ test("an answer shows its phase, can be cancelled and stays in the chat", async 
       .first(),
   ).toBeVisible();
   await shot(page, "frame-answer-waiting");
-  await page.getByRole("button", { name: chatDe.cancel }).click();
-  await expect(page.getByText(chatDe.cancelled)).toBeVisible();
+  await page.getByRole("button", { name: chatDe.cancel, exact: true }).click();
+  await expect(page.locator("article").getByText(chatDe.cancelled)).toHaveCount(2);
+  await expect(page.locator("article").getByText(chatDe.cancelled).last()).toBeVisible();
   await expect(page.locator("nav").getByRole("button", { name: /mock:slow/ })).toBeVisible();
 });
 
@@ -370,17 +370,29 @@ test("answer levels: a level without its model offers the download (ADR 0058)", 
 }) => {
   await page.setViewportSize(SIZES.wide);
   await page.goto("/");
-  await page.getByLabel(chatDe.levelLabel).selectOption("balanced");
-  await page.getByLabel(chatDe.inputLabel).fill("Wie oft wird ein Gerät geprüft?");
-  await page.getByRole("button", { name: chatDe.send }).click();
-  const alert = page.getByRole("alert");
-  await expect(alert).toContainText(chatDe.level.balanced);
-  await alert.getByRole("button", { name: chatDe.download }).click();
+  await chooseLevel(page, "balanced");
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText(chatDe.level.balanced);
+  await dialog.getByRole("button", { name: chatDe.download.load, exact: true }).click();
   const bar = page.getByRole("contentinfo", { name: shellDe.status.label });
   await expect(bar.getByRole("button", { name: /Modelle werden geladen: .* GB/ })).toBeVisible();
   await shot(page, "level-download");
-  await expect(page.getByText(chatDe.modelReady)).toBeVisible({ timeout: 30_000 });
+  // Ready: the level switches (ADR 0058).
+  await expect(page.getByRole("button", { name: levelButton("balanced") })).toBeVisible({
+    timeout: 30_000,
+  });
 });
+
+/** Name of the chat's level stepper showing `level`. */
+function levelButton(level: "fast" | "balanced" | "thorough") {
+  return chatDe.levelButton.replace("{level}", chatDe.level[level]);
+}
+
+/** Chooses a level in the stepper's menu; a level without its model opens the dialog. */
+async function chooseLevel(page: Page, level: "balanced" | "thorough") {
+  await page.getByRole("button", { name: levelButton("fast") }).click();
+  await page.getByRole("menuitemradio", { name: new RegExp(chatDe.level[level]) }).click();
+}
 
 /**
  * Records every text of the status bar's download entry as the page changes it, with a
@@ -435,11 +447,13 @@ test("after the setup, a higher level's download starts at 0 % and only rises (S
   await expect(page.getByText(settingsDe.ready)).toBeVisible({ timeout: 60_000 });
   await page.getByRole("button", { name: settingsDe.finish }).click();
   await page.getByRole("button", { name: shellDe.nav.newChat }).click();
-  await page.getByLabel(chatDe.levelLabel).selectOption("balanced");
   await page.getByLabel(chatDe.inputLabel).fill("Wie oft wird ein Gerät geprüft?");
-  await page.getByRole("button", { name: chatDe.send }).click();
+  await chooseLevel(page, "balanced");
   const texts = await recordDownloadTexts(page);
-  await page.getByRole("alert").getByRole("button", { name: chatDe.download }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: chatDe.download.load, exact: true })
+    .click();
   await levelReady(page, "balanced");
   const seen = await texts();
   const percents = seen.map((text) => parseDownload(text).percent);
@@ -514,14 +528,18 @@ test("an offline package after a paused download continues its part (S08, contra
       mock.modelFiles.hold();
     });
   });
-  await page.getByLabel(chatDe.levelLabel).selectOption("balanced");
   await page.getByLabel(chatDe.inputLabel).fill("Wie oft wird ein Gerät geprüft?");
-  await page.getByRole("button", { name: chatDe.send }).click();
-  await page.getByRole("alert").getByRole("button", { name: chatDe.download }).click();
+  await chooseLevel(page, "balanced");
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: chatDe.download.load, exact: true })
+    .click();
   const entry = page.locator('[data-status="download"]');
   await expect(entry).toHaveText(/· ([4-9]\d) %/, { timeout: 60_000 });
   const paused = parseDownload((await entry.textContent())!);
-  await page.getByRole("button", { name: chatDe.cancelDownload }).click();
+  // Paused in the stepper's menu at the loading level (ADR 0126).
+  await page.getByRole("button", { name: levelButton("fast") }).click();
+  await page.getByRole("menuitem", { name: chatDe.cancelDownload }).click();
   await expect(entry).toBeHidden();
   const texts = await recordDownloadTexts(page);
   await page.evaluate(async () => {
