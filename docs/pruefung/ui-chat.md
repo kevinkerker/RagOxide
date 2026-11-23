@@ -3,7 +3,7 @@ feature: ui-chat
 datum: 2026-11-20
 commit: Branch paket-k-ui-chat, HEAD 07945f8, Arbeit des Pakets uncommittet
 spec: docs/abnahme-ui-chat.md
-ergebnis: PASS (sechster Durchgang 2026-11-21 gegen Fassung 2: alle 79 Kriterien und S16 PASS, Empfehlung Abnahme mit Hinweis auf drei unbelegte Absicherungen; fünfter bis zweiter Durchgang FAIL KC78 in wechselnden Lagen; erster Durchgang FAIL KC65)
+ergebnis: PASS (neunter Durchgang 2026-11-22 gegen Fassung 5: KC78, KC83 und berührte PASS, kein Blocker; achter Durchgang FAIL in KC78 und KC83, KC82 und berührte PASS; siebter Durchgang 2026-11-22 gegen Fassung 4 PASS: KC44, KC46 bis KC52, KC77, KC79 b, KC80, KC81 PASS, kein Blocker; sechster Durchgang 2026-11-21 gegen Fassung 2: alle 79 Kriterien und S16 PASS, Empfehlung Abnahme mit Hinweis auf drei unbelegte Absicherungen; fünfter bis zweiter Durchgang FAIL KC78 in wechselnden Lagen; erster Durchgang FAIL KC65)
 ---
 
 Hinweis zur Übernahme: Die Berichte sind unverändert übernommen. Weggelassen ist je Durchgang nur der Anhang des Prüfers zur Übergabe (Pfade seines Arbeitsordners), den er selbst als nicht zum Bericht gehörig gekennzeichnet hat.
@@ -1145,3 +1145,511 @@ Keine neuen Ladewege, kein HTML, keine neuen Abhängigkeiten. Die neuen Handler 
 1. **Dauer des gehaltenen Abstands:** 5 s, festgelegt vom Bearbeiter. Kleine Schritte mit mehr als 5 s Abstand verfallen jeweils; ist das gewollt?
 2. **„Abbrechen“:** steht nur an der Eingabe; nicht entschieden.
 3. **Dialog nach `model_missing`:** „Laden“ und „Bei „Schnell“ bleiben“ stellen die gespeicherte Stufe auf Schnell um; nicht entschieden.
+
+# Prüfbericht Paket K (ui/chat), siebter Durchgang
+
+## Siebter Durchgang (2026-11-22)
+
+- Datum: 2026-11-22
+- Bereich: Worktree `paket-k-ui-chat`, uncommittet (Basis 07945f8). Diff gegen den Stand vor den Nacharbeiten (Sicherungsarchiv vom 2026-11-21, entpackt in einen eigenen Ordner außerhalb des Worktrees)
+- Spezifikation: `docs/abnahme-ui-chat.md` Fassung 4; ADR 0058, 0060, 0065, 0066, 0074, 0145, 0146, 0151, 0152; `ui/README.md`
+- **Gesamtergebnis: PASS.** Alle 12 geprüften Kriterien bestehen. Es gibt einen Befund, den der Wortlaut von KC81 nicht abdeckt (Vorschlag 1). Ob KC81 ihn umfassen soll, entscheidet der Inhaber (Offene Frage 1).
+
+### Diff (vom Prüfer selbst bestimmt)
+
+Ein rekursiver Vergleich von Archiv und Worktree (ohne `node_modules`, `.git`, `dist`, `test-results`, `target`) zeigt geänderte Inhalte nur in 9 Dateien unter `ui/chat/`. Keine Datei ist neu oder weggefallen.
+- Code: `levels.svelte.ts`, `Chat.svelte`, `Composer.svelte`, `DownloadDialog.svelte` (dort nur Kommentare), `i18n/de.json`, `i18n/en.json` (je der neue Schlüssel `help.failedStored`)
+- Tests: `Levels.test.ts` (+314 Zeilen)
+- Doku: `README.md`, `BERICHT.md`
+
+Inhalt der Änderungen:
+- `levels.effective` (`levels.svelte.ts:30-34`): Schnell, solange die gespeicherte Stufe nicht bereit ist und lädt, sonst die gespeicherte Stufe.
+- `send` nutzt `levels.effective` (`Chat.svelte:537`), ebenso Knopf und Hilfezeile (`Composer.svelte:35`) und die Beschriftung im Dialog (`Chat.svelte:494-496`).
+- „Laden“ ruft nur `levels.download(level, reason === "choose")` (`Chat.svelte:504-509`), ohne Umstellung.
+- Der zweite Knopf ruft `choose("fast")` nur bei `reason === "missing"` (`Chat.svelte:515-520`).
+- Die Hilfezeile nennt bei gescheiterter gespeicherter Stufe `help.failedStored`, ohne „Bis dahin antwortet …“ (`Composer.svelte:72`).
+
+Unaufgeforderte Extras: keine. Jede Code-Zeile lässt sich KC80 oder KC81 zuordnen.
+
+### Kriterien
+
+| ID | Kriterium (kurz) | Ergebnis | Nachweis |
+|---|---|---|---|
+| KC44 | Bereite Stufe im Menü gilt; nur der Stufenknopf stellt um, einzige Ausnahme KC80 | PASS | Test `Levels.test.ts` „KC44 choosing a ready level …“ grün. Browser (`all-levels`, gespeichert Gründlich, Modell von Ausgewogen entfernt): Menü → Ausgewogen → „Bei „Gründlich“ bleiben“, danach gespeichert `thorough`, kein weiterer `set_answer_level`. Gegenprobe M2 macht den Test rot. |
+| KC46 | Dialog mit Größe, freiem Platz, Hintergrund-Satz, „Laden“ / zweiter Knopf, Fokus auf der sicheren Wahl; ohne „Laden“ kein Download | PASS | Test „KC46 KC62 …“ grün. Browser: Titel „„Ausgewogen“ zuerst laden?“, „rund 5,0 GB“, „120,0 GB frei“, „Bis es fertig ist, antwortet „Gründlich““, Fokus auf dem zweiten Knopf. Nach „bleiben“ und Escape: `provide_models` nicht aufgerufen. |
+| KC47 | Nach „Laden“ `provide(null, level)`, Knopf bleibt, „wird geladen: n %“, bei bereit Umschalten | PASS | Browser B1: `provide:["balanced"]`, Knopf „Gründlich“, Hilfezeile „„Ausgewogen“ wird geladen: 0 %. Bis dahin antwortet „Gründlich““. Danach Knopf „Ausgewogen“, `set_answer_level(balanced)` erst nach bereit. Test „KC47 KC48 …“ grün. Gegenprobe M11 (Menü schaltet nicht um) macht ihn rot. |
+| KC48 | „Laden anhalten“ / „Fortsetzen“ im Menü, Hilfezeile ohne Knopf | PASS | Test „KC47 KC48 …“ grün (Fortsetzen setzt beim vorhandenen Teil fort). Browser B2: „Laden anhalten“ ergibt „Laden von „Ausgewogen“ angehalten bei 0 %. Fortsetzen geht im Menü der Stufe.“ |
+| KC49 | Gescheiterter Download: rote Hilfezeile mit Ursache, Teile bleiben, Offline-Paket; im Menü „Wählen, um es erneut zu versuchen“ | PASS | Tests „KC49 …“ und „KC81 KC49 the stored level failed …“ grün. Browser `level-download-error`, aus dem Menü: „… keine Verbindung. Die geladenen Teile bleiben … Offline-Paket in den Einstellungen. Bis dahin antwortet „Schnell““ (richtig, Schnell hat ein Modell). Gespeicherte Stufe gescheitert: derselbe Text ohne „Bis dahin antwortet“. |
+| KC50 | `model_missing`: nichts gestellt oder gespeichert, Download wie KC46, Frage bleibt | PASS | Test „KC50 …“ grün. Browser B2 mit echter Ablehnung durch das Mock (`ask:["balanced"]`): Dialog, 0 Artikel, Feld behält die Frage. Siehe Kleinigkeit 1 zur Größe „0,0 GB“. |
+| KC51 | Erneut fragen; fehlendes Modell bietet den Download an | PASS | Tests „KC51 …“ (Z. 684, 717) grün. Browser B3: „In „Gründlich““ öffnet den Dialog. „Laden“ ruft `provide:["thorough"]`; nach bereit keine Umstellung und kein neuer Turn (1 Artikel). |
+| KC52 | Erneut fragen und Abbrechen-und-schnell ändern die Stufe nicht | PASS | Tests „KC51 KC52 …“, „KC53 KC52 …“ und „KC80 from Erneut fragen …“ (3 Tests) grün. Browser B3: nach „bleiben“, Escape und „Laden“ bleibt gespeichert `balanced`, kein `set_answer_level`. Gegenprobe M3 macht den Test rot. |
+| KC77 | Zu wenig Platz: „Laden“ gesperrt, „Es fehlen …“, Fokus auf dem zweiten Knopf; unbekannte Größe nur Warnung; auch aus Erneut fragen | PASS | Tests „KC46 KC77 …“ (Z. 193, mit Erneut fragen) und „KC77 with files of unknown size …“ (Z. 226) grün. Browser-Test „KC77 too little space …“ in 3 von 3 Gesamtläufen grün. |
+| KC79 (b) | Escape nach `model_missing` ändert nichts, Frage bleibt | PASS | Tests „KC79b …“ und je Einstieg „KC80 KC79b …“ grün. Browser B2: nach Escape gespeichert `balanced`, Knopf „Ausgewogen“, Frage im Feld. |
+| KC80 | Zweiter Knopf: nach `model_missing` „Bei „Schnell“ bleiben“ speichert Schnell; aus Menü und Erneut fragen „Bei „<bisherige>“ bleiben“ ändert nichts; „Laden“ stellt nirgends um; Escape ändert nichts | PASS | 9 Tests (`Levels.test.ts:453-535`) vergleichen den gespeicherten Wert im Mock vor und nach dem Klick und prüfen die Beschriftung. Alle grün. Browser in allen drei Einstiegen: Menü „Laden“/„Bei „Gründlich“ bleiben“; `model_missing` „Laden“/„Bei „Schnell“ bleiben“ (danach gespeichert `fast`); Erneut fragen „Laden“/„Bei „Ausgewogen“ bleiben“. Gegenproben M1, M2, M3, M4, M7 machen die Tests rot. |
+| KC81 | Während die gespeicherte Stufe lädt, antwortet Schnell ohne Dialog; gespeicherte Stufe bleibt; Hilfezeile nennt Download und Schnell; bei bereit gilt die Stufe; angehalten oder gescheitert wieder Dialog | PASS | 7 Tests (`Levels.test.ts:537-682`) grün. Browser B2: nach „Laden“ Knopf „Schnell“, Hilfezeile „„Ausgewogen“ wird geladen: 0 %. Bis dahin antwortet „Schnell“.“, im Menü Schnell markiert. Senden: kein Dialog, `ask` mit `fast`, Fußzeile „Schnell · 2 Quellen“, gespeichert `balanced`, kein `set_answer_level`, nirgends „antwortet „Ausgewogen““. Angehalten: Knopf „Ausgewogen“, Senden öffnet den Dialog. Gescheitert (B4): Senden öffnet den Dialog. Gegenproben M5, M6, M8, M9, M10 machen die Tests rot. |
+
+### Byte-Gleichheit außerhalb `ui/chat/`
+
+Der rekursive Vergleich zeigt außerhalb `ui/chat/` keinen Unterschied. Dazu SHA-256 (gekürzt) für Archiv und Worktree:
+- `ui/shell/App.test.ts`: eb26380dea39dcfb, gleich
+- `ui/e2e/frame.spec.ts`: 993fa866d66750ef, gleich
+- `ui/shell/workspace.svelte.ts`: 665ffae4c6372d1a, gleich
+- `ui/shell/workspace.test.ts`: 1b6e9a7ff8a79418, gleich
+- `ui/README.md`: 12ab903a6c55ecf0, gleich
+- `ui/package.json`: 0f63c072b0ad8e9e, gleich
+- `ui/pnpm-lock.yaml`: 67ec958ad8cfb78b, gleich
+- `ui/playwright.config.ts`: 627a2aa419391608, gleich
+
+### Gegenproben
+
+Alle in einer Kopie außerhalb des Worktrees. Jede Mutation wurde einzeln eingesetzt, danach liefen die Komponententests unter `ui/chat/`, danach wurde zurückgesetzt. Ohne Mutation: 105 von 105 grün.
+
+| # | Mutation | Ergebnis |
+|---|---|---|
+| M1 | „Laden“ nach `model_missing` stellt wieder auf Schnell | rot, 6 Tests (KC80 missing/Laden, 5 × KC81) |
+| M2 | Zweiter Knopf im Menü stellt auf Schnell | rot, „KC80 chosen in the menu … Bei „Gründlich“ bleiben“ |
+| M3 | Zweiter Knopf bei Erneut fragen stellt auf Schnell | rot, „KC80 from Erneut fragen … Bei „Ausgewogen“ bleiben“ |
+| M4 | Beschriftung des zweiten Knopfs immer Schnell | rot, 2 Tests (Menü, Erneut fragen) |
+| M5 | Wirksame Stufe während des Downloads entfernt | rot, 4 Tests (KC81 Senden, Hilfezeile, gescheitert/neu laden; KC80 missing/Laden) |
+| M6 | `help.failedStored` → `help.failed` | rot, „KC81 KC49 the stored level failed …“ |
+| M7 | Alte Regel `download(level, reason !== "again")` | rot, 2 Tests |
+| M8 | Wirksam Schnell auch bei angehaltenem oder gescheitertem Download | rot, 3 Tests |
+| M9 | Knopf zeigt wieder `answerLevel.current` | rot, 3 Tests |
+| M10 | Senden wieder mit `answerLevel.current` | rot, 2 Tests |
+| M11 | „Laden“ im Menü schaltet bei bereit nicht um | rot, „KC80 chosen in the menu: Laden …“ und „KC47 KC48 …“ |
+
+Worktree: Die Prüfsummenliste für `ui/` (94 Dateien, ohne `node_modules`, `dist`, `test-results`) ist vorher und nachher gleich. Ein versehentlicher Testaufruf aus dem falschen Ordner hatte einen Vitest-Cache unter `ui/chat/node_modules/.vite/` angelegt. Den habe ich entfernt, danach die Prüfsummen erneut verglichen: gleich. `git status` hat wieder dieselben 35 Einträge.
+
+### Prüfbefehle (in `ui/`)
+
+- `pnpm lint`: Exit 0, ESLint ohne Meldung, „All matched files use Prettier code style!“
+- `pnpm check`: Exit 0, „386 FILES 0 ERRORS 0 WARNINGS“
+- `pnpm test`: Exit 0, 16 Dateien, 249 von 249 grün; davon `Levels.test.ts` 33 von 33
+- `pnpm build`: Exit 0, `index-*.js` 259,53 kB (gzip 84,83 kB). Kein `eval(` und kein `new Function` im Bundle.
+- Browser-Tests (gesamte Suite, Edge): Lauf 1, 2 und 3 je „67 passed“ (5,0 / 5,1 / 4,9 min), Exit 0
+- Der Dev-Server lief für die Browser-Beobachtungen und ist beendet; Port 5173 ist frei.
+
+### Wackelnde Browser-Tests
+
+Last: Zu Beginn lief in einem anderen Ordner ein `cargo test --workspace --locked`. Die CPU-Last lag dabei bei rund 20 %, später bei 23 bis 38 % (22 logische Kerne). Während der Messläufe lief der Rust-Test nicht mehr.
+
+| Lauf | KC75 „Neuer Chat while the first answer runs“ | KC78 KC79a „follows a growing answer (wide)“ |
+|---|---|---|
+| 3 Gesamtläufe | 3 von 3 grün | 3 von 3 grün (dazu medium und narrow je 3 von 3) |
+| Je 10 einzeln (1 Worker) | 10 von 10 grün | 10 von 10 grün |
+| 15 parallel (15 Worker) | 15 von 15 grün | 15 von 15 grün |
+| 20 parallel (22 Worker), dazu Vitest-Läufe als Last | 20 von 20 grün | 20 von 20 grün |
+| Kopie mit CPU-Drosselung im Browser ×4 | 5 von 5 grün | 5 von 5 grün |
+| Kopie mit CPU-Drosselung ×8 | rot (Z. 842: „Antwortmodell „Schnell“ startet“ statt „Liest …“; Z. 858: Fußzeile nicht in 40 s) | 2 bis 5 von 10 rot, „Received: 72“ bei Z. 789 bzw. 811 |
+
+Ohne künstliche Drosselung war in 75 Durchläufen je Test keiner rot. Rot werden beide erst bei achtfacher CPU-Drosselung des Browsers.
+
+Einschätzung: In beiden Fällen ist der Test zeitabhängig, nicht das Produkt schwach.
+
+- **KC78:** Das Mitlaufen hängt an einem `ResizeObserver` auf dem Faden (`Chat.svelte:419-423`). Er ruft `follow()` im Renderschritt des nächsten Frames. Ausgeschaltet wird das Mitlaufen nur über `judge()` bei Eingaben des Nutzers (`Chat.svelte:326-338`); ohne Rad, Taste oder Zeiger bleibt `atEnd` wahr. Der Test misst mit `threadEnd()` in einer eigenen Aufgabe. Fällt sie zwischen ein `delta` und den nächsten Renderschritt, sieht sie genau einen ungefolgten Absatz: 72 px, die Höhe eines Absatzes. Gegenprobe in der Kopie bei Drosselung ×8: Der Abstand wurde 2 s lang alle 10 ms gemessen, während Text weiter einlief. Er lag nur bei 0 oder 72 px (je Messreihe höchstens ein Wert 72, sonst 0) und wuchs nie auf 144 px oder mehr. Die Ansicht folgt also weiter, nur einen Frame später. Ein echtes Aussetzen sähe man an wachsendem Abstand.
+- **KC75:** Der Test verlangt, dass die Schritte von „Neuer Chat“ bis zurück zum ersten Chat in die rund 12 s von `mock:slow-read` passen, und nutzt dabei feste Wartezeiten (5 s Standard, 40 s für die Fußzeile). Bei Drosselung ×8 läuft alles langsamer, und die Phase steht beim Prüfen noch auf „startet“. Mit längeren Wartezeiten in der Kopie (60 s für die Phasen, 150 s für die Fußzeilen) liefen dort 5 von 5 grün, auch bei Drosselung ×8. Das Produkt verhält sich richtig, nur langsamer.
+- Für die CI (Vorschlag 3): KC78 nach einem Renderschritt messen (zwei `requestAnimationFrame`) oder mit `expect.poll` auf ≤ 48 px warten und zusätzlich prüfen, dass der Abstand nie über eine Absatzhöhe wächst. KC75: Wartezeiten der Phasen an die Dauer des Steuerworts koppeln oder die erste Antwort mit zwei Steuerwörtern verlängern.
+
+### Sicherheit
+
+Keine Auffälligkeit. Der Diff berührt nur Stufe und Download und gibt keine Daten preis. In `ui/chat/` stehen keine Benutzer-, Temp- oder Werkzeughinweise (geprüft per Suche).
+
+### Regressionen
+
+- Komponententests: 249 von 249 grün; vorab rot: keine.
+- Browser-Suite: 3 × 67 von 67 grün.
+- Den Diff habe ich Zeile für Zeile gelesen. Zusätzlich gegengeprüft:
+  - KC09: `level` = wirksame Stufe, außerhalb des Downloads gleich `answerLevel.current`.
+  - KC42 und KC45: Knopf und Preis über `levels.effective`; im Szenario `weak-machine` bleibt Schnell, der Test „KC45 …“ ist grün.
+  - KC53: Der Ausweg hängt an der Stufe der laufenden Antwort und ist unverändert.
+  - KC66: `failedStored` steht in beiden Sprachdateien, die Paritätstests sind grün.
+
+Keine Regression gefunden.
+
+### Blocker
+
+Keine.
+
+### Vorschläge
+
+1. **Hilfezeile und Dialog nennen eine Stufe ohne Modell als antwortend, wenn gleichzeitig eine andere Stufe lädt.** Reproduktion im Browser:
+   1. `?mock-scenario=all-levels`, im Menü Ausgewogen wählen.
+   2. Die Modelldateien, die nur Ausgewogen oder nur Gründlich brauchen, im Mock entfernen.
+   3. Senden, im Dialog Escape (KC79 b; gespeichert bleibt `balanced`).
+   4. Im Menü Gründlich wählen. Dialog: „Bis es fertig ist, antwortet „Ausgewogen““ und „Bei „Ausgewogen“ bleiben“.
+   5. „Laden“. Hilfezeile: „„Gründlich“ wird geladen: 0 %. Bis dahin antwortet „Ausgewogen“.“
+   6. Senden öffnet sofort den Dialog „„Ausgewogen“ zuerst laden?“.
+
+   Dasselbe in einem Komponententest in der Kopie (Mock ohne Szenario, `answerLevel: "balanced"`). Ursache: `help.loading` und `help.failed` setzen `current: currentName` mit `levels.effective` ein (`Composer.svelte:58-75`), und das ist bei fehlendem, nicht ladendem gespeichertem Modell die modelllose Stufe (ADR 0151). Das ist genau das Symptom aus dem Kontext von ADR 0151, nur auf einem anderen Weg. KC81 fordert wörtlich nur, dass „die ladende Stufe“ nicht als antwortend genannt wird, deshalb hier kein FAIL. Das Verhalten bestand schon vor den Nacharbeiten.
+2. **KC77 und KC80 im Wortlaut abgleichen.** KC77 nennt den Fokus auf „Bei „Schnell“ bleiben“, nach KC80 (Fassung 4) heißt der Knopf im Menü und bei Erneut fragen nach der bisherigen Stufe. Gebaut ist: Fokus auf dem zweiten Knopf mit der Beschriftung nach KC80 (Browser B1: Fokus auf „Bei „Gründlich“ bleiben“).
+3. **Browser-Tests KC78 und KC75 robuster machen** (siehe Abschnitt „Wackelnde Browser-Tests“), weil sie in der CI mitlaufen.
+
+### Kleinigkeiten
+
+1. **„rund 0,0 GB“ nach echtem `model_missing`.** Lehnt `ask` ab, weil ein Modell zur Laufzeit fehlt, kennt die Hülle den Fehlbestand noch nicht. Der Dialog zeigt dann „rund 0,0 GB aus dem Internet … das reicht“ (Browser B2, erster Dialog; nach „Laden“ stimmt die Größe). K zeigt nur `setup.level(level).download_bytes`, und `setup.refresh` gehört nicht zur Schnittstelle der Hülle für K. Das betrifft also die Hülle oder die Schnittstelle, nicht diesen Diff; das Verhalten bestand schon vorher. Es gehört in den Bericht als „fehlt der Hülle“.
+2. `BERICHT.md` nennt die wackelnden Tests bereits mit 72 px. Die Einschätzung dort („allein danach grün“) stimmt mit den Messungen überein.
+
+### Nicht geprüft
+
+- Desktop-App mit echtem Modell-Download, Bildschirmleser, echte Windows-Skalierung: nicht Teil dieses Durchgangs.
+- Bildschirmfotos und Kontrast der Dialog- und Hilfezeilen-Zustände in hell, dunkel und den drei Breiten (KC63, KC65): Der Diff ändert kein Styling, nur Texte und Logik. Die Browser-Suite mit den Tests zu KC63 und KC65 lief 3 × grün, eigene Fotos habe ich nicht angesehen.
+- `cargo test --workspace`: Der Diff berührt keinen Rust-Code.
+- Die Zustände für die Browser-Beobachtungen (fehlende Modelldateien) habe ich über den Testzugang des Mocks auf der Seite hergestellt, wie es auch die Browser-Tests tun. Ohne diesen Zugang lässt sich im Browser kein fehlendes Modell einer gespeicherten Stufe erzeugen.
+
+### Offene Fragen
+
+1. Soll KC81 auch abdecken, dass keine modelllose gespeicherte Stufe als antwortend genannt wird, während eine andere Stufe lädt oder deren Download gescheitert ist (Vorschlag 1)? Wenn ja, wäre es eine kleine Nacharbeit an Hilfezeile und Dialog.
+2. KC77: Ist der Fokus auf dem zweiten Knopf mit der Beschriftung nach KC80 gemeint (so gebaut), oder wörtlich ein Knopf „Bei „Schnell“ bleiben“?
+
+# Prüfbericht Paket K (ui/chat), achter Durchgang
+
+## Achter Durchgang (2026-11-22)
+
+- Datum: 2026-11-22
+- Bereich: Worktree `paket-k-ui-chat`, uncommittet (Basis 07945f8). Verglichen mit dem Stand, den der siebte Durchgang geprüft hat (Sicherungsarchiv vom 2026-11-22, entpackt in einen eigenen Ordner außerhalb des Worktrees).
+- Spezifikation: `docs/abnahme-ui-chat.md` Fassung 5; ADR 0141, 0151, 0152; `ui/README.md`
+- **Gesamtergebnis: FAIL.** KC82, KC77, KC75, KC79 (a), KC81, KC46 und KC49 bestehen. KC83 besteht nicht: Der Browser-Test zu KC75 war in 10 Einzelläufen 3-mal rot, und die KC78-Tests unter CPU-Drosselung ×4 in 170 Läufen 6-mal. KC78 besteht ebenfalls nicht. Ich habe eine feste Reproduktion: Ein Zuwachs, der kurz nach einem kleinen Mausradschritt kommt, wird bis zu 5 s lang nicht mitgeführt. Den Fehler gab es schon vor dieser Nacharbeit, der Diff hat ihn nicht verursacht. Er ist die Ursache des offenen Punkts 2 (b).
+
+### Diff (vom Prüfer selbst bestimmt)
+
+Ich habe Archiv und Worktree rekursiv verglichen, ohne `node_modules`, `.git`, `dist`, `test-results` und `target`. Geändert sind nur 8 Dateien unter `ui/chat/`. Keine Datei ist neu oder weggefallen.
+- Code: `Composer.svelte` (+8/−3), `DownloadDialog.svelte` (+5/−1), `i18n/de.json` und `i18n/en.json` (je +2: `help.loadingNoAnswer`, `download.backgroundNoAnswer`)
+- Tests: `Levels.test.ts` (+62, zwei KC82-Tests), `e2e/chat.spec.ts` (+91/−24)
+- Doku: `README.md`, `BERICHT.md`
+
+Was sich ändert:
+- `Composer.svelte:57`: neu `answering = setup.level(current)?.ready !== false`, wobei `current` = `levels.effective`.
+  - Laden: Mit Modell bleibt `help.loading`, ohne Modell gilt `help.loadingNoAnswer`.
+  - Scheitern: Mit Modell bleibt `help.failed`, ohne Modell gilt `help.failedStored`. Bisher galt `help.failedStored` nur, wenn die gescheiterte Stufe die gespeicherte war.
+- `DownloadDialog.svelte:52`: Derselbe Vergleich für `fallback` wählt zwischen `download.background` und `download.backgroundNoAnswer`.
+- `chat.spec.ts`:
+  - `threadEnd` misst nach zwei Animationsframes.
+  - Neu ist `atEnd` (`expect.poll` auf ≤ 48 px, bis 10 s). Es ersetzt alle direkten 48-px-Prüfungen.
+  - Neu ist `behindWhileGrowing` (größter Abstand ≤ Absatzhöhe + 1 px). Es läuft nur in „KC78 KC79a …“ und „KC78 a follow-up …“.
+  - KC75: Die erste Frage läuft mit `mock:slow-read mock:slow-write`, die Wartezeiten sind Vielfache von `SLOW_PHASE_MS`.
+  - `ask` prüft vor dem Klick Feldinhalt und freien Knopf.
+
+Unaufgeforderte Extras: keine. Jede Zeile gehört zu KC82 oder KC83.
+
+### Kriterien
+
+| ID | Kriterium (kurz) | Ergebnis | Nachweis |
+|---|---|---|---|
+| KC82 | Kein Text nennt eine modelllose, nicht vertretene Stufe als antwortend; Fall aus dem siebten Durchgang und gescheiterter Download der dritten Stufe | PASS | `pnpm test`: „KC82 loading a third level …“ und „KC82 KC49 the third level failed …“ grün. Gegenproben G1 bis G5 machen sie rot (siehe Gegenproben). Browser (`all-levels`, Ausgewogen gewählt, Modelldateien von Ausgewogen und Gründlich im Mock entfernt, Zustand der Hülle aufgefrischt): Senden → Dialog → Escape, gespeichert bleibt `balanced`. Danach im Menü Gründlich: Der Dialog sagt „… lässt sich im Menü der Stufe anhalten und fortsetzen. Deine Frage bleibt im Eingabefeld.“, ohne Satz zu einer antwortenden Stufe, der Knopf heißt „Bei „Ausgewogen“ bleiben“. Nach „Laden“ zeigt die Hilfezeile „„Gründlich“ wird geladen: 46 %.“. Senden öffnet „„Ausgewogen“ zuerst laden?“ mit 0 Artikeln, die Frage bleibt im Feld. Gescheitert (Prüfsummenfehler bei einer Datei nur von Gründlich): rote Hilfezeile „Laden von „Gründlich“ fehlgeschlagen: eine Datei kam beschädigt an. Die geladenen Teile bleiben … Offline-Paket in den Einstellungen.“ ohne „antwortet“; im Menü „Laden fehlgeschlagen. Wählen, um es erneut zu versuchen.“ |
+| KC83 | Browser-Tests KC75/KC78 unabhängig vom Tempo; je 10 × einzeln und 10 × bei ×4 ohne Fehlschlag; keine Lockerung; Gegenprobe macht KC78 rot | **FAIL** | Schritte: im Worktree `npx playwright test -g "KC75\|KC78" --workers 1 --repeat-each 10`. Erwartet: 0 rot. Tatsächlich: KC75 3 von 10 rot (Läufe 4, 40, 148), jeweils „expect(locator).toHaveValue … Expected: "Wo steht das Ergebnis?" Received: ""“ bei `ask` (Z. 35). KC78 einzeln 170 von 170 grün. Mit Drosselung ×4 (CDP, Kopie, 1 Worker, 10 Runden): KC78 164 von 170. Rot: „a small step is kept for 5 s (560 px)“ 4 von 10 (2-mal „Expected: 30 Received: 102“, 2-mal „Absatz 20:“ nicht in 5 s) und „small steps … add up“ bei 960 und 560 px je 1 von 10 („two steps of 30 px, 2 s apart … Expected > 48 Received 30“). KC75 mit Drosselung 20 von 20. Die 48 px sind unverändert, und die Gegenprobe „Mitlaufen aus“ macht 17 von 17 KC78-Tests rot. Die 10-s-Wiederholung lockert aber messbar (Gegenprobe MB). Ursachen unter „Bewertung“. |
+| KC77 | Zu wenig Platz: „Laden“ gesperrt, „Es fehlen …“, Fokus auf dem zweiten Knopf (Beschriftung nach KC80); unbekannte Größe nur Warnung; auch aus Erneut fragen | PASS | `pnpm test`: „KC46 KC77 too little space …“ (`Levels.test.ts:193`, prüft `document.activeElement` auf dem zweiten Knopf, Z. 209) und „KC77 with files of unknown size …“ (Z. 226) grün. Browser-Test „KC77 too little space …“ in 3 von 3 Gesamtläufen grün. Der Code ist unverändert, angepasst ist nur der Wortlaut der Spezifikation. |
+| KC75 | Neuer Chat während der ersten Frage: leerer Chat, laufender im Verlauf, beide gespeichert | PASS | `pnpm test`: „KC75 an empty chat opens …“ (`Chat.test.ts:743`) grün. Browser-Test: grün in den Gesamtläufen 2 und 3, in 7 von 10 Einzelläufen und in 20 von 20 Läufen mit Drosselung, jeweils mit allen Prüfungen zum Verhalten (Phase „wartet“, Abbrechen im laufenden Chat, Belegspalte und Titel je Chat, beide gespeichert). Die roten Läufe scheitern vor jeder Prüfung des Verhaltens an einem Wettlauf im Test (Bewertung 2 a). |
+| KC78 | Am Ende (≤ 48 px) folgt die Ansicht jedem Zuwachs, auch der Fußzeile nach `done` | **FAIL** | Schritte (eigener Test in der Kopie, 960 und 560 px): gespeicherten Chat öffnen; Antwort mit 14 Absätzen alle 150 ms; danach hält der Strom an. Ansicht am Ende (Abstand 0); ein Mausradschritt −30 px; nach 100 bzw. 200 ms ein letzter Absatz und `done`. Abstand nach 0,8, 2, 4 und 6 s gemessen. Erwartet: 30 px (der kleine Schritt bleibt, der Zuwachs wird mitgeführt). Tatsächlich: 960 px „96 / 96 / 96 / 0“, 560 px „102 / 102 / 102 / 0“. Der Rückstand bleibt, bis der Schritt nach 5 s verfällt. Kommt der Zuwachs sofort (0 ms) oder nach 400 ms: „30 / 30 / 30 / 0“. Ursache am Code unter „Bewertung (b)“. Die Gegenprobe mit Nachholen (F1) ergibt in allen Fällen 30. Den Fehler gab es schon vorher (`Chat.svelte` ist unverändert). |
+| KC79 (a) | Ruhende Schreibmarke ohne Animation, weg mit `done` und Abbruch | PASS | `pnpm test`: „KC79a a resting caret …“ (`Chat.test.ts:404`) grün. Die Browser-Tests „KC78 KC79a …“ (die Prüfung der Schreibmarke ist unverändert) sind in allen Breiten grün: 3 Gesamtläufe, 30 von 30 einzeln, 30 von 30 mit Drosselung. |
+| KC81 | Während die gespeicherte Stufe lädt, antwortet Schnell; die Hilfezeile nennt das | PASS | `pnpm test`: 7 KC81-Tests grün. Gegenprobe G6 (`answering` immer falsch) macht „KC81 stepper and help line show Schnell …“ und „KC47 KC48 …“ rot. Der Satz „Bis dahin antwortet „Schnell““ wird also weiter geprüft. |
+| KC46 | Dialog mit Größe, freiem Platz, Hintergrund-Satz „bis dahin Schnell“, Knöpfe, Fokus auf der sicheren Wahl | PASS | `pnpm test`: „KC46 KC62 …“ (Fokus auf dem zweiten Knopf, Z. 179) grün. Gegenprobe G7 (Satz im Dialog nie) macht „KC46 KC62 …“ und „KC50 …“ rot. Browser: Der Dialog nach `model_missing` sagt „… Bis es fertig ist, antwortet „Schnell“. Deine Frage bleibt im Eingabefeld.“ |
+| KC49 | Gescheiterter Download: rote Hilfezeile mit Ursache, Teile, Offline-Paket; im Menü „Wählen, um es erneut zu versuchen“ | PASS | `pnpm test`: „KC49 …“, „KC81 KC49 …“ (2) und „KC82 KC49 …“ grün. Browser siehe KC82 (gescheitert). Lücke im Test siehe Kleinigkeit 1. |
+
+### Byte-Gleichheit außerhalb `ui/chat/`
+
+Der rekursive Vergleich zeigt außerhalb `ui/chat/` keinen Unterschied, im ganzen Repo. Die SHA-256-Liste der 66 Dateien unter `ui/` außerhalb `ui/chat/` ist bei Archiv und Worktree gleich. Einzeln (gekürzt), jeweils Archiv = Worktree:
+- `ui/shell/App.test.ts` eb26380dea39dcfb
+- `ui/e2e/frame.spec.ts` 993fa866d66750ef
+- `ui/shell/workspace.svelte.ts` 665ffae4c6372d1a
+- `ui/shell/workspace.test.ts` 1b6e9a7ff8a79418
+- `ui/README.md` 12ab903a6c55ecf0
+- `ui/package.json` 0f63c072b0ad8e9e
+- `ui/pnpm-lock.yaml` 67ec958ad8cfb78b
+- `ui/playwright.config.ts` 627a2aa419391608
+- `ui/vite.config.ts` 00d731129ff12f84
+
+Worktree: Die Prüfsummenliste für `ui/` (94 Dateien, ohne `node_modules`, `dist`, `test-results`) ist vor und nach der Prüfung gleich. `git status` hat wieder dieselben 35 Einträge. Unter `ui/chat/` ist kein `node_modules` entstanden.
+
+### Gegenproben
+
+Alle in zwei Kopien außerhalb des Worktrees, mit eigenen Ports. Jede Mutation wurde einzeln eingesetzt und danach zurückgeschrieben.
+
+| # | Mutation | Ergebnis |
+|---|---|---|
+| G1 | `Composer.svelte` und `DownloadDialog.svelte` auf den alten Stand (alte Einsetzung der wirksamen Stufe) | rot: beide KC82-Tests |
+| G2 | Satz im Dialog immer (`answering = true`) | rot: „KC82 loading a third level …“ |
+| G3 | Hilfezeile beim Laden immer `help.loading` | rot: „KC82 loading a third level …“ |
+| G4 | Hilfezeile beim Scheitern nach alter Regel | rot: „KC82 KC49 the third level failed …“ |
+| G5 | Hilfezeile beim Scheitern immer `help.failed` | rot: „KC81 KC49 the stored level failed …“, „KC82 KC49 …“ |
+| G6 | Hilfezeile: `answering` immer falsch | rot: „KC81 stepper and help line …“, „KC47 KC48 …“ |
+| G7 | Dialog: `answering` immer falsch | rot: „KC46 KC62 …“, „KC50 …“ |
+| MA | Mitlaufen aus (Aufruf von `follow()` im `ResizeObserver` entfernt) | 17 von 17 KC78-Browser-Tests rot |
+| MB | Mitlaufen um 3 s verzögert (`setTimeout(follow, 3000)` im `ResizeObserver`) | Neue Tests: nur 2 von 17 rot (KC78 KC79a wide, narrow; medium grün). Tests vor der Nacharbeit: 14 von 17 rot |
+| F1 | Probe ohne Bewertung: Nachholen nach dem Bewegungsfenster (`setTimeout(…, MOVING_MS)`, wenn ein Zuwachs wegen `moving()` nicht mitgeführt wurde) | Reproduktion zu KC78: 30 px bei allen Verzögerungen (vorher 96/102 px bei 100 bis 200 ms) |
+| R1 | Probe ohne Bewertung: Fenster 30-mal von 1440 auf 560 und zurück auf 1440 px, sofort danach `fill` | Eingabe 11 von 30-mal verloren; mit zwei Animationsframes Warten 0 von 30 |
+
+Ohne Mutation liefen die Komponententests unter `ui/chat/` mit 107 von 107 grün (`Levels.test.ts` 35 von 35).
+
+### Prüfbefehle (in `ui/`)
+
+- `pnpm lint`: Exit 0, ESLint ohne Meldung, „All matched files use Prettier code style!“
+- `pnpm check`: Exit 0, „COMPLETED 386 FILES 0 ERRORS 0 WARNINGS 0 FILES_WITH_PROBLEMS“
+- `pnpm test`: Exit 0, „Test Files 16 passed (16)“, „Tests 251 passed (251)“
+- `pnpm build`: Exit 0, `index-*.js` 260,01 kB (gzip 84,90 kB); kein `eval(` und kein `new Function` im Bundle
+- Browser-Suite (`pnpm e2e`, Edge, 2 Worker):
+  - Lauf 1: „1 failed, 66 passed“ (4,9 min), Exit 1. Rot war KC75 bei `ask`, „Received: ""“.
+  - Lauf 2 und 3: je „67 passed“ (5,5 min), Exit 0
+- Die Dev-Server sind beendet, die Ports 5173 bis 5175 sind frei.
+
+### Raten der Browser-Tests
+
+Während der Läufe mit Drosselung liefen zeitweise andere Testläufe parallel (eigene Kopien, je 1 bis 5 Worker).
+
+| Lauf | KC75 | KC78 (17 Tests) | davon „small step is kept for 5 s“ |
+|---|---|---|---|
+| 3 Gesamtläufe (Worktree) | 2 von 3 | 51 von 51 | 6 von 6 |
+| 10 × einzeln, 1 Worker (Worktree) | **7 von 10** | 170 von 170 | 20 von 20 |
+| 10 × einzeln, CPU ×4, 1 Worker (Kopie) | 10 von 10 (ohne Zusatzprobe), 10 von 10 (mit Probe vor `fill`) | **164 von 170** | **16 von 20** (alle Fehler bei 560 px) |
+| 20 × je Breite, 5 Worker (Kopie) | – | – | **39 von 40** (960 px: „Received: 198“) |
+| 20 × je Breite, 5 Worker, CPU ×4 (Kopie) | – | – | **38 von 40** (560 px: einmal „Received: 102“, einmal „Absatz 20:“ nicht in 5 s) |
+| KC75 mit Aufzeichnung, 1 Worker (Kopie) | 11 von 12 | – | – |
+
+Der Test „small step is kept for 5 s“ lief insgesamt 126-mal. In 4 Läufen war der Abstand 30 px plus ein Zuwachs statt 30 px: ohne Drosselung 1 von 66, mit Drosselung ×4 3 von 60. Dazu kamen 3 Zeitüberschreitungen beim Warten auf „Absatz 20:“, alle mit Drosselung.
+
+### Bewertung von 2 (a) und (b)
+
+**(a) „Senden“ blieb nach dem Eintippen gesperrt: Das ist ein Wettlauf im Test, kein Fehler des Produkts. Er ist häufig und gut wiederholbar.** Ich habe ihn mit einer Aufzeichnung (Init-Skript, ohne Eingriff in den Ablauf zum Zeitpunkt von `ask`) im Fehlerfall festgehalten:
+- 1783 ms: „Neuer Chat“
+- 2142 ms: Der Streifen `.composer-slot` erscheint, das Formular wandert hinein (schmaler Modus)
+- 2481 ms: `focusin` auf `#question` (Beginn von `fill`)
+- 2482 ms: `focusout`
+- 2483 ms: Das Formular wandert zurück an seinen Platz
+
+Die Eingabe landet so nicht im Feld, der Zustand bleibt leer. Ursache:
+- `shots()` (`chat.spec.ts:625-640`) schaltet das Fenster auch ohne `SCREENSHOT_DIR` auf 560 px und zurück auf 1440 px.
+- Der Browser liefert `resize` erst im nächsten Renderschritt. `ask` tippt sofort danach.
+- Das `portal` der Hülle (`ui/shell/workspace.svelte.ts:169-184`) hängt das Formular beim Wechsel des Modus um. Dabei verliert das Feld den Fokus.
+
+Probe R1 bestätigt das: 11 von 30 Eingaben gehen verloren, mit zwei Frames Warten keine. Die neue Prüfung in `ask` lockert nichts; sie macht den Fehler nur früher und lesbar sichtbar. Der Wettlauf bestand schon vorher. Für KC83 zählt er trotzdem, weil die zehn Einzelläufe ohne Fehlschlag verlangt sind. Am Produkt bleibt nur eine Kleinigkeit: Wer bei fokussiertem Feld das Fenster über die Grenze von 700 px zieht, verliert den Fokus. Das liegt in der Hülle (Kleinigkeit 3).
+
+**(b) „KC78 a small step is kept for 5 s“: Das ist ein Fehler des Produkts. Der Test erwartet zu Recht 30 px.** Am Code (`Chat.svelte`):
+- Das Mausrad öffnet das Fenster (`open`, Z. 342-353) und setzt `movingAt`. Auch die Scroll-Ereignisse des Nutzers setzen es (`onScroll`, Z. 395-404).
+- Der `ResizeObserver` führt nur nach, wenn `atEnd && !moving()` (Z. 419-423), also frühestens 250 ms (`MOVING_MS`) nach dem letzten Scroll-Ereignis des Nutzers.
+- Kommt der letzte Zuwachs (letzter Absatz, Fußzeile nach `done`) in diesem Fenster, wird er übersprungen.
+- Danach führt nichts mehr nach:
+  - Ein weiterer Zuwachs bleibt aus.
+  - `scrollend` (Z. 405-407) ist schon vorbei.
+  - `close` (Z. 355-362) wirkt nur bei `!atEnd`.
+  - Nur der Ablauf von `hold` nach 5 s (Z. 317-323) führt nach.
+- Bis dahin steht die Ansicht 30 px plus den Zuwachs vor dem Ende (96 bis 198 px), obwohl sie nach KC78 „am Ende“ ist.
+
+Die Vermutung im Bericht des Baus („Radschritt zwischen Zuwachs und Renderschritt“) trifft nicht zu: Bei 0 ms Abstand stimmt das Ergebnis (30 px), falsch wird es bei 100 bis 200 ms. Probe F1 beseitigt den Fehler, indem sie nach dem Fenster nachholt. Häufigkeit siehe „Raten“: ohne Drosselung etwa 1,5 %, mit ×4 etwa 5 %. Als zweite, getrennte Schwäche des Tests kommen unter Drosselung Zeitüberschreitungen bei `toContainText("Absatz 20:")` mit der Standardzeit von 5 s hinzu.
+
+### Blocker
+
+1. **KC83, KC75-Test wackelt** (Bewertung a): 3 von 10 Einzelläufen und 1 von 3 Gesamtläufen rot. Behebung im Test: nach `shots()` auf das Layout warten, etwa zwei `requestAnimationFrame` oder warten, bis `.composer-slot` verschwunden ist. Oder `shots()` ohne `SCREENSHOT_DIR` gar nicht umschalten lassen.
+2. **KC78, Zuwachs im Bewegungsfenster wird nicht nachgeführt** (Bewertung b, Reproduktion in der Tabelle). Nach dem Ende von `moving()` sollte eine Ansicht am Ende nachholen. Probe F1 zeigt, dass das genügt.
+3. **KC83 unter Drosselung ×4**: 6 von 170 Läufen der KC78-Tests rot.
+   - 2-mal Blocker 2.
+   - 2-mal Zeitüberschreitung bei „Absatz 20:“.
+   - Je 1-mal „two steps of 30 px, 2 s apart“ bei 960 und 560 px. Vermutlich liegen dort zwischen den beiden Schritten mehr als 5 s (`HOLD_MS`), weil der Test vorher auf 8 weitere Absätze und auf `atEnd` wartet. Dann verfällt der erste Schritt, und der zweite beginnt wieder bei 30 px. Den Abstand der Schritte habe ich nicht gemessen.
+
+### Vorschläge
+
+1. **`atEnd` kürzer warten lassen als `HOLD_MS`** (etwa 1 s). Der Wortlaut von KC83 erlaubt die Wiederholung. Mit 10 s merken die Tests aber kein verspätetes Mitlaufen mehr: Gegenprobe MB macht mit den neuen Tests 2 von 17 rot, mit den alten 14 von 17. Wahlweise `behindWhileGrowing` auch in den übrigen KC78-Tests prüfen.
+2. „small steps … add up“: den Abstand zwischen den beiden 30-px-Schritten begrenzen oder messen, damit der Test unter Last nicht über `HOLD_MS` rutscht.
+3. „small step is kept for 5 s“: für „Absatz 20:“ eine an den Strom gekoppelte Wartezeit setzen statt der Standardzeit von 5 s.
+
+### Kleinigkeiten
+
+1. Kein Test belegt den Satz „Bis dahin antwortet „<gespeicherte Stufe>““ in der roten Hilfezeile, wenn eine andere Stufe gescheitert ist und die gespeicherte ihr Modell hat. Gegenprobe G6 lässt die KC49-Tests grün.
+2. KC82 stützt sich auf `setup.level(…).ready` der Hülle. Fehlen Modelldateien zur Laufzeit, ohne dass die Hülle neu fragt, hält sie die Stufe weiter für bereit. Im Browser ohne Auffrischen wird Gründlich dann direkt gewählt, und „Ausgewogen: Antwort beginnt …“ bleibt stehen. Das betrifft die Hülle bzw. die Schnittstelle, wie Kleinigkeit 1 des siebten Durchgangs, nicht K.
+3. Das `portal` der Hülle nimmt den Fokus beim Wechsel zwischen schmalem und breiterem Layout mit (Bewertung a). Gehört als „fehlt der Hülle“ in den Bericht.
+4. `BERICHT.md` nennt nach Fassung 5 „dreimal hintereinander 67 passed“ und für KC75 10 von 10 einzeln. Gemessen habe ich 2 von 3 Gesamtläufen und 7 von 10 einzeln. Die Tabelle dort belegt die 10 Läufe mit Drosselung nur für 3 der 17 KC78-Tests.
+
+### Nicht geprüft
+
+- Desktop-App mit echtem Download, Bildschirmleser, echte Windows-Skalierung: nicht Teil des Durchgangs.
+- Bildschirmfotos und Kontrast (KC63, KC65): Der Diff ändert kein Styling, die Tests dazu liefen in den Gesamtläufen grün.
+- `cargo test --workspace`: Der Diff berührt keinen Rust-Code.
+- Die fehlenden Modelldateien für den Browser-Ablauf zu KC82 habe ich über den Testzugang des Mocks hergestellt, danach die Hülle neu fragen lassen. Ohne diesen Schritt hält die Hülle die Stufen weiter für bereit (Kleinigkeit 2).
+- Den Abstand der Schritte im roten Lauf von „two steps of 30 px“ habe ich nicht gemessen. Die Ursache in Blocker 3 ist eine begründete Vermutung.
+
+### Offene Fragen
+
+1. KC78: Muss eine Ansicht am Ende einen Zuwachs, der in die 250 ms nach einer Bewegung des Nutzers fällt, danach sofort nachführen? So lese ich „bei jedem Zuwachs“, daraus folgt FAIL. Oder ist ein Rückstand bis zum Verfall des kleinen Schritts (5 s) hinnehmbar? Dann wäre KC78 PASS, und der 5-s-Test müsste das zulassen.
+2. KC83: Ist eine Wiederholung bis 10 s gemeint, obwohl die Tests dann verspätetes Mitlaufen nicht mehr erkennen (Gegenprobe MB)? Oder soll die Wartezeit unter `HOLD_MS` liegen?
+
+# Prüfbericht Paket K (ui/chat), neunter Durchgang
+
+## Neunter Durchgang (2026-11-22)
+
+- Datum: 2026-11-22
+- Bereich: Worktree `paket-k-ui-chat`, uncommittet (Basis 07945f8). Verglichen habe ich mit dem Stand, den der achte Durchgang geprüft hat. Dafür habe ich das Sicherungsarchiv „vor Nacharbeit 4“ in einen eigenen Ordner außerhalb des Worktrees entpackt.
+- Spezifikation: `docs/abnahme-ui-chat.md` Fassung 5 (vor allem KC78 und KC83), ADR 0141, `ui/README.md`. Dazu die Festlegungen des Projektmanagers zu den offenen Fragen des achten Durchgangs: (1) „bei jedem Zuwachs“ gilt, der Zuwachs wird gleich nach dem Bewegungsfenster nachgeholt, und der kleine Schritt von 30 px bleibt. (2) `atEnd` wartet höchstens etwa 1 s.
+- **Gesamtergebnis: PASS.**
+  - KC78, KC83, KC75, KC79 (a), KC49, KC82 und KC81 bestehen.
+  - Meine Reproduktion zum Fehler aus dem achten Durchgang ergibt jetzt in allen Fällen 30 px (vorher 96 bzw. 102 px).
+  - KC75 und alle 21 KC78-Tests liefen je 10-mal einzeln und 10-mal unter CPU-Drosselung ×4 ohne Fehlschlag (220 von 220 und 220 von 220). Die ganze Suite war dreimal grün.
+  - Drei Kleinigkeiten bleiben, keine davon verletzt ein Kriterium.
+
+### Diff (vom Prüfer selbst bestimmt)
+
+Ich habe Archiv und Worktree rekursiv verglichen, ohne `node_modules`, `.git`, `dist`, `test-results` und `target`. Geändert sind nur 5 Dateien unter `ui/chat/`. Keine Datei ist neu oder weggefallen.
+- Code: `Chat.svelte` (+26/−1)
+- Tests: `e2e/chat.spec.ts` (+87/−22), `Levels.test.ts` (+24, ein neuer Test)
+- Doku: `README.md` (+3/−3), `BERICHT.md` (+36/−9)
+
+Was sich ändert:
+- `Chat.svelte`:
+  - Neu sind `catching` (Zeitgeber) und `scrolling`. `onScroll` setzt `scrolling` bei einer Bewegung des Nutzers im Fenster (Z. 400), `onScrollEnd` setzt es zurück (Z. 408).
+  - Der `ResizeObserver` (Z. 441-447) folgt sofort, wenn keine Bewegung läuft. Läuft eine (`moving()`), ruft er `catchUp()` auf. Bisher wurde ein solcher Zuwachs übersprungen.
+  - `catchUp` (Z. 430-440) läuft bei `movingAt + MOVING_MS` ab. Dann folgt es, wenn die Ansicht noch am Ende ist und kein Bildlauf läuft (`scrolling`). Läuft die Bewegung noch, plant es sich neu.
+  - Beim Abbau wird `catching` gelöscht.
+- `chat.spec.ts`:
+  - `shots()` kehrt ohne `SCREENSHOT_DIR` sofort zurück. Mit Ordner wartet es danach zwei Animationsframes.
+  - `atEnd` wartet höchstens 1 s statt 10 s (Abstände 50, 100, 100, 200 ms).
+  - `behindWhileGrowing` liefert zusätzlich `min`, Werte unter 0 zählen als 0. Neu ist `expectFollowing`: Absatzhöhe > 48, `min` ≤ 48, `max − min` ≤ Absatzhöhe + 1. Es läuft jetzt auch im Tastentest.
+  - „two steps of 30 px“: Der Abstand der Schritte wird gemessen (2 s) und muss unter 4 s liegen. Der Test wartet auf 3 statt auf 8 Absätze.
+  - Drei Wartezeiten auf Text sind an den Strom gekoppelt (fünfmal die Dauer des Stroms).
+  - Neu: 4 Tests „KC78 a growth 100/200 ms after a small wheel step …“ bei 960 und 560 px.
+- `Levels.test.ts`: neu „KC49 KC82 the red help line names the stored level as answering“ (Kleinigkeit 1 des achten Durchgangs).
+
+Unaufgeforderte Extras: keine. Jede Zeile gehört zu KC78, KC83 oder zu Befunden des achten Durchgangs.
+
+### Kriterien
+
+| ID | Kriterium (kurz) | Ergebnis | Nachweis |
+|---|---|---|---|
+| KC78 | Am Ende (≤ 48 px) folgt die Ansicht jedem Zuwachs, auch der Fußzeile nach `done`. Hochgescrollt bleibt sie stehen, zurück am Ende folgt sie wieder. Ohne Animation, in allen Breiten | PASS | Reproduktion aus dem achten Durchgang, nachgestellt in einer Kopie: gespeicherten Chat öffnen, 14 Absätze im Abstand von 150 ms, Ansicht am Ende. Dann ein Radschritt −30 px und nach 0, 100, 200 bzw. 400 ms ein letzter Absatz und `done`. Gemessen nach 0,8, 2, 4 und 6 s. Ergebnis je 4 Läufe: 560 px bei allen Verzögerungen „30 / 30 / 30 / 0“, 960 px bei 0, 100 und 200 ms „30 / 30 / 30 / 0“. Vorher (`Chat.svelte` aus dem Archiv, gleiche Kopie) bei 100 und 200 ms „96 / 96 / 96 / 0“ bzw. „102 / 102 / 102 / 0“. Unter Drosselung ×4 (2 Läufe) bei 100 und 200 ms ebenfalls 30. Ausnahme 960 px bei 400 ms: siehe Kleinigkeit 1 (gab es schon vorher, kein Rückstand). Pfeiltaste (40 px, weicher Bildlauf) mit Zuwachs nach 0, 100 und 200 ms: „40 / 40 / 0“ in beiden Breiten. Ohne Nachholen (N0) ergibt dasselbe bei 200 ms 106 bzw. 112 px. Weicher Bildlauf und Scrollleiste siehe „Bewertung 1“. Browser-Tests: alle 21 KC78-Tests grün in 10 Einzelrunden (210 von 210), 10 gedrosselten Runden (210 von 210) und 3 Gesamtläufen. |
+| KC83 | Browser-Tests KC75/KC78 unabhängig vom Tempo, je 10 × einzeln und 10 × bei ×4 ohne Fehlschlag, keine Lockerung, Gegenprobe macht KC78 rot | PASS | `npx playwright test -g "KC75\|KC78" --workers 1 --repeat-each 10` im Worktree → „220 passed (40.5m)“. Dasselbe in einer Kopie mit `Emulation.setCPUThrottlingRate` ×4 über CDP, auch für die Tests mit eigenem Browser → „220 passed (56.8m)“. Die Drosselung wirkt: Eine Rechenschleife braucht 40 ms ungedrosselt und 202 ms gedrosselt. 48 px unverändert. `atEnd` wartet jetzt 1 s statt 10 s. Gegenprobe MA (Mitlaufen aus) macht 21 von 21 KC78-Tests rot. Bewertung der Testregel unter „Bewertung 2“. |
+| KC75 | Neuer Chat während der ersten Frage: leerer Chat, laufender im Verlauf, beide gespeichert | PASS | `pnpm test`: „KC75 an empty chat opens …“ grün (in den 252). Browser-Test: 10 von 10 einzeln, 10 von 10 unter ×4, 3 von 3 Gesamtläufen. Der Wettlauf aus dem achten Durchgang (Bewertung 2 a) ist behoben: `shots()` schaltet ohne `SCREENSHOT_DIR` die Größe nicht mehr um. Ohne Ordner nahm `shots()` auch vorher kein Bild auf, es entfällt also keine Prüfung. |
+| KC79 (a) | Ruhende Schreibmarke ohne Animation, weg mit `done` und Abbruch | PASS | `pnpm test`: „KC79a a resting caret …“ grün. Browser-Tests „KC78 KC79a …“ (wide, medium, narrow): 30 von 30 einzeln, 30 von 30 unter ×4, 9 von 9 in den Gesamtläufen. Die Prüfung der Schreibmarke ist unverändert. |
+| KC49 | Gescheiterter Download: rote Hilfezeile mit Ursache, Teile, Offline-Paket; im Menü „Wählen, um es erneut zu versuchen“ | PASS | `pnpm test`: „KC49 …“, „KC81 KC49 …“, „KC82 KC49 …“ und neu „KC49 KC82 the red help line names the stored level as answering“ grün. Gegenprobe G6 (`answering` in `Composer.svelte` immer falsch) → `npx vitest run chat/Levels.test.ts`: „Tests 3 failed \| 33 passed (36)“, rot sind der neue Test, „KC47 KC48 …“ und „KC81 stepper and help line …“. Die Lücke aus Kleinigkeit 1 des achten Durchgangs ist damit geschlossen. |
+| KC82 | Kein Text nennt eine modelllose, nicht vertretene Stufe als antwortend | PASS | `Composer.svelte`, `DownloadDialog.svelte` und die Sprachdateien sind byte-gleich zum achten Durchgang (dort G1 bis G5 rot). `pnpm test`: beide KC82-Tests und der neue „KC49 KC82 …“ grün. G6 macht den neuen Test rot (siehe KC49). |
+| KC81 | Während die gespeicherte Stufe lädt, antwortet Schnell; Hilfezeile nennt das | PASS | Code unverändert. `pnpm test`: 7 KC81-Tests grün. G6 macht „KC81 stepper and help line show Schnell …“ rot. |
+
+### Byte-Gleichheit außerhalb `ui/chat/`
+
+Der rekursive Vergleich zeigt außerhalb `ui/chat/` keinen Unterschied, im ganzen Repo.
+- Die SHA-256-Liste der 66 Dateien unter `ui/` außerhalb `ui/chat/` ist bei Archiv und Worktree gleich (Prüfsumme der Liste 54c1dda8bb5bc526 auf beiden Seiten).
+- Einzeln (gekürzt), jeweils Archiv = Worktree = achter Durchgang:
+  - `ui/shell/App.test.ts` eb26380dea39dcfb
+  - `ui/e2e/frame.spec.ts` 993fa866d66750ef
+  - `ui/shell/workspace.svelte.ts` 665ffae4c6372d1a
+  - `ui/README.md` 12ab903a6c55ecf0
+  - `ui/package.json` 0f63c072b0ad8e9e
+  - `ui/pnpm-lock.yaml` 67ec958ad8cfb78b
+  - `ui/playwright.config.ts` 627a2aa419391608
+  - `ui/vite.config.ts` 00d731129ff12f84
+
+Worktree nach der Prüfung:
+- Die Prüfsummenliste für `ui/` (94 Dateien, ohne `node_modules`, `dist` und `test-results`) ist vor und nach der Prüfung gleich.
+- `git status` hat wieder dieselben 35 Einträge.
+- Unter `ui/chat/` ist kein `node_modules` entstanden.
+- Das Haupt-Repo ist unverändert.
+
+### Gegenproben
+
+Alle liefen in Kopien außerhalb des Worktrees, mit eigenen Ports. Jede Mutation habe ich einzeln eingesetzt und danach zurückgeschrieben (SHA-256 von `Chat.svelte` danach de4c756795531e7f, wie im Worktree).
+
+| # | Mutation | Ergebnis |
+|---|---|---|
+| N0 | Ohne Nachholen (`ResizeObserver` wie vorher: `if (atEnd && !moving()) follow()`) | rot: die 4 neuen Tests „KC78 a growth 100/200 ms …“, die übrigen 17 grün. Reproduktion wieder 96 bzw. 102 px. |
+| MC | Nachholen 1 s später (`catchUp`-Zeitgeber + 1000 ms) | rot: 4 von 4 neuen Tests („Expected: 30, Received: 132“ bzw. „102“) |
+| N1 | Ohne die `scrolling`-Bedingung in `catchUp` | grün: 21 von 21 einmal ungedrosselt; „very short click“ und „thumb held still“ je 15-mal unter ×4: 45 von 45 |
+| MA | Mitlaufen aus (`follow()` und `catchUp()` im `ResizeObserver` entfernt) | rot: 21 von 21 KC78-Tests |
+| MB | Direktes `follow()` im `ResizeObserver` um 3 s verzögert | rot: 15 von 21. Grün bleiben „a small step is kept for 5 s“ (2) und die 4 neuen Tests. |
+| MB2 | Wie MB, zusätzlich das `follow()` in `catchUp` um 3 s verzögert | rot: 15 von 21, dieselben 6 grün |
+| G6 | `Composer.svelte`: `answering` immer falsch | rot: 3 von 36 in `Levels.test.ts` (siehe KC49) |
+| F | Probe ohne Bewertung: Seite mitten im Strom 5 s eingefroren (`Page.setWebLifecycleState` frozen → active) | Uhr springt von „läuft seit 0:02“ auf „0:08“, Abstand sofort 0. Gilt bei 960 und 560 px. |
+
+### Prüfbefehle (in `ui/`)
+
+- `pnpm lint`: Exit 0, ESLint ohne Meldung, „All matched files use Prettier code style!“
+- `pnpm check`: Exit 0, „COMPLETED 386 FILES 0 ERRORS 0 WARNINGS 0 FILES_WITH_PROBLEMS“
+- `pnpm test`: Exit 0, „Test Files 16 passed (16)“, „Tests 252 passed (252)“
+- `pnpm build`: Exit 0, `index-*.js` 260,15 kB (gzip 84,96 kB). Kein `eval(` und kein `new Function` im Bundle.
+- Browser-Suite (`pnpm e2e`, Edge), drei Läufe hintereinander: je „71 passed (5.5m)“, Exit 0
+- Die Dev-Server sind beendet, die Ports 5173 bis 5176 sind frei.
+
+### Raten der Browser-Tests
+
+Die Tabelle zeigt grüne Läufe. Während der Einzel- und der Gesamtläufe liefen zeitweise andere Testläufe parallel (Gegenproben, Messläufe, gedrosselte Kopie), jeweils mit 1 Worker.
+
+| Lauf | KC75 | KC78 (21 Tests) | davon „small step is kept for 5 s“ | davon neue 4 Tests |
+|---|---|---|---|---|
+| 10 × einzeln, 1 Worker (Worktree) | 10 von 10 | 210 von 210 | 20 von 20 | 40 von 40 |
+| 10 × einzeln, CPU ×4, 1 Worker (Kopie) | 10 von 10 | 210 von 210 | 20 von 20 | 40 von 40 |
+| 3 Gesamtläufe (Worktree) | 3 von 3 | 63 von 63 | 6 von 6 | 12 von 12 |
+| „very short click“ mit Messung von Zeitgeber und Frames (Kopie) | – | 30 von 30 | – | – |
+
+### Bewertung
+
+**1. Scrollleiste und weicher Bildlauf.** Die neue Bedingung unterbricht keinen laufenden Bildlauf. Am Code und in der Messung (Protokoll der Scroll-Ereignisse in einer Kopie):
+- Eine Pfeiltaste bewegt die Ansicht weich, über rund 160 ms in Schritten von 2 bis 4 px. Zuwächse bei 30, 60 und 90 ms holt `scrollend` nach (eine Sprungstelle bei 165 ms). Danach steht die Ansicht 40 px vor dem Ende, wie verlangt.
+- „Bild auf“ (weich, rund 400 px in 160 ms) mit Zuwächsen während der Animation: Die Animation läuft ganz durch, die Ansicht bleibt stehen (723 bzw. 830 px vor dem Ende, auch nach 6 s).
+- Mit „Ende“ zurück folgt sie wieder (0 / 0 / 0). Im schmalen Fenster liegt das Ende dabei sichtbar über dem unteren Rand (−158 / −86 / −14 px). Das entspricht dem Kommentar im Test.
+- Die beiden Tests zur Scrollleiste („thumb held still …“, „very short click …“) waren in allen 20 Einzel- und gedrosselten Läufen, in 3 Gesamtläufen und in 30 Messläufen grün.
+- Ohne die Bedingung (N1) blieben sie in 45 gedrosselten Läufen ebenfalls grün. Die Bedingung lässt sich mit den Tests also nicht als nötig belegen. Sie ist eine Absicherung, die nichts verschlechtert: Läuft kein Bildlauf, setzt `scrollend` den Merker sofort zurück, auch beim Begrenzen der Position nach einem Schrumpfen (im Protokoll gesehen).
+- Grenze: siehe Kleinigkeit 2.
+
+**2. Ist der Test gelockert worden? Nein, insgesamt ist er strenger.**
+- `atEnd` wartet 1 s statt 10 s. Das ist deutlich unter `HOLD_MS` (5 s), wie festgelegt.
+- `expectFollowing` gegenüber der alten Regel (`max ≤ Absatz + 1`):
+  - Die neue Regel erlaubt höchstens 48 px mehr Abstand, und nur wenn der kleinste Abstand selbst bis 48 px beträgt, also ein gehaltener kleiner Schritt vorliegt. Das deckt sich mit „am Ende = höchstens 48 px“.
+  - Sie entspricht dem Wortlaut von KC83 („nie über eine Absatzhöhe wächst“) genauer als die alte Regel.
+  - Werte unter 0 bedeuten, dass das Ende sichtbar ist. `atEnd` hat sie schon immer als „am Ende“ gewertet.
+  - Neu ist die Prüfung auch im Tastentest (2 Tests mehr).
+  - Ohne Mitlaufen wächst der Abstand in 0,6 bis 1,5 s um 4 bis 10 Absätze. Das fängt die Regel sicher ab, und MA macht 21 von 21 rot.
+- MB, sechs grüne Tests: Das ist akzeptabel. Es liegt an der Mutation, nicht an einer Lücke der Tests. Belegt habe ich das mit einem Protokoll unter MB2 (Kopie, „Zuwachs 100 ms nach dem Radschritt“):
+  - Die 14 Absätze der Vorbereitung kamen in den 3 s davor. Ihre verzögerten `follow()` laufen deshalb genau im Messzeitraum ab, etwa alle 150 ms (Zeitpunkte 3982, 4140, 4298 … ms).
+  - Jedes `follow()` geht an das aktuelle Ende. Die Ansicht holt so ohne Verzögerung nach, obwohl die Mutation wirkt. Dasselbe gilt im 5-s-Test, der mit einem laufenden Strom arbeitet.
+  - Eine Verzögerung, die nicht von älteren Zuwächsen überdeckt wird, erkennen die neuen Tests: MC (Nachholen 1 s später) macht 4 von 4 rot, N0 ebenfalls 4 von 4.
+
+**3. Der ungeklärte rote Lauf (Strom etwa fünfmal langsamer, Uhr 5 s auf „0:02“).** Ein Fehler des Produkts lässt sich nicht nachweisen. Ich werte ihn als Eigenart der Umgebung.
+- Am Code:
+  - Die Uhr (`state.svelte.ts:85-95`) ist ein `setInterval` von 1 s, der `Date.now()` übernimmt.
+  - Den Strom im Test treibt ein `setTimeout` von 150 ms in der Seite (`streamWith`).
+  - Steht die Uhr 5 s und läuft der Strom zugleich langsamer, sind Zeitgeber der Seite nicht gelaufen: Die Seite wurde nicht ausgeführt.
+  - Im Pfad des Klick-Tests gibt es keinen Code, der den Hauptthread Sekunden lang belegen könnte. `follow`, `judge`, `close` und `onScroll` arbeiten in konstanter Zeit. `catchUp` plant nur einen Zeitgeber und läuft nicht synchron in einer Schleife.
+- Messung: 30 Läufe des Klick-Tests mit einem Messskript in der Seite (Zeitgeber alle 50 ms, `requestAnimationFrame`, `visibilitychange`, `longtask` über 200 ms):
+  - Größte Lücke beim Zeitgeber 178 ms (Median 124 ms), bei den Frames 149 ms, jeweils beim Laden der Seite.
+  - Kein Wechsel der Sichtbarkeit, kein langer Task.
+  - In allen übrigen Läufen (20 Einzel- und gedrosselte Läufe, 3 Gesamtläufe) kein langsamer Strom.
+- Verdeckte oder eingefrorene Seite (Probe F): Nach 5 s Einfrieren zeigt die Uhr sofort die richtige Zeit („0:08“), und die Ansicht steht am Ende. Das Produkt erholt sich also. In der App kommt der Strom ohnehin über Ereignisse des Backends, nicht über Zeitgeber der Seite.
+- Die an den Strom gekoppelte Wartezeit gilt nur für das Warten auf Text. Die Prüfungen zum Bildlauf danach sind unverändert, gelockert wird nichts.
+
+### Blocker
+
+Keine.
+
+### Vorschläge
+
+Keine.
+
+### Kleinigkeiten
+
+1. **960 px: Der kleine Schritt geht verloren, wenn letzter Absatz und `done` zusammen kommen.**
+   - Reproduktion (Kopie, 4 Läufe; unter ×4 auch bei 0 ms): Radschritt −30 px, nach 400 ms Absatz und `done` im selben Takt. Gemessen „0 / 0 / 0 / 0“ statt „30 / 30 / 30 / 0“. Bei 560 px bleiben 30 px. Ohne `done` bleiben bei 960 px 30 px (400, 1000 und 2000 ms).
+   - Ursache laut Protokoll:
+     - Der `ResizeObserver` meldet zuerst +132 px, 8 ms später nur noch +96 px; der Inhalt schrumpft vorübergehend wieder.
+     - `follow()` läuft im ersten Zustand. Danach setzt der Browser die Position auf das Maximum zurück.
+     - Dieses Scroll-Ereignis liegt im Eingabefenster und zählt als Bewegung des Nutzers. Am Ende ist der Abstand 0, und `lead` (gedeckelt auf den Abstand) wird 0.
+   - Mit `Chat.svelte` aus dem Archiv ist das Ergebnis gleich. Es stammt also nicht aus diesem Diff.
+   - Die Ansicht steht am Ende, KC78 ist erfüllt. Abweichend ist nur die Zusage in `ui/chat/README.md`, dass ein kleiner Schritt 5 s erhalten bleibt.
+2. **`scrolling` prüft nur `catchUp`, nicht das direkte `follow()` im `ResizeObserver`** (`Chat.svelte:445-446`).
+   - Fallen bei sehr hoher Last zwischen zwei Schritten eines weichen Bildlaufs mehr als 250 ms ohne Scroll-Ereignis, kann ein Zuwachs ihn weiterhin unterbrechen. Das galt schon vorher.
+   - Beobachtet habe ich das nicht (N1 45 von 45 grün).
+3. `ui/chat/README.md` sagt „Ein Zuwachs, der in diese 250 ms fällt, wird gleich nach ihrem Ende nachgeholt“. Dass bei einem noch laufenden weichen Bildlauf erst `scrollend` nachholt, steht nur in `BERICHT.md` und im Code-Kommentar.
+
+### Sicherheit
+
+Keine Auffälligkeit. Der Diff betrifft nur das Verhalten beim Bildlauf und Tests. Er berührt keine Daten, keine Konten, keine Schnittstelle und keine Ausgaben mit Geheimnissen. Geprüft habe ich das am Diff Zeile für Zeile; außerdem ist im Bundle kein `eval(`.
+
+### Regressionen
+
+- Komponententests: 252 von 252 (vorher 251, neu ist ein Test).
+- Browser-Suite: dreimal 71 von 71 (vorher 67, neu sind 4 KC78-Tests).
+- Vorab rote Tests gibt es nicht. Durch den Diff wurde nichts rot.
+
+### Nicht geprüft
+
+- Desktop-App mit echtem Strom, echte Windows-Skalierung, Touchpad und Berührung auf echter Hardware, macOS: nicht Teil des Durchgangs. Ob `scrollend` überall feuert, habe ich nur in Edge geprüft. Ohne `scrollend` bliebe `scrolling` gesetzt, und es gälte das alte Verhalten (Nachholen erst nach 5 s).
+- Die Gegenproben G1 bis G5 zu KC82 habe ich nicht wiederholt: `Composer.svelte`, `DownloadDialog.svelte` und die Sprachdateien sind byte-gleich zum achten Durchgang.
+- Den einen roten Lauf aus dem Bau habe ich nicht reproduziert. Die Bewertung in „Bewertung 3“ stützt sich auf Code, Messungen und Probe F.
+- `cargo test --workspace`: Der Diff berührt keinen Rust-Code.
+
+### Offene Fragen
+
+1. Kleinigkeit 1: Soll der gehaltene kleine Schritt auch dann erhalten bleiben, wenn das Ende kurz nach dem Schritt wieder schrumpft (letzter Absatz und `done` zusammen, 960 px)? KC78 verlangt das nicht. Dann wäre nur `ui/chat/README.md` anzupassen.

@@ -93,6 +93,11 @@ Hinweise:
 
 ## Später / beobachten
 
+- CI: `actions/checkout@v4` zielt auf Node 20, GitHub leitet auf Node 24 um und warnt (gesehen 2026-11-21). Beim Merge der Welle 1 oder in einem kleinen Commit auf `actions/checkout@v5` anheben.
+- Hülle: Lehnt `ask` mit `model_missing` ab, weil ein Modell zur Laufzeit fehlt, kennt die Hülle den Fehlbestand noch nicht; der Download-Dialog von K zeigt dann „rund 0,0 GB“, nach „Laden“ stimmt die Größe (siebter Prüfdurchgang K, Kleinigkeit 1). Gehört zur Hülle oder Schnittstelle (`setup.refresh` nach `model_missing`), Kandidat für die Hüllen-Erweiterungen in Paket L (ADR 0148).
+- Paket K: Kommen letzter Absatz und `done` kurz nach einem kleinen Mausradschritt zusammen, geht der gehaltene Abstand von 30 px bei 960 px verloren (die Ansicht steht am Ende, KC78 erfüllt; nur die Zusage „5 s erhalten“ in `ui/chat/README.md` stimmt dann nicht). Zudem prüft `scrolling` nur das Nachholen, nicht das direkte Mitlaufen (neunter Prüfdurchgang K, Kleinigkeiten 1 bis 3).
+- Paket K: „Erneut fragen“ in einer Stufe, deren Download gerade läuft, öffnet wie bisher den Download-Dialog mit „Laden“, statt den laufenden Download zu nennen (Randbefund der Nacharbeit nach Fassung 4, nicht Teil der Kriterien).
+
 - Speicher, Phase 2 (ADR 0143): Dauer des Einlesens eines großen Ordners mit `synchronous = FULL` messen (rund 7 ms je Schreibvorgang); liegt der Anteil spürbar hoch, die Frage `NORMAL` oder gebündelte Transaktionen mit Messwerten neu stellen.
 - Chunker, nach der Messung in Phase 2 (ADR 0147): Zählen die Kopfzeilen einer geteilten Tabelle zum ersten Teil, auch wenn dieser den Kopftext nicht enthält, oder zum ersten Teil mit Kopf, und soll der Vertrag die Tabelle nur aus Kopfzeilen ausdrücklich regeln (`docs/pruefung/kb-core.md`, offene Fragen zu K36); Zeilengruppen ohne Kopf kommen einzeln, auch wenn mehrere zusammen unter die Grenze passen, was bei sehr langem Kopf viele kleine Chunks ergibt.
 

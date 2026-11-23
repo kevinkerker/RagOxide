@@ -3,7 +3,7 @@ feature: kb-store
 datum: 2026-11-21
 commit: Branch paket-g-kb-store, HEAD 07945f8, Arbeit des Pakets uncommittet
 spec: docs/abnahme-kb-store.md
-ergebnis: PASS (dritter Durchgang 2026-11-21 gegen Fassung 3: alle 54 Kriterien PASS, Empfehlung Abnahme, offen nur die Entscheidung des Inhabers zu ADR 0142; zweiter Durchgang PASS mit Auflage N1; erster Durchgang PASS mit Auflage V1)
+ergebnis: PASS (vierter Durchgang 2026-11-21 gegen Fassung 4: G40, G54, G55 und berührte Kriterien PASS, kein Blocker; Nachtrag: Teständerungen zu G34 und G37 nach rotem CI-Lauf PASS; dritter Durchgang 2026-11-21 gegen Fassung 3: alle 54 Kriterien PASS, Empfehlung Abnahme, offen nur die Entscheidung des Inhabers zu ADR 0142; zweiter Durchgang PASS mit Auflage N1; erster Durchgang PASS mit Auflage V1)
 ---
 
 Hinweis zur Übernahme: Die Berichte sind unverändert übernommen. Weggelassen ist je Durchgang nur der Anhang des Prüfers zur Übergabe (Pfade seines Arbeitsordners), den er selbst als nicht zum Bericht gehörig gekennzeichnet hat.
@@ -543,3 +543,169 @@ Je Probe wurde eine Zeile in `src/open.rs` geändert, der betroffene Test ausgef
 2. Die offenen Fragen 2 bis 9 aus dem ersten Durchgang bleiben unverändert beim Inhaber.
 
 **Kandidaten für Änderungen am Vertrag:** unverändert.
+
+# Prüfbericht Paket G (kb-store), vierter Durchgang
+
+## Vierter Durchgang (2026-11-21)
+
+**Gesamtergebnis: PASS.** Alle zehn geprüften Kriterien (G28, G30, G33, G40, G51, G52, G53, G54, G55 sowie G02 als mitberührt) sind PASS. Es gibt keinen Blocker.
+
+**Gegenstand.** Geprüft wurde der uncommittete Stand unter `kb-store/` im Worktree `paket-g-kb-store` gegen `docs/abnahme-kb-store.md` Fassung 4 und die ADRs 0120, 0122, 0142, 0143 und 0144. Den Diff habe ich selbst gebildet: Das Archiv `2026-11-21-vor-nacharbeit/g.tar` habe ich außerhalb des Worktrees entpackt und mit `diff -r` (ohne `target`) verglichen.
+
+**Was sich geändert hat:**
+- `src/open.rs`, `src/error.rs`, `src/store.rs` (nur Rustdoc), `README.md`, `BERICHT.md`
+- Tests: `src/tests/crash.rs`, `full.rs`, `migration.rs`, `mod.rs`, neu `read_only.rs`, außerdem `tests/common/mod.rs` und `tests/persistence.rs`
+- `Cargo.lock` ist gegenüber dem Archiv unverändert.
+
+### Kriterien
+
+| ID | Ergebnis | Beleg |
+|---|---|---|
+| G40 | PASS | Der Test `full.rs:50` `a_write_that_sqlite_refuses_is_a_store_error_with_the_text_of_sqlite` erzwingt den Schreibfehler mit `PRAGMA query_only` nach dem Öffnen. `save_chat` endet mit genau „store error: attempt to write a readonly database“, `update_settings` mit `Error::Store`. Danach ist nichts gespeichert, und Lesen geht weiter. Die volle Datenbank prüft weiter `full.rs:7` mit `max_page_count`. Gegenprobe M6 (Originaltext durch festen Text ersetzt, `error.rs:10`) macht beide Tests rot. Den Schreibfehler über `PRAGMA query_only` statt über einen nachträglichen Schreibschutz halte ich für zulässig, siehe 5 (a). |
+| G54 (a) Fehlschlag | PASS | `open.rs:137`: Scheitert das Überschreiben, geht das Öffnen weiter und die Markierung bleibt. Test `crash.rs:396` `a_failed_overwrite_still_opens_and_is_done_again_later`: Der Kindprozess öffnet trotz erzwungenem `SQLITE_FULL`, liest, speichert einen Chat und liest ihn zurück. Danach ist das Journal 0 Byte lang, die Markierung liegt, der Text liegt noch in der Datei, es gibt keine Hilfstabelle und `integrity_check` meldet `ok`. Das nächste Öffnen holt das Überschreiben nach, obwohl das Journal leer ist: 0 Vorkommen, Markierung weg, `ok`, im Ordner nur Datenbank und Journal, der Stand vor dem Abbruch ist unverändert. Gegenprobe M3 (alter Weg: Fehlschlag lässt `open` scheitern) macht den Test rot; Gegenprobe M4 (Markierung trotz Fehlschlag gelöscht) macht ihn rot an „the marker stays“. |
+| G54 (a) Markierung nicht setzbar | PASS | `open.rs:92`. Test `crash.rs:454`: Datenbank und Journal bleiben byte-gleich. Dass die Verbindung jetzt schon vor dem Anlegen der Markierung geöffnet wird, ändert daran nichts, denn das Öffnen liest noch nichts. Gegenprobe M7 (Fehler beim Setzen ignoriert) macht den Test rot (`open` gelingt). |
+| G54 (b), (c), (d) | PASS | (b) Test `crash.rs:516`; Gegenprobe M5 (Überschreiben hinter Sicherung und Migration verschoben) macht ihn rot: „no cut-off text in the backup“. (c) prüfen die Tests weiter über `has_helper_table`. (d) README, Abschnitt „Fehlschlag und Nachholen“ und „Verhalten bei Fehlern“; Bericht, Abschnitt „Nacharbeit nach Fassung 4“. |
+| G55 | PASS | `open.rs:74`: Direkt nach `open_with_flags` und vor Markierung, Kopf-Lesen, Rückrollen, Sicherung und Migration endet `open` mit `Error::Store` „… is read-only (read-only attribute or missing write permission) and was not opened …“. Der lesende Weg ist ganz entfernt. In `read_only.rs` decken vier Tests die verlangten Lagen ab: neue/leere Datei, heißes Journal, Markierung, liegende Sicherung. Jeder vergleicht Namen und Bytes aller Dateien vorher und nachher und öffnet danach ohne Schreibschutz mit Nachholen. Gegenprobe des Prüfers M1 (Prüfung außer Kraft) macht alle vier Tests rot, dazu `every_failed_opening_leaves_the_file_byte_for_byte`. Gegenprobe M2 (Prüfung hinter das Setzen der Markierung verlegt) macht den Test mit heißem Journal rot (Dateien nicht byte-gleich). README und Bericht sind angepasst. |
+| G51 | PASS | Die Tests `crash.rs:233`, `:265`, `:296`, `:322` und `reopen_and_check` sind grün. Der Erfolgsweg in `open.rs:137` ist unverändert. |
+| G28 | PASS | `opening_schema_one_changes_nothing_also_twice` und `migration_to_schema_two_keeps_every_table_readable` sind grün. Ohne Journal und ohne Markierung gibt es keinen neuen Schreibweg. |
+| G30 | PASS | `the_backup_is_deleted_at_the_first_successful_opening` ist grün. Den zweiten Teil („Schreibzugriff scheitert“) belegt jetzt der Test mit Trigger (siehe G52); der Test mit schreibgeschützter Datei ist entfallen, weil eine solche Datei nach G55 gar nicht geöffnet wird. `open.rs:150` ruft die Prüfung jetzt ohne Bedingung auf. |
+| G33 | PASS | `processes.rs` (3 Tests) ist grün. Die Sperrlogik ist unverändert; die neue Reihenfolge (Verbindung vor der Markierung) betrifft keine Sperre. |
+| G52 | PASS | `the_backup_stays_if_the_write_fails_on_a_writable_file` ist grün. Gegenprobe (`if write(conn).is_err() && false`) macht ihn rot. |
+| G53 | PASS | Die README-Stellen zu `Drop`, zur Liste der Abweichungen (Unicode, Panic) und zum Zurückschalten aus dem WAL-Modus sind vorhanden und vom Diff nicht berührt. |
+| G02 (mitberührt) | PASS | `every_file_lies_in_the_folder_of_the_database` und `the_overwrite_writes_no_file_outside_the_folder` sind grün. |
+
+### Gegenproben
+
+Alle Gegenproben liefen in einer Kopie des Workspace außerhalb des Worktrees, mit eigenem Zielordner. Jede Datei wurde danach zurückgeschrieben; die Prüfsummen von `open.rs`, `error.rs` und `crash.rs` stimmten danach wieder.
+
+| Probe | Änderung | Ergebnis |
+|---|---|---|
+| M1 | Schreibschutz-Prüfung außer Kraft (`false &&`) | 5 Tests rot |
+| M2 | Prüfung hinter das Setzen der Markierung verlegt | 1 Test rot (heißes Journal) |
+| M2b | Prüfung hinter das Lesen des Kopfs verlegt | 1 Test rot (heißes Journal) |
+| M3 | Fehlschlag des Überschreibens lässt `open` scheitern | rot |
+| M4 | Markierung trotz Fehlschlag entfernt | rot |
+| M5 | Überschreiben hinter Sicherung und Migration | rot |
+| M6 | Originaltext von SQLite verworfen | 2 Tests rot |
+| M7 | Fehler beim Setzen der Markierung ignoriert | rot |
+| G52 | Bedingung nach dem Schreibversuch außer Kraft | rot |
+
+**Worktree am Ende unverändert:** Die Prüfsummenliste der 25 Dateien unter `kb-store/` (ohne `target`) ist vorher und nachher identisch (Hash der Liste beide Male `ae663ec98765fc3d…`). Es liegen keine Testordner im Temp-Ordner herum.
+
+### Prüfbefehle im Worktree
+
+Alle mit `CARGO_PROFILE_DEV_DEBUG=0` und `CARGO_BUILD_JOBS=6`; 66 GB frei.
+
+- `cargo fmt --all -- --check`: keine Ausgabe, Exit-Code 0.
+- `cargo clippy -p kb-store --all-targets -- -D warnings`: `Finished`, Exit-Code 0. Das Ergebnis kam aus dem Cache; die Quellen waren seit dem letzten Lauf unverändert.
+- `cargo test -p kb-store`: Exit-Code 0, zusammen **70 bestanden, 0 fehlgeschlagen, 2 ignoriert** (die Messungen):
+
+| Testprogramm | Bestanden | Ignoriert |
+|---|---|---|
+| Unit-Tests | 28 | 1 |
+| `compare_mock` | 1 | 0 |
+| `concurrency` | 5 | 0 |
+| `contract` | 20 | 0 |
+| `deletion` | 3 | 0 |
+| `large` | 1 | 1 |
+| `persistence` | 9 | 0 |
+| `processes` | 3 | 0 |
+| Doc-Tests | 0 | 0 |
+
+  Die Bilanz zum dritten Durchgang stimmt: 68 − 3 entfernte + 5 neue Tests = 70.
+- `cargo doc -p kb-store --no-deps`: `Finished`, keine Warnung.
+- **Regressionen:** Vorher war nichts rot, durch den Diff ist nichts rot geworden.
+
+### Blocker / Vorschläge / Kleinigkeiten
+
+- **Blocker:** keine.
+- **Vorschlag:**
+  - In ADR 0142, Abschnitt „Folgen“, steht bisher nur „in freien Seiten“. Man könnte dort ausdrücklich ergänzen, dass bei gleichzeitig anstehender Migration auch die Sicherung betroffen sein kann. Das README sagt das bereits (Abschnitt „Fehlschlag und Nachholen“).
+- **Kleinigkeiten:**
+  1. Im historischen Abschnitt „Zweite Nacharbeit“ von `BERICHT.md` stehen noch der entfernte Test `a_read_only_file_keeps_the_marker_until_it_is_writable` und das alte Verhalten (Fehlschlag lässt `open` scheitern) als „Geprüfte Lagen“, ohne Hinweis auf die Ablösung. Ebenso sagt die alte G52-Gegenprobe noch „der Test mit schreibgeschützter Datei bleibt grün“. Der neue Abschnitt oben stellt das richtig, aber beim Lesen kann es verwirren.
+  2. Der Testschalter `FAIL_OVERWRITE` lässt den Fehler erst auftreten, wenn alle freien Seiten im Seitencache schon genullt sind. Das ist ein gutmütiger Fehlerfall; siehe 5 (b).
+  3. Wenn im Testschalter das Zurücksetzen von `max_page_count` scheitert (`open.rs:299`), überdeckt dessen Fehler das Ergebnis des Überschreibens. Das betrifft nur Testcode und ist ohne Wirkung auf das Produkt.
+- **Unaufgeforderte Extras:** keine. Entfernt wurde nur, was durch die Änderung verwaist war (`is_read_only`, `set_read_only` in `tests/common`).
+
+### Antworten auf 5
+
+**(a) Gilt der Schreibfehler über `PRAGMA query_only` als „anderer erzwungener Fehler beim Schreiben“?** Ja.
+- SQLite lehnt den Schreibzugriff dann mit demselben Code und Text ab („attempt to write a readonly database“), den auch eine schreibgeschützte Datei ergäbe.
+- Der Fehler läuft durch denselben Produktivweg (Schreibmethode → `error::sqlite` → `Error::Store`). Gegenprobe M6 zeigt, dass der Test den Originaltext wirklich prüft.
+- Die Begründung habe ich selbst nachgestellt, mit einer anderen SQLite-Einbindung (3.45.3) unter Windows: Rollback-Journal, exklusive Sperre, Schreibschutz-Attribut nach dem Öffnen an Datenbank und Journal gesetzt. Der folgende Schreibzugriff gelang trotzdem und war nach erneutem Öffnen noch da.
+- Einschränkung: Ein Fehler, der aus dem Dateisystem kommt, etwa ein Ein-/Ausgabefehler, ist damit nicht abgedeckt. G40 verlangt aber nur mindestens einen Schreibzugriff, den SQLite ablehnt, und `SQLITE_FULL`. Beides ist belegt.
+
+**(b) Kann die Sicherung Text des Abbruchs enthalten, wenn das Überschreiben scheitert und eine Migration ansteht?** Das ist mit ADR 0142 und ADR 0120 vereinbar.
+- ADR 0142 nimmt nach der Entscheidung zum Fehlschlag ausdrücklich hin, dass bis zum Nachholen Text in freien Seiten stehen kann, und verlangt, dass das README die Lücke nennt. Die Sicherung ist eine Kopie der Seiten derselben Datei, also erbt sie diese Lücke.
+- ADR 0120 sagt das Überschreiben für gelöschte Inhalte zu; ADR 0142 erweitert die Zusage auf abgebrochene Vorgänge, mit eben dieser Ausnahme.
+- G54 (b) betrifft nur den Erfolgsweg und ist erfüllt.
+- Eigene Probe in der Kopie (Kindprozess mit Fehlschlag und Schema 2):
+  - Nach dem Öffnen standen 374 Vorkommen in der Datenbank, aber 0 in der Sicherung. Die Sicherung liest über den Seitencache, und dort sind die freien Seiten im simulierten Fehlerfall schon genullt.
+  - Die Formulierung „kann enthalten“ im README ist also richtig, garantiert ist es nicht.
+  - Beim nächsten Öffnen mit Platz läuft zuerst das Überschreiben (`open.rs:137`), dann das Entfernen der Sicherung (`open.rs:150`). Ergebnis: 0 Vorkommen, Sicherung weg, Markierung weg, im Ordner nur Datenbank und Journal.
+- Restpunkt: Die Sicherung wird gelöscht, nicht überschrieben. Das hat ADR 0128 schon hingenommen.
+- Die Migration auszusetzen, solange die Markierung liegt, würde den Nutzer bei einer Schemaänderung aussperren und widerspräche dem Ziel der Entscheidung in ADR 0142. Ich empfehle das nicht.
+
+### Nicht geprüft
+
+- Läufe über den ganzen Workspace (`clippy --workspace`, `test --workspace`, `doc --workspace`): Geändert ist nur `kb-store`, und `Cargo.lock` ist unverändert.
+- Die Messung aus G51 (ignorierter Test) habe ich nicht wiederholt; der Erfolgsweg ist unverändert.
+- Ein echter Fehlschlag durch volle Platte oder fehlendes Schreibrecht auf Ordnerebene ist nur über den Testschalter beziehungsweise das Schreibschutz-Attribut nachgestellt.
+- Linux und macOS (Dateirechte statt Attribut) sind nicht geprüft; geprüft wurde nur unter Windows.
+- `cargo doc` lief ohne `RUSTDOCFLAGS=-D warnings`; die Ausgabe enthielt trotzdem keine Warnung.
+
+## Nachtrag zum vierten Durchgang (2026-11-21)
+
+
+**Ergebnis: G34 PASS, G37 PASS.** Keines der beiden Kriterien wird durch die Änderungen geschwächt. Die Fortschrittsprüfung in G34 hängt jetzt nicht mehr vom Tempo ab. Bei G37 bleibt ein Rest Abhängigkeit vom Tempo: Unter starker Last war der Abstand zur Schwelle nur noch Faktor 1,6 (siehe Vorschläge).
+
+**Gegenstand:** Basis ist Commit `0caf62c`, Branch `paket-g-kb-store`. Der Diff stammt aus `git diff` im Worktree: nur `kb-store/tests/processes.rs` (+14/−2) und `kb-store/tests/concurrency.rs` (+5/−2), kein Produktivcode.
+
+### Kriterien
+
+| ID | Ergebnis | Beleg |
+|---|---|---|
+| G34 | PASS | Das Kind meldet `WROTE` erst nach dem Commit von `save_chat` der ersten neuen Runde (`processes.rs:243`, `if i == done`). Der Elternprozess wartet darauf (`:327`) und bricht danach nach 10 bis 400 ms hart ab. Neu ist die Prüfung je Runde `turns > last_turns` (`:349`). Damit ist ein Fortschritt von mindestens einem Turn je Abbruch garantiert und `last_turns >= 24` nicht mehr vom Tempo abhängig. Die Prüfung des Zustands nach jedem Abbruch (`check_after_kill`) ist unverändert; das sind die Prüfungen auf ganze Objekte, keine halben Turns und keinen Datensatz ohne Inhalt. Es bleibt bei 24 harten Abbrüchen (verlangt sind mindestens 20). |
+| G34, Lage der Abbrüche | PASS | Zur Kontrolle habe ich nur in der Kopie den Elternprozess so ergänzt, dass er nach jedem Abbruch Journal, Turns, Ordner, Datensätze und Inhalte ausgibt. Daraus lässt sich ablesen, wo der Abbruch lag. **Ohne Last** (24 Abbrüche, 12 mitten in einer Transaktion) traf es alle fünf Methoden mitten in der Transaktion: `save_content` (3×), `upsert_document` (1×), `delete_document` (5×), `save_chat` (1×), `update_settings` (2×). Dazu kamen Abbrüche zwischen den Aufrufen. **Unter Last** (zwei Läufe, 4 und 6 von 24 mitten in einer Transaktion) traf es `save_content`, `upsert_document`, `delete_document` und `update_settings`. Neu ausgenommen ist nur die Strecke vom Öffnen bis zum ersten neuen Commit: Wiederherstellung und Wiederholung der letzten Runde. Dort laufen dieselben Methoden wie in den folgenden Runden, die weiter abgedeckt sind. G34 verlangt das Öffnen nicht als Abbruchpunkt, das deckt G51 eigens ab. |
+| G37 | PASS | Die Schwelle ist jetzt mindestens ein Tick je 100 ms, mindestens 5 (`concurrency.rs:370`). Ein blockierter Executor-Thread liefert 0 Ticks, die Unterscheidung bleibt also eindeutig. Gemessen: ohne Last 217 Ticks in 2,24 s (verlangt 22), unter Last 88 Ticks in 5,65 s (verlangt 56). Die alte Schwelle (ein Tick je 20 ms, also 282) wäre unter Last rot gewesen. |
+
+### Gegenproben
+
+Alle Gegenproben liefen in einer Kopie außerhalb des Worktrees. Jede Datei wurde danach zurückgeschrieben, die Prüfsummen stimmten.
+
+| Probe | Änderung | Ergebnis |
+|---|---|---|
+| P1 (Kind schreibt nichts, meldet aber `WROTE`) | Nach `READY` sofort `WROTE`, dann Endlosschleife ohne Schreiben | **rot** in Runde 0: „the child made progress (0 -> 0 turns)“ |
+| P2 (Kind schreibt nichts und meldet nichts) | Endlosschleife ohne Schreiben | **rot** nach 60 s: „line from the child: Timeout“ |
+| P3 (alter Zeitpunkt) | `WROTE` schon vor dem ersten neuen Commit | **rot** in Runde 1: „(4 -> 4 turns)“. Das bestätigt die vom Bau-Agenten genannte Ursache, und die neue Prüfung je Runde fängt sie ab. |
+| C1 (langer Aufruf blockiert den Executor) | `worker.rs`: `result.await` → `futures::executor::block_on(result)` | **rot**: „0 ticks in 1.9000555s on one executor thread“ |
+
+### Läufe
+
+Alle mit `CARGO_PROFILE_DEV_DEBUG=0` und `CARGO_BUILD_JOBS=6`.
+
+- **`cargo test -p kb-store` im Worktree ohne Last:** Exit-Code 0, 70 bestanden, 0 fehlgeschlagen, 2 ignoriert.
+  - Unit-Tests 28 + 1 ignoriert, `compare_mock` 1, `concurrency` 5, `contract` 20, `deletion` 3, `large` 1 + 1 ignoriert, `persistence` 9, `processes` 3, Doc-Tests 0.
+  - G34: 97 Runden geschrieben, 11 von 24 Abbrüchen mitten in einer Transaktion.
+- **`cargo test -p kb-store` im Worktree unter Last** (26 Rechenschleifen auf 22 logischen Kernen, dazu fortlaufend 200 MB mit `fsync` auf dieselbe Platte):
+  - Exit-Code 0, wieder 70 bestanden, 0 fehlgeschlagen, 2 ignoriert. Unit-Tests 29,1 s statt 14,3 s.
+  - G34: 72 Runden, 3 von 24 Abbrüchen mitten in einer Transaktion.
+  - G37: 88 Ticks in 5,65 s.
+- **Nur der G34-Test, in der Kopie:**
+  - ohne Last viermal: 108, 103, 103 und 96 Runden; 12, 13, 16 und 11 von 24 Abbrüchen mitten in einer Transaktion
+  - unter Last zweimal: 61 und 59 Runden; 4 und 6 von 24
+- **`cargo fmt --all -- --check`:** Exit-Code 0.
+- **`cargo clippy -p kb-store --all-targets -- -D warnings`:** `Finished`, Exit-Code 0. Das Ergebnis kam aus dem Cache.
+- **Worktree unverändert:** Die Prüfsummenliste der 25 Dateien unter `kb-store/` ist vorher und nachher identisch (Hash der Liste `4cb18add21528565…`). `git status` zeigt weiter nur die beiden geänderten Testdateien. Die Lastprozesse sind beendet, und im Temp-Ordner liegen keine Testordner mehr.
+
+### Vorschläge / Kleinigkeiten
+
+- **G37:** Unter starker Last lag der gemessene Wert nur 1,6-mal über der Schwelle. Bei noch mehr Last kann der Test wieder rot werden, obwohl nichts blockiert. Eine feste kleine Untergrenze würde genauso gut unterscheiden, denn ein blockierter Executor gibt 0 Ticks: zum Beispiel „mindestens 5 Ticks“ oder „ein Tick je 250 ms“. Das ist ein Vorschlag, kein Blocker.
+- **G34:** Die Prüfung `inside_a_transaction >= 1` hängt weiter vom Zufall und vom Tempo ab. Unter Last waren es nur noch 3 bis 6 von 24, ohne Last 11 bis 16. Diese Prüfung gab es schon vor dem Diff; rot wurde sie in keinem Lauf.
+- **G34:** Der Timeout von 60 s für `WROTE` je Runde ist großzügig. Unter Last dauerte die ganze Testdatei 15,9 s.
+
+### Nicht geprüft
+
+- Der rote CI-Lauf selbst (Windows-Runner) ist nicht nachgestellt; geprüft wurde nur lokal unter künstlicher Last.
+- Linux und macOS sind nicht geprüft.
+- Läufe über den ganzen Workspace habe ich nicht gemacht, weil nur Tests in `kb-store` geändert sind.

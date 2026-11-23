@@ -25,6 +25,6 @@ Option 1: Nach einem Öffnen mit nicht leerem Journal überschreibt der Speicher
 - Die Zusage von ADR 0120 gilt auch für Text abgebrochener Schreibvorgänge.
 - Das Öffnen nach einem Absturz dauert länger, abhängig von der Zahl der freien Seiten; ein Messwert steht im Bericht des Pakets.
 - Ein Test bricht einen Schreibvorgang hart ab und durchsucht danach die Bytes der Dateien.
-- Scheitert das Überschreiben selbst (etwa an einer vollen Platte), öffnet die Datenbank trotzdem, und jedes spätere Öffnen holt es nach; der Anlass geht nicht verloren. Bis dahin kann Text des abgebrochenen Vorgangs in freien Seiten stehen; das README nennt diese Lücke.
+- Scheitert das Überschreiben selbst (etwa an einer vollen Platte), öffnet die Datenbank trotzdem, und jedes spätere Öffnen holt es nach; der Anlass geht nicht verloren. Bis dahin kann Text des abgebrochenen Vorgangs in freien Seiten stehen, und steht zugleich eine Migration an, auch in der Sicherung davor (bis sie nach ADR 0128 entfernt wird); das README nennt diese Lücke.
 - Scheitert schon das Setzen der Markierung, bleibt es beim gebauten Verhalten: Das Öffnen scheitert, bevor SQLite das Journal zurückrollt, damit der Anlass nicht verloren geht (Festlegung des Projektmanagers; eine leere Datei anzulegen gelingt meist noch, wenn für Seiten kein Platz mehr ist).
 - Paket G braucht dafür eine Nacharbeit (Kriterien `kb-store` Fassung 4, G54).
