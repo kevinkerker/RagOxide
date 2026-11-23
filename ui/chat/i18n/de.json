@@ -1,34 +1,218 @@
 {
   "newTitle": "Neuer Chat",
-  "question": "Deine Frage",
+  "questionNumber": "Frage {number}",
   "inputLabel": "Frage an deine Dokumente",
   "placeholder": "Frage stellen …",
+  "placeholderNext": "Nächste Frage …",
+  "keys": "Eingabe sendet, Umschalt+Eingabe beginnt eine neue Zeile.",
   "send": "Senden",
-  "marker": "Quelle {number}",
-  "empty": "Stell eine Frage an deine Dokumente.",
-  "sources": "Quellen ({count})",
-  "selected": "ausgewählt",
-  "noSources": "Noch keine Quellen.",
-  "historyEmpty": "Noch keine Chats.",
-  "phase": {
-    "waiting": "Wartet auf eine laufende Antwort …",
-    "searching": "Die Bibliothek wird durchsucht …",
-    "starting_model": "Das Antwortmodell wird gestartet …",
-    "reading_sources": "Die Quellen werden gelesen …",
-    "writing": "Die Antwort wird geschrieben …"
-  },
   "cancel": "Abbrechen",
-  "cancelled": "Abgebrochen",
-  "failed": "Fehlgeschlagen",
-  "levelLabel": "Stufe",
+  "marker": "Quelle {number}",
+  "selected": "ausgewählt",
+  "percent": "{percent} %",
+  "empty": {
+    "title": "Frag deine Dokumente",
+    "text": "RagOxide beantwortet Fragen aus den Dokumenten deiner Ordner. Jede Aussage trägt eine Nummer; ein Klick darauf zeigt die Stelle im Dokument.",
+    "note": "Findet RagOxide keine passende Stelle, sagt es das, statt etwas zu erfinden."
+  },
+  "phase": {
+    "pending": "Frage wird gestellt",
+    "waiting": "Wartet auf eine andere Antwort",
+    "searching": "Suche läuft",
+    "starting_model": "Antwortmodell „{level}“ startet",
+    "reading_sources": "Liest die gefundenen Stellen",
+    "writing": "Schreibt die Antwort"
+  },
+  "phaseText": {
+    "pending": "Deine Frage geht an die Bibliothek.",
+    "waiting": "Gerade wird eine andere Frage beantwortet, in einem anderen Chat oder von einem angeschlossenen Programm. Deine kommt danach dran.",
+    "searching": {
+      "first": "Sucht in deinen Dokumenten nach passenden Stellen.",
+      "followUp": "Formuliert deine Folgefrage um und sucht passende Stellen in deinen Dokumenten."
+    },
+    "starting_model": {
+      "first": "Die gefundenen Stellen stehen schon bei den Belegen und lassen sich lesen.",
+      "followUp": "Bei einer Folgefrage braucht schon die Suche das Antwortmodell. Die Quellen kommen danach."
+    },
+    "reading_sources": "„{level}“ liest die Stellen, bevor es schreibt.",
+    "writing": "Der Text erscheint, während er entsteht. Die Nummern werden am Ende gegen die Quellen geprüft."
+  },
+  "running": "{level} · läuft seit {time}",
+  "streaming": "{level} · läuft seit {time} · Die Nummern werden am Ende gegen die Quellen geprüft.",
+  "fast": {
+    "offer": "Dauert dir das zu lange? Die schnelle Stufe beginnt meist innerhalb einer halben Minute.",
+    "action": "Abbrechen und schnell fragen"
+  },
+  "announce": {
+    "done": {
+      "one": "Antwort fertig, 1 Quelle.",
+      "other": "Antwort fertig, {count} Quellen."
+    }
+  },
+  "cancelled": "Abgebrochen.",
+  "cancelledKept": "Der Text bis hier bleibt gespeichert, mit seinen geprüften Quellen.",
+  "cancelledEmpty": "Die Antwort hatte noch nicht begonnen.",
+  "failed": "Die Antwort ist fehlgeschlagen.",
+  "refused": "Die Frage wurde nicht gestellt.",
+  "details": "Technische Details",
+  "footer": {
+    "one": "{level} · 1 Quelle",
+    "other": "{level} · {count} Quellen"
+  },
+  "showSources": {
+    "one": "1 Quelle zeigen",
+    "other": "{count} Quellen zeigen"
+  },
+  "again": {
+    "button": "Erneut fragen",
+    "menu": "Erneut fragen in Stufe",
+    "note": "Dieselbe Frage neu beantworten lassen, als neue Antwort unten im Chat:",
+    "thorougher": "Gründlicher beantworten",
+    "in": "In „{level}“"
+  },
+  "none": {
+    "why": "In deinen Dokumenten steht nichts, das diese Frage beantwortet. RagOxide antwortet nur mit Belegen, deshalb gibt es hier keine Antwort.",
+    "ingesting": "Die Bibliothek liest gerade noch {left} von {total} Dateien ein. Steht die Antwort darin, frag danach noch einmal.",
+    "todo": "Formulier die Frage anders, oder prüf in der Bibliothek, ob das Dokument dabei ist.",
+    "similar": "Ähnliche Stellen suchen",
+    "similarNone": "Auch ähnliche Stellen gibt es keine.",
+    "similarShown": {
+      "one": "1 ähnliche Stelle steht bei den Belegen, ungeprüft.",
+      "other": "{count} ähnliche Stellen stehen bei den Belegen, ungeprüft."
+    }
+  },
   "level": {
     "fast": "Schnell",
     "balanced": "Ausgewogen",
     "thorough": "Gründlich"
   },
-  "modelMissing": "Für „{level}“ fehlt noch das Modell ({size} GB). Deine Frage ist noch nicht gestellt.",
-  "modelReady": "Das Modell ist bereit. Stell die Frage noch einmal.",
-  "download": "Modell laden",
+  "levelButton": "Stufe: {level}",
+  "levelMenu": "Stufe wählen",
+  "levelMenuFoot": "Gilt für alle weiteren Fragen, bis du sie änderst.",
+  "wait": {
+    "fast": "beginnt meist innerhalb einer halben Minute",
+    "balanced": "beginnt meist nach etwa einer Minute",
+    "thorough": "beginnt erst nach mehreren Minuten und entsteht langsamer, als du liest"
+  },
+  "levelState": {
+    "ready": "Bereit",
+    "missing": "Noch nicht geladen, rund {size} GB. Wird beim Wählen angeboten.",
+    "missingAtLeast": "Noch nicht geladen, mindestens {size} GB. Wird beim Wählen angeboten.",
+    "loading": "Wird geladen: {percent} %",
+    "paused": "Angehalten bei {percent} %",
+    "failed": "Laden fehlgeschlagen. Wählen, um es erneut zu versuchen.",
+    "notOffered": "Nicht wählbar: braucht mindestens 16 GB Arbeitsspeicher, dieser Rechner hat {ram} GB."
+  },
   "cancelDownload": "Laden anhalten",
-  "downloadFailed": "Das Laden ist unterbrochen. Du kannst es fortsetzen."
+  "resumeDownload": "Fortsetzen",
+  "help": {
+    "running": "Die Antwort läuft. Abbrechen wirkt sofort, auch während das Modell startet.",
+    "loading": "„{level}“ wird geladen: {percent} %. Bis dahin antwortet „{current}“.",
+    "loadingNoAnswer": "„{level}“ wird geladen: {percent} %.",
+    "paused": "Laden von „{level}“ angehalten bei {percent} %. Fortsetzen geht im Menü der Stufe.",
+    "failed": "Laden von „{level}“ fehlgeschlagen: {cause}. Die geladenen Teile bleiben, ein neuer Versuch setzt dort fort. Ohne Internet hilft das Offline-Paket in den Einstellungen. Bis dahin antwortet „{current}“.",
+    "failedStored": "Laden von „{level}“ fehlgeschlagen: {cause}. Die geladenen Teile bleiben, ein neuer Versuch setzt dort fort. Ohne Internet hilft das Offline-Paket in den Einstellungen.",
+    "weak": "Auf diesem Rechner gibt es nur „Schnell“: Die anderen Stufen brauchen mindestens 16 GB Arbeitsspeicher.",
+    "price": {
+      "fast": "Schnell: Antwort beginnt meist innerhalb einer halben Minute.",
+      "balanced": "Ausgewogen: Antwort beginnt meist nach etwa einer Minute.",
+      "thorough": "Gründlich: Jede Frage dauert mehrere Minuten, bis du die Stufe änderst."
+    }
+  },
+  "downloadCause": {
+    "network": "keine Verbindung",
+    "storage_full": "zu wenig Speicherplatz",
+    "checksum_mismatch": "eine Datei kam beschädigt an",
+    "other": "ein Fehler beim Laden"
+  },
+  "download": {
+    "title": "„{level}“ zuerst laden?",
+    "size": "Für „{level}“ fehlt noch das Antwortmodell, rund {size} GB aus dem Internet.",
+    "sizeAtLeast": "Für „{level}“ fehlt noch das Antwortmodell, mindestens {size} GB aus dem Internet.",
+    "free": "Im Modellordner sind {free} GB frei, das reicht.",
+    "tooLittle": "Im Modellordner sind nur {free} GB frei, zu wenig für {size} GB. Mach vor dem Laden Platz frei.",
+    "background": "Das Laden läuft im Hintergrund und lässt sich im Menü der Stufe anhalten und fortsetzen. Bis es fertig ist, antwortet „{level}“.",
+    "backgroundNoAnswer": "Das Laden läuft im Hintergrund und lässt sich im Menü der Stufe anhalten und fortsetzen.",
+    "questionStays": "Deine Frage bleibt im Eingabefeld.",
+    "againAfter": "Danach kannst du die Frage erneut stellen.",
+    "load": "Laden",
+    "stay": "Bei „{level}“ bleiben",
+    "blocked": "Im Modellordner sind nur {free} GB frei. Es fehlen {lacking} GB. Mach Platz frei, dann kannst du laden."
+  },
+  "sources": {
+    "none": "Quellen",
+    "noneNote": "Hier stehen die Quellen deiner Antwort, mit Nummer und Fundstelle.",
+    "pending": "Quellen zu Frage {question}",
+    "pendingNote": "Die Quellen erscheinen hier, sobald die Suche sie gefunden hat.",
+    "followUpNote": "Quellen folgen nach dem Modellstart.",
+    "found": "Gefunden ({count}) zu Frage {question}",
+    "foundNote": "Welche Stellen die Antwort zitiert, steht erst fest, wenn sie fertig ist.",
+    "cited": "Quellen ({count}) zu Frage {question}",
+    "citedNone": "Diese Antwort zitiert keine Quelle.",
+    "noSourcesNote": "Zu dieser Frage gibt es keine Stelle in deinen Dokumenten.",
+    "similar": "Ähnliche Stellen ({count}) zu Frage {question}",
+    "similarNote": "Ungeprüft: Diese Stellen hat die Suche gefunden; eine Antwort gibt es dazu nicht.",
+    "similarNone": "Die Suche hat auch keine ähnlichen Stellen gefunden.",
+    "unverified": "ungeprüft"
+  },
+  "place": {
+    "path": "{path}",
+    "page": "Seite {pages}",
+    "image": "Seite {pages} (Bild)",
+    "slide": "Folie {slides}",
+    "slideNotes": "Folie {slides} · Notizen",
+    "sheets": "Blätter „{first}“ bis „{last}“",
+    "cell": "Blatt „{sheet}“ · Zelle {cell}",
+    "cells": "Blatt „{sheet}“ · Zellen {range}"
+  },
+  "stale": {
+    "changed": "Datei geändert",
+    "removed": "Datei entfernt"
+  },
+  "markdown": {
+    "image": "[Bild: {alt}]",
+    "table": "Tabelle"
+  },
+  "rename": {
+    "button": "Titel ändern",
+    "label": "Titel des Chats",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "empty": "Ein leerer Titel lässt sich nicht speichern. Der bisherige bleibt."
+  },
+  "history": {
+    "empty": "Noch keine Chats. Deine Fragen erscheinen hier, nach Datum geordnet.",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "lastWeek": "Letzte Woche",
+    "older": "Älter",
+    "actions": "Aktionen zum geöffneten Chat",
+    "rename": "Umbenennen",
+    "delete": "Löschen"
+  },
+  "delete": {
+    "title": "„{title}“ löschen?",
+    "text": "Der Chat mit allen Fragen und Antworten wird endgültig entfernt. Das lässt sich nicht rückgängig machen. Deine Dokumente bleiben unberührt.",
+    "confirm": "Chat löschen",
+    "cancel": "Abbrechen"
+  },
+  "errorKind": {
+    "cancelled": "Der Vorgang wurde abgebrochen.",
+    "not_found": "Etwas, das dafür nötig ist, gibt es nicht mehr.",
+    "unsupported_format": "Ein Dokument hat ein Format, das RagOxide nicht lesen kann.",
+    "invalid_input": "So ließ sich die Anfrage nicht stellen.",
+    "parse": "Ein Dokument ließ sich nicht lesen.",
+    "chunk": "Ein Dokument ließ sich nicht in Abschnitte zerlegen.",
+    "model": "Ein Modell ließ sich nicht verwenden.",
+    "embedding_mismatch": "Die Suche passt nicht mehr zu den eingelesenen Dokumenten. Lies die Bibliothek neu ein.",
+    "index": "Die Suche in deinen Dokumenten ist fehlgeschlagen.",
+    "network": "Es gab keine Verbindung.",
+    "storage_full": "Auf dem Laufwerk ist kein Platz mehr.",
+    "checksum_mismatch": "Eine Modelldatei ist beschädigt angekommen.",
+    "model_missing": "Für diese Stufe fehlt das Antwortmodell.",
+    "generator": "Das Antwortmodell wurde unerwartet beendet und startet bei der nächsten Frage neu.",
+    "store": "Der Chat ließ sich nicht speichern.",
+    "config": "Die Einstellungen ließen sich nicht lesen.",
+    "io": "Eine Datei oder ein Ordner ließ sich nicht lesen oder schreiben."
+  }
 }

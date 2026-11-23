@@ -19,6 +19,7 @@ import { viewport } from "./viewport.svelte";
 
 let chatId = $state<ChatId | null>(null);
 let title = $state<string | null>(null);
+let newChatRequests = $state(0);
 
 /** The chat in the answer column. `null` is a new, not yet saved chat. */
 export const workspace = {
@@ -31,12 +32,20 @@ export const workspace = {
    * K also calls it with the new id once the first question of a new chat is saved.
    */
   openChat(id: ChatId | null): void {
+    if (id === null) newChatRequests += 1;
     if (id !== chatId) {
       evidence.clear();
       title = null;
     }
     chatId = id;
     navigate("chat");
+  },
+  /**
+   * Grows with every `openChat(null)` ("Neuer Chat", ADR 0138), also when `chatId` was
+   * already `null`: an area tells a click on "Neuer Chat" from "no chat chosen" by it.
+   */
+  get newChatRequests(): number {
+    return newChatRequests;
   },
   /** Title of the chat on display, shown in the header of the narrow layout. */
   get title(): string | null {
@@ -236,6 +245,7 @@ export const evidenceColumn = {
 export function resetWorkspace(): void {
   chatId = null;
   title = null;
+  newChatRequests = 0;
   evidence.clear();
   answerRequest = null;
   width = null;
