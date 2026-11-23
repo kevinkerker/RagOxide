@@ -1678,3 +1678,121 @@ Nach dem Durchgang wurden nur Tests ergänzt, um die beiden Vorschläge des Prü
 - `header_part_without_cell_anchors_carries_the_anchors_of_the_table` (Vorschlag 2).
 
 Vom Projektmanager nach der Ergänzung selbst gesehen: `cargo fmt --all --check` ohne Befund, `cargo test -p kb-core` grün (fixtures 12, knowledge_base 62, manifest 20, mocks 48, serde_roundtrip 8, settings 8, typescript 2), `cargo clippy --workspace --all-targets --all-features -- -D warnings` ohne Befund. Nicht unabhängig geprüft sind die beiden neuen Tests selbst. Die beiden offenen Fragen des Prüfers stehen in `docs/todo.md` bei den Kandidaten für Änderungsanträge an `kb-core`.
+
+# Prüfbericht kb-core Fassung 11 (Änderungsanträge nach Welle 1, mit A, E, G)
+
+## Prüfung Fassung 11 (2026-11-23)
+
+- Gegenstand: Worktree `kb-core-fassung-11`, Basis `7513187`, uncommittet (20 geänderte, 2 neue Dateien)
+- Spezifikation: `docs/abnahme-kb-core.md` Fassung 11 (K37 bis K48, aus dem Haupt-Repo), `docs/abnahme-kb-store.md` (G56), `docs/abnahme-kb-parse.md` (A69), `docs/abnahme-kb-index.md` (E64), ADR 0153 bis 0158 und 0185
+
+### Gesamtergebnis
+
+**PASS.** Alle 15 Kriterien sind erfüllt. Es gibt keinen Blocker. Zur gemeldeten Abweichung `FULL_BACKUP_OF` gibt es einen Vorschlag: Sie ist vertretbar, sollte aber in der Spezifikation nachgetragen werden.
+
+### Kriterien
+
+| ID | Kriterium | Ergebnis | Nachweis |
+|---|---|---|---|
+| K37 | Texte zum Fork, Ausnahme nach ADR 0105 | PASS | Die Suche nach allen neun Suchtexten über `kb-core/` und `ui/api/bindings.ts` findet nur `kb-core/src/mock/pipelines.rs:476` („do not contain the answer“). `document.rs:104-105` (`Image`), `:249-253` (`from_ocr`) und `:331-340` (`TableCell::text`) nennen die Formate 37 bis 40, das Beispiel `-1,235` und den Vorrang eines ausdrücklichen Klammerformats. `.xls` wird nicht genannt. Angepasst sind auch `traits.rs:72` und `:79-80` sowie die README-Zeilen 26, 28, 58 und 287. Die ADR-Verweise bleiben stehen. |
+| K38 | Fehlerarten von `Parser::parse` | PASS | `traits.rs:87-92` nennt `Io` und `Model` und sagt „never `NotFound`“. `error.rs:22-25` (`NotFound`) nennt Dokument und Chat statt „model file“ und verweist für den Parser auf `Io` und `Model`. `error.rs:47-49` (`Model`) nennt die Modelle des Parsers. Der README-Abschnitt „Fehler“ hat den Halbsatz. Der Mock ist unverändert. |
+| K39 | Chunker: Zeichengrenzen statt Tokengrenzen | PASS | `traits.rs:115-118` sagt: längstes Anfangsstück, nie innerhalb eines `char`, sonst `Error::Chunk`. Der Doc-Kommentar des `MockChunker` (`components.rs:97-99`) ist ergänzt. Die Chunker-Tests sind unverändert und grün (`tables.rs` 19/19, `limits.rs` 10/10). |
+| K40 | Veraltetes Indexformat ergibt `EmbeddingMismatch` | PASS | Steht am Trait `Index` (`traits.rs:208-214`), an `Error::EmbeddingMismatch` (`error.rs:53-60`) mit dem Vergleich zum Speicher (ADR 0119) und in der README-Zeile zu `Index` sowie unter „Fehler“. |
+| K41 | `StorageFull` für den Speicher | PASS | `error.rs:72-73` (`StorageFull`) und `:91-92` (`Store` verweist auf `StorageFull`). Am Trait `Store` (`traits.rs:323-327`) stehen Originaltext, „nothing is written“ und „stays usable“. Die README nennt „Modellverwaltung und Speicher“. `ErrorKind` und `kind()` sind unverändert. |
+| K42 | „Pfad schon vergeben“ im Vertrag und im `MockStore` | PASS | Vertrag in `traits.rs:330-335`, Mock in `components.rs` (`upsert_document`). Die Tests in `kb-core/tests/rejected_input.rs` decken (a) bis (d) ab: NFC, Groß- und Kleinschreibung, NFD, Ersetzen, freier Pfad. Gegenprobe: Ohne die Prüfung im Mock werden 2 Tests rot. Die Tests von KnowledgeBase und App bleiben grün. |
+| K43 | Endliche Boxen und Seitengrößen, Speicher lehnt andere ab | PASS | Zusage an `Page` (`document.rs:236-237`) und `BoundingBox` (`:419-420`). `save_content` und `save_chat` haben den Fehlerfall mit Halbsatz zu JSON. `MockStore` lehnt ab. Abgedeckt sind (a) NaN als Seitenbreite, (b) +∞ in der Box eines Elements und −∞ in der Box einer Zelle, jeweils ohne und mit vorherigem Inhalt, (c) NaN, +∞ und −∞ im Zitat eines Chats und (d) Endlichkeit aller Testdaten (Dokumente, Chunks, Treffer). Gegenproben: Ohne die Prüfung in `save_content` wird der Dokument-Test rot, ohne die in `save_chat` der Chat-Test. |
+| K44 | Umfang | PASS | Siehe „Umfang und Diff“: In `bindings.ts` haben sich 0 Zeilen außerhalb von Kommentaren geändert. `ingest.rs` und die JSON-Testdaten sind unverändert. In `traits.rs`, `document.rs` und `error.rs` haben sich nur `///`-Zeilen geändert, es gibt also keine neue Variante. Keine Zusicherung ist abgeschwächt. fmt, clippy, test, `bindings_are_up_to_date`, `pnpm check` und `pnpm test` sind grün. |
+| K45 | `SQLITE_FULL` wird `StorageFull` in `sqlite`, `opening`, `migrate` und `back_up` | PASS | `kb-store/src/error.rs:9-21` und `:39-50`, `open.rs:209-219` (`migrate`) und `:448-455` (`back_up`). Fehler des Betriebssystems (Markierungsdatei, Umbenennen, `remove_file`) bleiben `Store`. Das Überschreiben nach G54 a ist unverändert. Getestet wird mit `a_migration_on_a_full_disk_…` und `a_backup_on_a_full_disk_…`: Datei bytegleich, Sicherung bleibt, kein `.partial`, danach gelingt der Vorgang. `full.rs` ist umbenannt, prüft jetzt `StorageFull` exakt, und der Modulkommentar ist angepasst. README Zeilen 36, 94 und 101 ff. sowie BERICHT (Anträge 1 bis 3 „Umgesetzt“) sind nachgezogen. Gegenproben: Ohne die Abbildung in `migrate` bzw. `back_up` wird jeweils genau der zugehörige Test rot. |
+| K46 | Paket A folgt K43 | PASS | Siehe A69. |
+| K47 | `Index::add` lehnt nicht endliche Boxen ab, Mock und E | PASS | Vertrag in `traits.rs:222-225`. Der `MockIndex` prüft vor dem Sperren, also wird nichts hinzugefügt. Test `the_index_adds_nothing_from_a_call_with_a_box_that_is_not_finite` mit NaN, +∞ und −∞, gültigen Einträgen davor und danach sowie einer Ersetzung, Suche in allen drei Modi. Gegenprobe: Ohne die Prüfung im Mock wird der Test rot. Zu E siehe E64. |
+| K48 | `MockIngestor` gleicht nacheinander ab | PASS | `pipelines.rs`: async-Mutex `runs` und Sperre in `sync` (Zeile 334), abbrechbar über `or_cancel`. Test `kb-core/tests/ingest_runs.rs` (zwei gleichzeitige Abgleiche, ein Datensatz, kein Fehler). Gegenprobe (Sperre entfernt): Der Test wird rot mit `InvalidInput("record doc-notizen-2 has the path …, which record doc-notizen already has")`. Der App-Test `document_file_reports_the_hash_and_a_change_since_ingestion` lief 40 von 40 grün. Ohne Sperre war er in 40 Läufen 1-mal rot. |
+| G56 | Einheitentest `sqlite` und `opening`, README von `kb-store` | PASS | `error::tests::a_full_database_is_storage_full_and_every_other_code_a_store_error`: `SQLITE_FULL` ergibt `StorageFull` mit Originaltext, `SQLITE_IOERR` ergibt `Store`, und die Sonderfälle `BUSY` (anderer Prozess) und `NOTADB` bleiben. Gegenproben: Ohne die Abbildung in `sqlite` werden der Einheitentest und `full.rs` rot, ohne die in `opening` der Einheitentest. Die README ist angepasst (Zeilen 36 und 94, Abweichungen 1 und 2 gestrichen, der Rest neu nummeriert). |
+| A69 | `kb-parse` liefert nur endliche Zahlen | PASS | `convert/paged.rs:74-89`: Eine nicht endliche Box wird durch die Box der ganzen Seite ersetzt. `:127-131`: Eine nicht endliche Seitengröße ergibt `Failure::Parse` mit „page N“, das `parser.rs:329` auf `Error::Parse` abbildet. Alle Boxen von Elementen und Zellen laufen über `PageFrame::bbox` (`convert/mod.rs:434`, `:474`). Tests: `paged::tests::a_box_that_is_not_finite_becomes_the_whole_page`, `…a_page_size_that_is_not_finite_is_a_parse_error_with_the_page_number` und `tests/paged.rs::a69_every_box_and_page_size_of_the_corpus_is_finite`. Der Korpustest lief mit Modellordner wirklich, ohne „übersprungen“, über 19 Dateien. README-Absatz ist vorhanden. Gegenproben: Ohne den Ersatz der Box bzw. ohne die Prüfung der Seitengröße wird jeweils genau der zugehörige Test rot. |
+| E64 | `kb-index` lehnt nicht endliche Boxen ab | PASS | `index.rs:168-176` (`finite_boxes`) und `:676-682`, direkt nach der Prüfung der Vektoren. Test `write.rs::a_box_that_is_not_finite_is_rejected_and_adds_nothing` mit NaN, +∞ und −∞ und gültigen Einträgen davor und danach. Danach sind die Suchen in allen drei Modi leer. Der README-Satz ist vorhanden. Gegenprobe: Ohne die Prüfung wird der Test rot (`write.rs:447`). |
+
+### Umfang und Diff
+
+Der ganze Diff wurde Zeile für Zeile gelesen. Geändert sind nur:
+
+- **kb-core:** `src/document.rs`, `src/error.rs` und `src/traits.rs` (nur Rustdoc), `src/mock/components.rs`, `src/mock/pipelines.rs`, `README.md`, neu `tests/ingest_runs.rs` und `tests/rejected_input.rs`.
+- **ui:** `ui/api/bindings.ts`, nur Kommentarzeilen von `Page` (mit `from_ocr`), `TableCell` und `BoundingBox`.
+- **kb-store (K45):** `src/error.rs`, `src/open.rs`, `src/tests/full.rs`, `src/tests/migration.rs`, `README.md`, `BERICHT.md`.
+- **kb-parse (K46):** `src/convert/paged.rs`, `src/convert/mod.rs` (nur `?` am Aufruf von `frames`), `tests/paged.rs`, `README.md`.
+- **kb-index (K47):** `src/index.rs`, `tests/write.rs`, `README.md`.
+
+Was sich nicht geändert hat:
+
+- `kb-core/src/ingest.rs`, `kb-core/testdata/` und alle `*.json`.
+- `docs/` wird nicht berührt.
+- Es gibt keine neue Variante in `Error` oder `ErrorKind`.
+- Bestehende Tests sind nur in `full.rs` geändert. Dort ist die Zusicherung strenger geworden (`save_chat` prüft jetzt Variante und vollen Text statt `contains`).
+
+Der README-Zähler in `kb-core` (168) stimmt mit der Zahl der Tests in `kb-core/tests/` überein (12+1+62+20+48+7+8+8+2).
+
+**Abweichung `FULL_BACKUP_OF`** (`kb-store/src/open.rs:268-272`, Nutzung `:433-441`): Der Schalter ist vertretbar, aber nach dem Wortlaut eine Abweichung.
+
+- **Wortlaut:** K45 erlaubt in `back_up` „nur die Abbildung auf `StorageFull`“. Der Schalter ist zusätzlicher Code in `back_up`.
+- **Kein Einfluss auf das Produkt:** Er steht unter `#[cfg(test)]` und ist damit nicht in der Bibliothek, nur in den eigenen Einheitentests von `kb-store`.
+- **Folgt dem vorhandenen Muster:** wie `FAIL_OVERWRITE` und `EXIT_DURING_OVERWRITE`.
+- **Stört andere Tests nicht:** Er ist nach Pfad geschlüsselt, parallele Tests bleiben unberührt.
+- **Ohne ihn geht der Test nicht:** Die verlangte Erzwingung von `SQLITE_FULL` während der Sicherung ist ohne ihn nicht machbar, weil die Sicherungsdatei neu angelegt wird und sich ihre Seitengrenze nicht von außen setzen lässt.
+- **Wirkt nachweislich:** Die Gegenprobe zeigt, dass er einen echten `SQLITE_FULL` erzeugt, den `is_full` erkennt.
+
+### Gegenproben
+
+- **Wo:** in einer Kopie außerhalb des Worktrees (`kb-core`, `kb-store`, eigenes Build-Verzeichnis) und im Worktree mit sofortigem Zurücksetzen (`kb-index`, `kb-parse`, App-Test).
+- **Byte-Gleichheit:** Die SHA-256-Liste der 22 geänderten und neuen Dateien ist vorher und nachher identisch. `git status` zeigt wie vorher 22 Einträge, keine neuen Dateien.
+
+| Eingriff | Ergebnis |
+|---|---|
+| `MockIngestor`: Sperre in `sync` entfernt | `ingest_runs` rot. App-Test in 40 Läufen 39 grün, 1 rot (mit Sperre 40 von 40 grün). |
+| `MockStore::upsert_document`: Pfadprüfung aus | 2 von 3 K42-Tests rot |
+| `MockStore::save_content`: Endlichkeit aus | Dokument-Test rot |
+| `MockStore::save_chat`: Endlichkeit aus | Chat-Test rot |
+| `MockIndex::add`: Endlichkeit aus | Index-Test rot |
+| `kb-store` `sqlite`: ohne `is_full` | Einheitentest und `full.rs` rot |
+| `kb-store` `opening`: ohne `is_full` | Einheitentest rot |
+| `kb-store` `migrate`: ohne `is_full` | Migrationstest rot |
+| `kb-store` `back_up`: ohne `is_full` | Sicherungstest rot |
+| `kb-index`: `finite_boxes` aus | E64-Test rot |
+| `kb-parse`: Box-Ersatz aus | Box-Test rot |
+| `kb-parse`: Prüfung der Seitengröße aus | Seitengrößen-Test rot |
+
+### Prüfbefehle mit Zahlen
+
+| Befehl | Ergebnis |
+|---|---|
+| `cargo fmt --all --check` | Exit 0 |
+| `cargo clippy --workspace --all-targets --all-features -- -D warnings` | Exit 0. Zusätzlich ohne `--all-features` (Wortlaut K44): Exit 0. |
+| `cargo test --workspace` ohne Modellordner | 493 bestanden, 0 fehlgeschlagen, 3 ignoriert, 0 Warnungen. Die Parser-Korpustests sind übersprungen. |
+| `cargo test --workspace` mit `RAGOXIDE_TEST_MODELS_DIR` (models-v1) | 493 bestanden, 0 fehlgeschlagen, 3 ignoriert, 0 Warnungen, nichts übersprungen. `tests/paged.rs` 20/20 in 1742 s, `office.rs` 35/35. |
+| `cargo doc --workspace --no-deps` mit `RUSTDOCFLAGS=-D warnings` | Exit 0 |
+| `pnpm check` in `ui/` | 386 Dateien, 0 Fehler, 0 Warnungen |
+| `pnpm test` in `ui/` | 16 Dateien, 252 von 252 grün |
+
+- **Neue Tests:** 15, alle grün (kb-core 8, kb-store 3, kb-parse 3, kb-index 1).
+- **Regressionen in G, A und E:** keine. Alle Suiten von `kb-store` (Einheitentests 31 plus 1 ignoriert, alle Integrationstests), `kb-parse` und `kb-index` sind grün, `bindings_are_up_to_date` ebenfalls.
+- **Vorab rot:** nichts. Die 3 ignorierten Tests (`kb-index` lifecycle, `kb-store` lib, `kb-store` large) gehören nicht zum Diff.
+- **Wiederholung:** Der App-Test zu K48 lief 40 von 40 grün.
+
+### Blocker / Vorschläge / Kleinigkeiten
+
+**Blocker:** keine.
+
+**Vorschläge:**
+1. Den Testschalter `FULL_BACKUP_OF` in K45 als zulässig nachtragen, so wie den Nachtrag zu `migrate` und `back_up`. Etwa so: „dazu ein Testschalter unter `#[cfg(test)]`, der die Sicherung auf eine Seite begrenzt“. Bis dahin ist er eine formale, sachlich begründete Abweichung vom Wortlaut „nur die Abbildung“.
+
+**Kleinigkeiten:**
+1. **K48, Abbruch beim Warten:** Der `MockIngestor` beendet einen wartenden Lauf beim Abbruch sofort (`or_cancel` um die Sperre, im Doc-Kommentar genannt). Das ist vertragsgemäß, aber kein Test belegt es.
+2. **A69, Test-Aufteilung:** Der „zweite Test“ ist auf zwei Einheitentests aufgeteilt, einen für die Box und einen für die Seitengröße. Beide prüfen `frames` und `bbox` direkt, also `Failure::Parse` und nicht `Error::Parse` über `Parser::parse`. Die Abbildung `Failure::Parse` auf `Error::Parse` (`parser.rs:329`) ist vorhandener, unveränderter Code.
+3. **Kopf von `kb-store/BERICHT.md`:** Der Kopf nennt weiter „Stand 2026-11-21 … Fassung 4 (G01 bis G55)“. Der neue Abschnitt zu Fassung 11 und G56 steht darunter, der Kopf ist nicht angeglichen.
+4. **Spezifikation K48:** K48 sagt „Geändert wird nur `kb-core/src/mock/pipelines.rs`“. Dazu kommt ein Satz in `kb-core/README.md` („Bekannte Grenzen“). Die README ist nach K44 freigegeben, das ist also kein Verstoß.
+
+### Was nicht geprüft wurde
+
+- **Echte volle Platte:** Sie wurde nicht nachgestellt. `SQLITE_FULL` wird überall über `max_page_count` bzw. den Testschalter erzwungen.
+- **Echter nicht endlicher Wert aus docling.rs:** Er ließ sich nicht aus einer realen Datei erzeugen. Die Regel ist über nachgestelltes JSON belegt, der Korpus enthält keinen solchen Fall.
+- **Anpassungen der Spezifikationen in `docs/`:** Was der Projektmanager in den `docs/abnahme-*.md` nachzieht, ist nicht Gegenstand dieser Prüfung.
+- **Ausgelöste Folgen in K und L:** Die Texte für `storage_full` und `embedding_mismatch` in der Oberfläche sind nicht im Umfang.
+- **CI:** Lief nicht, weil nichts committet ist.
+- **`cargo deny`:** Nicht ausgeführt. Der Diff ändert weder `Cargo.toml` noch `Cargo.lock`.

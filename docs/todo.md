@@ -97,6 +97,8 @@ Hinweise:
 
 ## Später / beobachten
 
+- Paket F, Phase 2: kein Zeitlimit, wenn `llama-server` beim Laden hängt, ohne zu enden (bewusst außerhalb des Umfangs von F); ein Wächter mit Zeitlimit je Stufe gehört zur Härtung der Fehlerfälle. Dazu Kandidaten für `kb-core` aus dem Bericht von F: Prompt über dem Kontext als `InvalidInput` am Ende des Stroms, Serverpfad und Threads bei der Konstruktion, `count_tokens` wartet auf einen Wechsel, nicht auf eine laufende Antwort.
+
 - Gesperrte Kommentare nach ADR 0184 nachziehen: `app/src/commands.rs:225` und das daraus erzeugte `ui/api/bindings.ts:1730` sagen zu `offline_package_levels` „Package L through the shell“; seit ADR 0181 ruft L den Befehl auch direkt. Bei der nächsten Änderung an `app/` mitnehmen.
 
 - Doku der Hülle: `setup.provideFromPackage`, ihr Kommentar und `ui/README.md` (Absatz „Offline-Paket für alle Stufen“, Zeile `offline_package_levels`) ändert Paket L nach ADR 0184. Noch ohne Paket: `ui/README.md`, „Nur gewählte Ordner“, an ADR 0175 anpassen (Junctions führen über den gewählten Ordner hinaus).
