@@ -9,6 +9,19 @@ license.workspace = true
 
 [dependencies]
 kb-core = { workspace = true }
+# One-shot channels that hand results from the database thread back to the caller.
+futures = { workspace = true }
+# Stored records, contents, chat turns and settings are JSON text.
+serde = { workspace = true }
+serde_json = { workspace = true }
+# SQLite with the library compiled in (no system SQLite, no encryption, ADR 0121).
+# `backup` provides the online backup before a migration (ADR 0119).
+rusqlite = { version = "=0.43.0", default-features = false, features = ["bundled", "backup"] }
+
+[dev-dependencies]
+kb-core = { workspace = true, features = ["mock"] }
+tempfile = "=3.27.0"
+tokio = { version = "=1.54.1", default-features = false, features = ["rt", "rt-multi-thread", "sync", "time"] }
 
 [lints]
 workspace = true
