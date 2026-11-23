@@ -134,6 +134,45 @@ fn a09_to_a14_every_pdf_and_image_of_the_corpus() {
 }
 
 #[test]
+fn a69_every_box_and_page_size_of_the_corpus_is_finite() {
+    let Some(parser) = parser("a69_every_box_and_page_size_of_the_corpus_is_finite") else {
+        return;
+    };
+    let files = corpus_files(&["pdf", "jpg", "docx", "pptx", "xlsx", "html", "md"]);
+    assert_eq!(files.len(), 19, "the whole corpus");
+    let finite = |b: &kb_core::BoundingBox| {
+        [b.left, b.top, b.right, b.bottom]
+            .iter()
+            .all(|v| v.is_finite())
+    };
+    let mut boxes = 0;
+    for path in files {
+        let name = path.file_name().unwrap().to_str().unwrap();
+        let twice = corpus_twice(parser, name);
+        for doc in [&twice.first, &twice.traced.document] {
+            for p in &doc.pages {
+                assert!(p.width.is_finite() && p.height.is_finite(), "{name}: {p:?}");
+            }
+            for e in &doc.elements {
+                let cells = match &e.kind {
+                    ElementKind::Table(t) => {
+                        t.cells.iter().filter_map(|c| c.anchor.as_ref()).collect()
+                    }
+                    _ => Vec::new(),
+                };
+                for a in e.anchors.iter().chain(cells) {
+                    if let Anchor::Page { bbox, .. } = a {
+                        boxes += 1;
+                        assert!(finite(bbox), "{name}: {bbox:?}");
+                    }
+                }
+            }
+        }
+    }
+    assert!(boxes > 0, "the corpus has boxes");
+}
+
+#[test]
 fn a22_kinds_of_a_paper() {
     let Some(parser) = parser("a22") else { return };
     let doc = doc(parser, ARXIV);

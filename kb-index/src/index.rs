@@ -8,8 +8,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use async_trait::async_trait;
 use futures::TryStreamExt;
 use kb_core::{
-    Chunk, DocumentId, EmbeddingSpace, Error, Index, IndexEntry, Result, SearchHit, SearchMode,
-    SearchRequest,
+    Anchor, Chunk, DocumentId, EmbeddingSpace, Error, Index, IndexEntry, Result, SearchHit,
+    SearchMode, SearchRequest,
 };
 use lancedb::arrow::arrow_array::{
     Array, FixedSizeListArray, Float32Array, RecordBatch, RecordBatchIterator, StringArray,
@@ -163,6 +163,16 @@ fn cosine(a: &[f32], b: &[f32]) -> f32 {
 /// A vector the cosine is defined for: all values finite, not all zero.
 fn usable_vector(v: &[f32]) -> bool {
     v.iter().all(|x| x.is_finite()) && v.iter().any(|x| *x != 0.0)
+}
+
+/// `true` if every box among the anchors of `chunk` has finite values only.
+fn finite_boxes(chunk: &Chunk) -> bool {
+    chunk.provenance.anchors.iter().all(|anchor| match anchor {
+        Anchor::Page { bbox, .. } => [bbox.left, bbox.top, bbox.right, bbox.bottom]
+            .iter()
+            .all(|v| v.is_finite()),
+        Anchor::Slide { .. } | Anchor::Sheet { .. } | Anchor::Paragraph { .. } => true,
+    })
 }
 
 /// Whether a list cut after `want` rows may hide rows that tie with the row at the
@@ -660,6 +670,13 @@ impl Index for LanceIndex {
         if let Some(bad) = entries.iter().find(|e| !usable_vector(&e.embedding)) {
             return Err(Error::InvalidInput(format!(
                 "embedding of chunk {} is zero or has NaN or infinite values; nothing was added",
+                bad.chunk.id
+            )));
+        }
+        // The chunk is stored as JSON, which has no NaN or infinity (K47).
+        if let Some(bad) = entries.iter().find(|e| !finite_boxes(&e.chunk)) {
+            return Err(Error::InvalidInput(format!(
+                "chunk {} has a box with a NaN or infinite value, which cannot be stored; nothing was added",
                 bad.chunk.id
             )));
         }

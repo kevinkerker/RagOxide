@@ -19,8 +19,10 @@ pub enum Error {
     #[error("operation cancelled")]
     Cancelled,
 
-    /// A referenced object (document, chat, model file) does not exist.
-    /// The message names the object, e.g. `"document doc-123"`.
+    /// A referenced object (for example a document or a chat) does not exist.
+    /// The message names the object, e.g. `"document doc-123"`. A source file the
+    /// [`Parser`](crate::Parser) cannot find is [`Error::Io`], a missing model file
+    /// [`Error::Model`].
     #[error("not found: {0}")]
     NotFound(String),
 
@@ -42,14 +44,20 @@ pub enum Error {
     #[error("chunker error: {0}")]
     Chunk(String),
 
-    /// Embedding, reranking or model management failed (missing model file, no
-    /// checksum or download source in `models.toml`, ONNX Runtime error).
+    /// Embedding, reranking, the models of the parser or model management failed
+    /// (missing model file, no checksum or download source in `models.toml`, ONNX
+    /// Runtime error).
     #[error("model error: {0}")]
     Model(String),
 
     /// Embeddings and index belong to different embedding spaces (model or dimension):
-    /// the index was built with another model, or a vector has the wrong length. The
-    /// index has to be rebuilt by ingesting all documents again.
+    /// the index was built with another model, or a vector has the wrong length. Opening
+    /// an index also fails with it if the stored index carries a format version this
+    /// program does not read (older or newer, ADR 0158); its data stay unchanged. The
+    /// index has to be rebuilt by ingesting all documents again. Unlike the store, whose
+    /// newer database is [`Error::Store`] and is not overwritten (ADR 0119) because it
+    /// holds chats and settings, the index holds only data that can be produced again
+    /// from the files.
     #[error("embedding space mismatch: {0}")]
     EmbeddingMismatch(String),
 
@@ -61,7 +69,8 @@ pub enum Error {
     #[error("network error: {0}")]
     Network(String),
 
-    /// The disk holding the target folder is full.
+    /// The disk holding the target folder of the model management is full, or the
+    /// database of the [`Store`](crate::Store) reports that it or its disk is full.
     #[error("storage full: {0}")]
     StorageFull(String),
 
@@ -79,7 +88,8 @@ pub enum Error {
     #[error("generator error: {0}")]
     Generator(String),
 
-    /// The persistent store failed (SQLite error, failed migration).
+    /// The persistent store failed (SQLite error, failed migration). A full database or
+    /// disk is [`Error::StorageFull`] instead.
     #[error("store error: {0}")]
     Store(String),
 

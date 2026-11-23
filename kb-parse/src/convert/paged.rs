@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use kb_core::{Anchor, BoundingBox, Page};
 use serde_json::Value;
 
+use super::Failure;
 use super::tree::DoclingJson;
 
 /// What the conversion report (`ConversionResult.document.confidence`) says about the
@@ -55,7 +56,9 @@ impl PageFrame {
     }
 
     /// A docling box (`{l, t, r, b, coord_origin}`) in the contract's frame: origin top
-    /// left of the displayed page, ordered edges, clamped to the page.
+    /// left of the displayed page, ordered edges, clamped to the page. A box that comes
+    /// out with a value that is not finite becomes the box of the whole page (ADR 0156),
+    /// so the element stays citable.
     pub(crate) fn bbox(&self, bbox: &Value) -> Option<BoundingBox> {
         let num = |k: &str| bbox.get(k).and_then(Value::as_f64).map(|v| v as f32);
         let (l, t, r, b) = (num("l")?, num("t")?, num("r")?, num("b")?);
@@ -68,19 +71,32 @@ impl PageFrame {
         let y = |v: f32| (v * self.scale_y).clamp(0.0, h);
         let (left, right) = (x(l.min(r)), x(l.max(r)));
         let (top, bottom) = (y(top.min(bottom)), y(top.max(bottom)));
-        Some(BoundingBox {
-            left,
-            top,
-            right,
-            bottom,
-        })
+        if [left, top, right, bottom].iter().all(|v| v.is_finite()) {
+            Some(BoundingBox {
+                left,
+                top,
+                right,
+                bottom,
+            })
+        } else {
+            Some(BoundingBox {
+                left: 0.0,
+                top: 0.0,
+                right: w,
+                bottom: h,
+            })
+        }
     }
 }
 
 /// The pages of the conversion by number. For images, `pixels` gives the size of each
 /// page image in pixels (EXIF orientation applied), which fixes the factor from points
-/// to pixels; for PDF it is `None` and the factor is 1.
-pub(crate) fn frames(json: &DoclingJson<'_>, images: bool) -> BTreeMap<u32, PageFrame> {
+/// to pixels; for PDF it is `None` and the factor is 1. A page whose size comes out not
+/// finite is [`Failure::Parse`] naming the page (ADR 0156).
+pub(crate) fn frames(
+    json: &DoclingJson<'_>,
+    images: bool,
+) -> Result<BTreeMap<u32, PageFrame>, Failure> {
     let mut frames = BTreeMap::new();
     for (key, entry) in json.pages().into_iter().flatten() {
         let Ok(number) = key.parse::<u32>() else {
@@ -108,6 +124,11 @@ pub(crate) fn frames(json: &DoclingJson<'_>, images: bool) -> BTreeMap<u32, Page
             }
             _ => (width, height),
         };
+        if !(out_width.is_finite() && out_height.is_finite()) {
+            return Err(Failure::Parse(format!(
+                "page {number} has a size that is not finite ({out_width} x {out_height})"
+            )));
+        }
         frames.insert(
             number,
             PageFrame {
@@ -119,7 +140,7 @@ pub(crate) fn frames(json: &DoclingJson<'_>, images: bool) -> BTreeMap<u32, Page
             },
         );
     }
-    frames
+    Ok(frames)
 }
 
 /// One [`Anchor::Page`] per `prov` entry, in order (ADR 0011: all of them).
@@ -180,6 +201,79 @@ mod tests {
         assert!(
             (b.right - 1240.0).abs() < 0.01 && b.top == 0.0 && (b.bottom - 1754.0).abs() < 0.01
         );
+    }
+
+    /// docling JSON with one page of `size` points and, for images, a page image of
+    /// `pixels`.
+    fn one_page(size: (f64, f64), pixels: Option<(f64, f64)>) -> Value {
+        let mut page = json!({"size": {"width": size.0, "height": size.1}, "page_no": 1});
+        if let Some((w, h)) = pixels {
+            page["image"] = json!({"size": {"width": w, "height": h}});
+        }
+        json!({"pages": {"1": page}})
+    }
+
+    #[test]
+    fn a_box_that_is_not_finite_becomes_the_whole_page() {
+        // An image page whose size in points rounds to almost 0 in f32 (as after a
+        // conversion of a page of size 0): the factor to pixels is infinite, and a box
+        // at the origin comes out NaN.
+        let value = one_page((1e-40, 1e-40), Some((1240.0, 1754.0)));
+        let found = frames(&DoclingJson::new(&value), true).unwrap();
+        let frame = found[&1];
+        assert!(frame.scale_x.is_infinite(), "{frame:?}");
+        let prov = json!({"page_no": 1, "bbox": {"l": 0.0, "t": 0.0, "r": 0.0, "b": 0.0, "coord_origin": "TOPLEFT"}});
+        let anchors = anchors(&[&prov], &found);
+        assert_eq!(
+            anchors,
+            vec![Anchor::Page {
+                page: 1,
+                bbox: BoundingBox {
+                    left: 0.0,
+                    top: 0.0,
+                    right: 1240.0,
+                    bottom: 1754.0
+                }
+            }]
+        );
+        // Also a NaN that comes in through the factor of the frame itself.
+        let frame = PageFrame {
+            height: 842.0,
+            scale_x: f32::NAN,
+            scale_y: 1.0,
+            out_width: 595.0,
+            out_height: 842.0,
+        };
+        let b = frame
+            .bbox(&json!({"l": 36.0, "t": 800.0, "r": 150.0, "b": 780.0, "coord_origin": "BOTTOMLEFT"}))
+            .unwrap();
+        assert_eq!((b.left, b.top, b.right, b.bottom), (0.0, 0.0, 595.0, 842.0));
+        // A finite box is left as it is.
+        let value = one_page((595.0, 842.0), None);
+        let found = frames(&DoclingJson::new(&value), false).unwrap();
+        let b = found[&1]
+            .bbox(&json!({"l": 10.0, "t": 20.0, "r": 30.0, "b": 40.0, "coord_origin": "TOPLEFT"}))
+            .unwrap();
+        assert_eq!((b.left, b.top, b.right, b.bottom), (10.0, 20.0, 30.0, 40.0));
+    }
+
+    #[test]
+    fn a_page_size_that_is_not_finite_is_a_parse_error_with_the_page_number() {
+        // 1e39 points do not fit into f32 and become infinite.
+        for (value, images) in [
+            (one_page((1e39, 842.0), None), false),
+            (one_page((595.0, 1e39), None), false),
+            (one_page((595.0, 842.0), Some((1e39, 1754.0))), true),
+        ] {
+            let mut value = value;
+            // The page is the third of the document.
+            let page = value["pages"]["1"].take();
+            value["pages"] = json!({"3": page});
+            let Err(Failure::Parse(message)) = frames(&DoclingJson::new(&value), images) else {
+                panic!("not a parse error: {value}");
+            };
+            assert!(message.contains("page 3"), "{message}");
+        }
     }
 
     #[test]

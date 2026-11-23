@@ -2,6 +2,16 @@
 
 Stand 2026-11-21 (Nacharbeit nach Fassung 4), erste Fassung 2026-11-20. Branch `paket-g-kb-store`, Basis `main` 07945f8, nichts committet. Spezifikation: `docs/abnahme-kb-store.md`, Fassung 4 (G01 bis G55).
 
+## Nacharbeit nach `kb-core` Fassung 11 (K45, G56)
+
+Stand 2026-11-23, im Paket von `kb-core` Fassung 11 (ADR 0153, enge Ausnahme), Branch `kb-core-fassung-11`, nichts committet. Die Änderungsanträge 1 bis 3 unten sind damit umgesetzt: `StorageFull` gilt für den Speicher (K41), der Fehlerfall „Pfad schon vergeben“ (K42) und das Ablehnen nicht endlicher Zahlen (K43) stehen im Vertrag, und `MockStore` verhält sich gleich.
+
+| Punkt | Änderung | Tests |
+| --- | --- | --- |
+| K45, G56 | `src/error.rs`: `sqlite` und `opening` bilden einen Fehler mit dem Code `SQLITE_FULL` auf `Error::StorageFull` mit dem Originaltext ab (`opening` mit dem Pfad davor), alle übrigen bleiben `Error::Store`; die Sonderfälle von `opening` (gesperrt, keine SQLite-Datenbank) bleiben. | Einheitentest `error::tests::a_full_database_is_storage_full_and_every_other_code_a_store_error`; `src/tests/full.rs` heißt jetzt `a_full_database_is_storage_full_with_the_text_of_sqlite` und erwartet „storage full: database or disk is full“ für `save_content` und `save_chat`, die übrigen Zusicherungen bleiben. |
+| K45, Migration und Sicherung | Freigabe des Projektmanagers vom 2026-11-23: `src/open.rs`, die Fehlerbehandlung in `migrate` und `back_up` bildet `SQLITE_FULL` (`error::is_full`, jetzt `pub(crate)`) auf `Error::StorageFull` mit derselben Meldung ab, sonst `Error::Store` wie bisher. Für den Test der Sicherung kommt ein Testschalter `FULL_BACKUP_OF` dazu (nur `#[cfg(test)]`, nach Pfad, damit parallel laufende Tests unberührt bleiben), der die Kopie auf eine Seite begrenzt. | `tests::migration::a_migration_on_a_full_disk_is_storage_full_and_changes_nothing` (Migration mit `max_page_count` auf die aktuelle Seitenzahl, Datei bytegleich, Schema 1, Sicherung bleibt, danach gelingt die Migration); `tests::migration::a_backup_on_a_full_disk_is_storage_full_and_changes_nothing` (Datei bytegleich, Schema 2, ältere Sicherung bleibt, keine neue und keine `.partial`, danach gelingen Sicherung und Migration). Gegenprobe ohne die Abbildung: je der passende Test rot. |
+| README | „Verhalten bei Fehlern“ nennt `StorageFull`, auch für Migration und Sicherung; die Abweichungen 1 und 2 von `MockStore` sind gestrichen (die übrigen heißen jetzt 1 und 2), der Punkt „Eindeutigkeit“ verweist auf den Vertrag statt auf die Abweichungen. | |
+
 ## Nacharbeit nach Fassung 4 (G54 (a), G55, G40)
 
 Der dritte Durchgang war PASS in allen 54 Kriterien. Fassung 4 setzt zwei Entscheidungen des Inhabers um: ADR 0142 (Fehlschlag des Überschreibens) und ADR 0144 (schreibgeschützte Datei). `synchronous = FULL` bleibt (ADR 0143); sonst ist nichts geändert.
@@ -236,6 +246,8 @@ Nur Zugänge (48 Zeilen, keine gelöschte oder geänderte Zeile): neue Pakete `f
 
 ## Abweichungen vom Mock
 
+Seit `kb-core` Fassung 11 (K42, K43) verhält sich `MockStore` an beiden Punkten gleich; sie sind keine Abweichungen mehr und stehen hier nur noch als Verlauf.
+
 1. **Ein Datensatz je Pfad (G07):** `upsert_document` lehnt mit `InvalidInput` ab, wenn ein anderer Datensatz schon denselben `path_key` trägt (neu angelegt oder per Ersetzen umbenannt). Nach der Festlegung „Ein Datensatz je Pfad“.
 2. **`NaN` und Unendlichkeit:** `save_content` und `save_chat` lehnen sie in Boxen und Seitengrößen mit `InvalidInput` ab. Grund: JSON kennt sie nicht; serde_json schriebe `null`, und der gespeicherte Inhalt ließe sich nie wieder lesen (`content` und `chat` würden dauerhaft mit `Error::Store` scheitern). `MockStore` nimmt sie an. Siehe offene Frage 2.
 
@@ -243,9 +255,11 @@ Sonst verhält sich der Speicher wie `MockStore`; G10, G17 und G43 vergleichen d
 
 ## Änderungsanträge an `kb-core`
 
-1. **`StorageFull` auch für den Speicher** (Kandidat nach G40): `kb-core/src/error.rs`, Rustdoc von `Error::StorageFull` („The disk holding the target folder is full.“) und `kb-core/README.md`, Abschnitt „Fehler“ („für die Modellverwaltung `Network`, `StorageFull`, `ChecksumMismatch`“). Vorschlag: `StorageFull` ausdrücklich auch für den Speicher zulassen, wenn SQLite `SQLITE_FULL` meldet, damit die Oberfläche „Platte voll“ übersetzen kann statt eines internen Fehlers. Umgesetzt ist nach dem Wortlaut: `Error::Store` mit dem Text von SQLite („database or disk is full“).
-2. **Fehlerfall „Pfad schon vergeben“ in `Store::upsert_document`** (`kb-core/src/traits.rs`, Rustdoc von `upsert_document`): Der Rustdoc nennt keinen Fehlerfall; der Speicher lehnt nach G07 mit `InvalidInput` ab. Vorschlag: „A record whose path has the same `path_key` as another record's is `InvalidInput`.“ in den Vertrag und in `MockStore` aufnehmen, damit Mock und Speicher wieder gleich sind und Paket H es aus dem Vertrag kennt.
-3. **Nicht endliche Zahlen** (`kb-core/src/traits.rs`, `Store::save_content` und `Store::save_chat`; oder `kb-core/src/document.rs`, `BoundingBox` und `Page`): Vorschlag: „Boxes and page sizes are finite; a document or chat with NaN or infinity is `InvalidInput`.“ Für den Parser (Paket A) wäre das zugleich eine Zusage.
+Alle drei sind mit `kb-core` Fassung 11 umgesetzt (K41, K42, K43, K45; ADR 0147, 0153, 0154).
+
+1. **Umgesetzt (K41, K45). `StorageFull` auch für den Speicher** (Kandidat nach G40): `kb-core/src/error.rs`, Rustdoc von `Error::StorageFull` („The disk holding the target folder is full.“) und `kb-core/README.md`, Abschnitt „Fehler“ („für die Modellverwaltung `Network`, `StorageFull`, `ChecksumMismatch`“). Vorschlag: `StorageFull` ausdrücklich auch für den Speicher zulassen, wenn SQLite `SQLITE_FULL` meldet, damit die Oberfläche „Platte voll“ übersetzen kann statt eines internen Fehlers. Bis Fassung 11 umgesetzt nach dem damaligen Wortlaut: `Error::Store` mit dem Text von SQLite („database or disk is full“); seitdem `Error::StorageFull`.
+2. **Umgesetzt (K42). Fehlerfall „Pfad schon vergeben“ in `Store::upsert_document`** (`kb-core/src/traits.rs`, Rustdoc von `upsert_document`): Der Rustdoc nennt keinen Fehlerfall; der Speicher lehnt nach G07 mit `InvalidInput` ab. Vorschlag: „A record whose path has the same `path_key` as another record's is `InvalidInput`.“ in den Vertrag und in `MockStore` aufnehmen, damit Mock und Speicher wieder gleich sind und Paket H es aus dem Vertrag kennt.
+3. **Umgesetzt (K43). Nicht endliche Zahlen** (`kb-core/src/traits.rs`, `Store::save_content` und `Store::save_chat`; oder `kb-core/src/document.rs`, `BoundingBox` und `Page`): Vorschlag: „Boxes and page sizes are finite; a document or chat with NaN or infinity is `InvalidInput`.“ Für den Parser (Paket A) wäre das zugleich eine Zusage.
 
 ## Offene Fragen an den Inhaber
 

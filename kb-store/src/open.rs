@@ -14,7 +14,7 @@ use kb_core::{Error, Result};
 use rusqlite::backup::{Backup, StepResult};
 use rusqlite::{Connection, OpenFlags, Transaction, TransactionBehavior};
 
-use crate::error::{in_use, is_locked, opening, sqlite};
+use crate::error::{in_use, is_full, is_locked, opening, sqlite};
 use crate::schema::{APPLICATION_ID, Schema};
 
 /// What the header of the database says, relative to the schema of this build.
@@ -207,10 +207,15 @@ fn create(conn: &mut Connection, schema: &Schema) -> Result<()> {
 /// Migrates from `version` to `schema.version` in one transaction, step by step.
 fn migrate(conn: &mut Connection, schema: &Schema, version: u32) -> Result<()> {
     let failed = |e: rusqlite::Error| {
-        Error::Store(format!(
+        let message = format!(
             "migration from schema version {version} to {} failed: {e}",
             schema.version
-        ))
+        );
+        if is_full(&e) {
+            Error::StorageFull(message)
+        } else {
+            Error::Store(message)
+        }
     };
     let tx = conn
         .transaction_with_behavior(TransactionBehavior::Exclusive)
@@ -259,6 +264,12 @@ fn set_marker(marker: &Path) -> std::io::Result<()> {
     }
     Ok(())
 }
+
+/// Test hook: the backup of the database at this path fails like on a full disk (the
+/// copy may not grow beyond one page). Keyed by path, so that other tests running at
+/// the same time are not affected.
+#[cfg(test)]
+pub(crate) static FULL_BACKUP_OF: std::sync::Mutex<Option<PathBuf>> = std::sync::Mutex::new(None);
 
 /// Test hook: makes [`overwrite_free_pages`] fail like on a full disk.
 #[cfg(test)]
@@ -401,12 +412,13 @@ fn remove_backup_after_check(conn: &mut Connection, path: &Path, schema: &Schema
 fn back_up(conn: &Connection, path: &Path, version: u32) -> Result<()> {
     let target = sibling(path, &format!(".v{version}.bak"));
     let partial = sibling(path, &format!(".v{version}.bak.partial"));
-    let failed = |e: String| {
-        Error::Store(format!(
+    let message = |e: String| {
+        format!(
             "backup of {} before the migration from schema version {version} failed, nothing was migrated: {e}",
             path.display()
-        ))
+        )
     };
+    let failed = |e: String| Error::Store(message(e));
     if partial.symlink_metadata().is_ok() {
         fs::remove_file(&partial).map_err(|e| failed(e.to_string()))?;
     }
@@ -418,6 +430,15 @@ fn back_up(conn: &Connection, path: &Path, version: u32) -> Result<()> {
                 | OpenFlags::SQLITE_OPEN_NO_MUTEX,
         )?;
         destination.pragma_update(None, "temp_store", "MEMORY")?;
+        #[cfg(test)]
+        if FULL_BACKUP_OF
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_deref()
+            == Some(path)
+        {
+            destination.pragma_update(None, "max_page_count", 1)?;
+        }
         {
             let backup = Backup::new(conn, &mut destination)?;
             while backup.step(-1)? != StepResult::Done {}
@@ -427,7 +448,11 @@ fn back_up(conn: &Connection, path: &Path, version: u32) -> Result<()> {
     if let Err(e) = copy() {
         let _ = fs::remove_file(&partial);
         let _ = fs::remove_file(sibling(&partial, "-journal"));
-        return Err(failed(e.to_string()));
+        return Err(if is_full(&e) {
+            Error::StorageFull(message(e.to_string()))
+        } else {
+            failed(e.to_string())
+        });
     }
     if let Err(e) = fs::rename(&partial, &target) {
         let _ = fs::remove_file(&partial);

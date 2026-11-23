@@ -25,9 +25,10 @@ use crate::{
 /// [`Ingestor`] over a [`MockFiles`] file system, processing files one after the other.
 ///
 /// Follows the synchronisation rules of the trait. Simplifications: files are never
-/// read (the [`Parser`] decides, the hash comes from [`MockFiles`]), runs are not
-/// coordinated with each other, and `watch` synchronises once and then only waits for
-/// the cancel. New document ids are `doc-<file stem>` (with a number appended if taken)
+/// read (the [`Parser`] decides, the hash comes from [`MockFiles`]), runs that overlap
+/// (a watcher and a command, for example) run one after another as a whole instead of
+/// sharing one queue of files, and `watch` synchronises once and then only waits for
+/// the cancel. A run waiting for its turn ends at once when it is cancelled. New document ids are `doc-<file stem>` (with a number appended if taken)
 /// so that the fixture files keep the ids from `documents.json`; this scheme is for the
 /// mock only.
 pub struct MockIngestor {
@@ -37,6 +38,8 @@ pub struct MockIngestor {
     index: Arc<dyn Index>,
     store: Arc<dyn Store>,
     files: Arc<MockFiles>,
+    /// Held for the whole of a synchronisation, so that runs do not overlap.
+    runs: futures::lock::Mutex<()>,
 }
 
 struct Run<'a> {
@@ -73,6 +76,7 @@ impl MockIngestor {
             index,
             store,
             files,
+            runs: futures::lock::Mutex::new(()),
         }
     }
 
@@ -327,6 +331,7 @@ impl Ingestor for MockIngestor {
         if cancel.is_cancelled() {
             return Err(Error::Cancelled);
         }
+        let _turn = or_cancel(&cancel, async { Ok(self.runs.lock().await) }).await?;
         let settings = self.check_scope(&scope).await?;
         let folder_keys: Vec<String> = settings
             .watched_folders

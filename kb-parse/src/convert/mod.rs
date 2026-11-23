@@ -152,7 +152,7 @@ pub(crate) fn convert(
         DocumentFormat::Xlsx => (Vec::new(), xlsx::elements(&json, &hidden)),
         DocumentFormat::Pdf | DocumentFormat::Image => {
             let images = format == DocumentFormat::Image;
-            let frames = paged::frames(&json, images);
+            let frames = paged::frames(&json, images)?;
             let pages = frames
                 .iter()
                 .map(|(&n, frame)| {
