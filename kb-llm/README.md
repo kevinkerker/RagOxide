@@ -160,7 +160,7 @@ Gleich sind: wann `StartingModel` kommt, die Fehlerkategorien, dass jede vollst�
 Erzeugt mit dem Messprogramm `examples/measure.rs`, das die Variablen aus F-F12 liest, die Dateien gegen `models.toml` prüft und die Werte unten ausgibt; damit ist das Protokoll wiederholbar:
 
 ```
-cargo run --release -p kb-llm --example measure -- 8 fast,balanced,thorough
+cargo run --release -p kb-llm --example measure-llm -- 8 fast,balanced,thorough
 ```
 
 **Bedingungen:** 2026-11-23, 21:51 bis 22:07; Intel Core Ultra 7 155H, 32 GB (15,3 GB frei vor dem Lauf), Windows 11 Pro; 8 Threads, Kontext 5.120, Server `b12359` mit dem CPU-Backend `ggml-cpu-alderlake.dll`; Dateicache warm (Ladezeit: erster Start verworfen, dann abwechselnd ohne und mit Drafter). **Fremdlast:** Systemlast ohne Server vor jeder Stufe 22 bis 24 % (Oberflächenprogramme und ein paralleler Bau mit Tests von `kb-core`); in der Stufe Gründlich lag die Stichprobe vor den Anfragen bei 49 %. Die Werte sind deshalb als gestört zu lesen. Ein Referenzgerät gibt es noch nicht (ADR 0017); Zielwerte gelten in Phase 1 nicht.

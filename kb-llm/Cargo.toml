@@ -47,3 +47,9 @@ doc = false
 
 [lints]
 workspace = true
+
+# Own name: `kb-index` has an example `measure` too, and examples of all crates
+# share one output folder in the workspace (cargo issue 6313).
+[[example]]
+name = "measure-llm"
+path = "examples/measure.rs"

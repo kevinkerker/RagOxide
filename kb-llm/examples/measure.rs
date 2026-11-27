@@ -9,7 +9,7 @@
 //! Run it with a warm file cache and nothing else heavy on the machine:
 //!
 //! ```text
-//! cargo run --release -p kb-llm --example measure -- [threads] [fast,balanced,thorough]
+//! cargo run --release -p kb-llm --example measure-llm -- [threads] [fast,balanced,thorough]
 //! ```
 
 #[path = "../tests/common/real.rs"]
