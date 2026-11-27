@@ -1,6 +1,6 @@
 [package]
 name = "kb-llm"
-description = "Local answer model via the bundled llama-server (package F, implements kb_core::Generator and a kb_core::TokenCounter for the answer model)."
+description = "Local answer model via the bundled llama-server (package F, implements kb_core::Generator)."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -9,6 +9,41 @@ license.workspace = true
 
 [dependencies]
 kb-core = { workspace = true }
+# The Stream trait of the stream returned by `generate`.
+futures = { workspace = true }
+# Request bodies for the server and the server's JSON answers.
+serde = { workspace = true }
+serde_json = { workspace = true }
+# The owned cancellation future the stream polls (the token type is kb-core's).
+tokio-util = { workspace = true }
+# Child process, its pipes, health polling, timers and the state of the server without
+# blocking the executor.
+tokio = { version = "=1.54.1", default-features = false, features = ["rt", "process", "io-util", "sync", "time", "macros"] }
+# HTTP/1.1 client for the server on 127.0.0.1: no TLS, no HTTP/2, no system proxy
+# (default features off); `no_proxy()` is set in the code as well (F-F9).
+reqwest = { version = "=0.13.5", default-features = false }
+# Random API key per server start.
+getrandom = "=0.3.4"
+
+[target.'cfg(windows)'.dependencies]
+# Job object with kill-on-close, so the server ends with the app, also after a hard
+# kill (F-F4); safe interface, no own `unsafe` (F-F10).
+win32job = "=2.1.0"
+
+[dev-dependencies]
+# Mocks and fixtures of the contract, for tests only (never in shipped builds).
+kb-core = { workspace = true, features = ["mock"] }
+tokio = { version = "=1.54.1", default-features = false, features = ["rt", "rt-multi-thread", "macros", "time", "sync"] }
+# Own temporary folders per test, removed after a panic as well.
+tempfile = "=3.27.0"
+
+# Stand-in for llama-server used by the tests (F-F11). Not part of the library; the
+# tests find it through CARGO_BIN_EXE_kb-llm-fake-server.
+[[bin]]
+name = "kb-llm-fake-server"
+path = "fake-server/main.rs"
+test = false
+doc = false
 
 [lints]
 workspace = true
